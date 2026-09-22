@@ -13,3 +13,13 @@ __pycache__/
 .claude/memory/
 # Claude setup backups
 .claude/.backups/
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated at build time from Sleeper
+frontend/public/data/
+
+# Media and write-ups live in S3, never in this public repo
+*.pdf
+*.mp4
+*.mov

@@ -1,0 +1,109 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  # The site bucket is named after the domain (Terraform var.domain_name).
+  S3_BUCKET: smirnoff.xomware.com
+
+permissions:
+  contents: read
+
+jobs:
+  # AWS_ROLE_ARN comes from the first Terraform apply, so the first push to main
+  # runs before it exists. Secrets cannot be read in a job-level `if`, hence
+  # this job.
+  check-role:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        env:
+          AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+        run: |
+          if [ -z "$AWS_ROLE_ARN" ]; then
+            echo "::notice::AWS_ROLE_ARN is not set; skipping deploy. Set it to the deploy_role_arn Terraform output."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: check-role
+    if: needs.check-role.outputs.configured == 'true'
+    permissions:
+      id-token: write # mint the OIDC token traded for the deploy role
+      contents: read
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Found by the alias it serves rather than stored as a secret: exactly one
+      # distribution fronts this hostname.
+      - name: Resolve CloudFront distribution
+        run: |
+          set -euo pipefail
+          ID=$(aws cloudfront list-distributions \
+            --query "DistributionList.Items[?contains(Aliases.Items || \`[]\`, '${S3_BUCKET}')].Id | [0]" \
+            --output text)
+          if [ -z "$ID" ] || [ "$ID" = "None" ]; then
+            echo "No CloudFront distribution serves ${S3_BUCKET}" >&2
+            exit 1
+          fi
+          echo "DISTRIBUTION_ID=$ID" >> "$GITHUB_ENV"
+
+      - name: Sync to S3
+        # Hashed assets first with a long cache, then HTML, so no HTML lands
+        # before the chunks it references.
+        #
+        # No --delete: a tab loaded from the previous build keeps fetching that
+        # build's assets and RSC payloads on client navigation. Deleting them
+        # turns every link in that tab into a silent no-op until a hard refresh.
+        # Old builds are pruned below instead.
+        run: |
+          aws s3 sync ./out "s3://${S3_BUCKET}/" \
+            --exclude "*.html" --exclude "*.txt" \
+            --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync ./out "s3://${S3_BUCKET}/" \
+            --exclude "*" --include "*.html" --include "*.txt" \
+            --cache-control "no-cache, must-revalidate"
+
+      - name: Prune assets older than 7 days
+        # Far longer than anyone keeps a tab open, short enough that orphaned
+        # builds never pile up.
+        run: |
+          CUTOFF=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          aws s3api list-objects-v2 --bucket "${S3_BUCKET}" --prefix "_next/static/" \
+            --query "Contents[?LastModified<'${CUTOFF}'].Key" --output text \
+          | tr '\t' '\n' | while read -r key; do
+              [ -n "$key" ] && [ "$key" != "None" ] && aws s3 rm "s3://${S3_BUCKET}/$key"
+            done
+
+      - name: Invalidate CloudFront
+        run: aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths "/*"

@@ -8,7 +8,7 @@ completed goals move to `goals/ARCHIVE.md`. If this file is growing, something i
 
 | Goal | File | Tracking | Status | Started |
 | ---- | ---- | -------- | ------ | ------- |
-| Smirnoff League: MVP + onboarding | `goals/2026-09-22-smirnoff-league.md` | #1 | not started | 2026-09-22 |
+| Smirnoff League: MVP + onboarding | `goals/2026-09-22-smirnoff-league.md` | #1 | in progress | 2026-09-22 |
 
 ## Status values
 
