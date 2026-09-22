@@ -24,6 +24,7 @@ function matchupsFor(week: number, currentWeek: number): Promise<SleeperMatchup[
 
 export function useSeasonIces(currentWeek: number | undefined) {
   const [tally, setTally] = useState<SeasonTally | null>(null);
+  const [finishedWeeks, setFinishedWeeks] = useState<{ week: number; matchups: SleeperMatchup[] }[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,12 +32,16 @@ export function useSeasonIces(currentWeek: number | undefined) {
     let live = true;
     const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
     Promise.all(weeks.map((week) => matchupsFor(week, currentWeek).then((matchups) => ({ week, matchups }))))
-      .then((rows) => live && setTally(seasonTally(rows, currentWeek)))
+      .then((rows) => {
+        if (!live) return;
+        setTally(seasonTally(rows, currentWeek));
+        setFinishedWeeks(rows.filter((w) => w.week < currentWeek));
+      })
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
     };
   }, [currentWeek]);
 
-  return { tally, error };
+  return { tally, finishedWeeks, error };
 }
