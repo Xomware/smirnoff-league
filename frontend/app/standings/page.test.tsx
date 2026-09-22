@@ -6,7 +6,7 @@ import StandingsPage from "./page";
 
 beforeEach(stubSleeper);
 afterEach(() => {
-  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 const badgeOf = (team: string) => screen.getByText(team).closest(".xp-team")?.querySelector(".ice-badge");

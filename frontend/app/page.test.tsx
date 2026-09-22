@@ -6,7 +6,7 @@ import Home from "./page";
 
 beforeEach(stubSleeper);
 afterEach(() => {
-  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("Home", () => {

@@ -45,13 +45,12 @@ const responses: Record<string, unknown> = {
   },
 };
 
+// A spy rather than vi.stubGlobal: unstubAllGlobals would also drop the
+// IntersectionObserver stub from vitest.setup.ts that next/link needs.
 export function stubSleeper() {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (url: string) => {
-      const path = url.replace("https://api.sleeper.app/v1", "");
-      if (!(path in responses)) return new Response("not found", { status: 404 });
-      return new Response(JSON.stringify(responses[path]), { status: 200 });
-    }),
-  );
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const path = String(input).replace("https://api.sleeper.app/v1", "");
+    if (!(path in responses)) return new Response("not found", { status: 404 });
+    return new Response(JSON.stringify(responses[path]), { status: 200 });
+  });
 }
