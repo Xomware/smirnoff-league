@@ -22,10 +22,13 @@ import {
   ScoresIcon,
   StandingsIcon,
 } from "@/components/xp/icons";
+import { useLeague } from "@/lib/league/use-league";
 import type { WindowParams, WindowState } from "./windows";
 
+type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
+
 export interface WindowSpec {
-  title: string | ((params: WindowParams) => string);
+  title: string | ((params: WindowParams, league: League) => string);
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
   component: ComponentType<{ params: WindowParams }>;
   defaultSize: { w: number; h: number };
@@ -57,15 +60,30 @@ const SPECS = {
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
-  team: { title: "Team Profile", Icon: ProfileIcon, component: TeamWindow, defaultSize: { w: 600, h: 600 } },
-  player: { title: "Player Card", Icon: ProfileIcon, component: PlayerWindow, defaultSize: { w: 520, h: 520 } },
+  team: {
+    title: (p, { data, teamFor }) => (data ? `Team Profile - ${teamFor(Number(p.rosterId)).name}` : "Team Profile"),
+    Icon: ProfileIcon,
+    component: TeamWindow,
+    defaultSize: { w: 600, h: 600 },
+  },
+  player: {
+    title: (p, { data }) => data?.players[String(p.playerId)]?.name ?? "Player Card",
+    Icon: ProfileIcon,
+    component: PlayerWindow,
+    defaultSize: { w: 520, h: 520 },
+  },
   week: { title: (p) => `Week ${p.week}`, Icon: ScoresIcon, component: WeekWindow, defaultSize: { w: 600, h: 600 } },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;
 export const REGISTRY: Record<WindowKind, WindowSpec> = SPECS;
 
-export function windowTitle({ kind, params }: WindowState): string {
-  const { title } = REGISTRY[kind];
-  return typeof title === "string" ? title : title(params);
+// Team and player titles need the league, so the window and its taskbar tab
+// both read titles through this hook.
+export function useWindowTitle(): (win: WindowState) => string {
+  const { data, teamFor } = useLeague();
+  return ({ kind, params }) => {
+    const { title } = REGISTRY[kind];
+    return typeof title === "string" ? title : title(params, { data, teamFor });
+  };
 }

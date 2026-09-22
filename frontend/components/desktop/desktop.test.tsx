@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/windows/ScoresWindow", () => ({
@@ -85,10 +85,31 @@ describe("drill-down", () => {
     fireEvent.click(team6);
 
     const teamTabs = within(screen.getByRole("list", { name: "Open windows" })).getAllByRole("button", {
-      name: "Team Profile",
+      name: "Team Profile - Team 6",
     });
     expect(teamTabs).toHaveLength(1);
     expect(teamTabs[0].getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
+describe("shared league data", () => {
+  it("fetches the league once for Standings and two Team windows, titled by team name", async () => {
+    renderDesktop();
+    const standings = windowNamed("League Standings");
+    fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
+    fireEvent.click(within(standings).getByText("Team 9").closest("button")!);
+
+    for (const name of ["Team Profile - Team 6", "Team Profile - Team 9"]) {
+      await waitFor(() => expect(windowNamed(name)).toBeTruthy());
+      expect(within(windowNamed(name)).getByRole("heading", { level: 2 }).textContent).toBe(name);
+      expect(tab(name)).toBeTruthy();
+    }
+    await screen.findAllByRole("table", { name: "Weekly results" });
+    const calls = (path: string) =>
+      vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith(path)).length;
+    for (const path of ["/league/1394061072742227968", "/users", "/rosters", "/data/players.json"]) {
+      expect(calls(path), path).toBe(1);
+    }
   });
 });
 
