@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
+import { stubSleeper } from "@/lib/test/league-mock";
 import { IceBadge } from "./IceBadge";
 import { PlayerRow } from "./PlayerRow";
 import { Taskbar } from "./Taskbar";
@@ -50,6 +51,12 @@ const renderTaskbar = () =>
   );
 
 describe("Start menu", () => {
+  // Taskbar tabs read the league for window titles.
+  beforeEach(stubSleeper);
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("opens from Start, and its items open windows on the desktop", () => {
     renderTaskbar();
     const start = screen.getByRole("button", { name: /start/i });

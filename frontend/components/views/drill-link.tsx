@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext } from "react";
+import { createContext, type MouseEvent, type ReactNode, useContext } from "react";
 
 export type DrillTarget =
   | { kind: "team"; rosterId: number }
@@ -10,6 +10,10 @@ export type DrillTarget =
 // The window manager provides the real opener; outside it a click does nothing.
 export const DrillContext = createContext<(to: DrillTarget) => void>(() => {});
 
+// Set by the window a link sits in. Outside any window it is null and every
+// drill opens a new window.
+export const NavigateContext = createContext<((to: DrillTarget) => void) | null>(null);
+
 interface DrillLinkProps {
   to: DrillTarget;
   children: ReactNode;
@@ -17,8 +21,10 @@ interface DrillLinkProps {
 
 export function DrillLink({ to, children }: DrillLinkProps) {
   const onOpen = useContext(DrillContext);
+  const navigate = useContext(NavigateContext);
+  const onClick = (e: MouseEvent) => (navigate && !e.ctrlKey && !e.metaKey ? navigate(to) : onOpen(to));
   return (
-    <button type="button" className="xp-drill" onClick={() => onOpen(to)}>
+    <button type="button" className="xp-drill" onClick={onClick} onAuxClick={(e) => e.button === 1 && onOpen(to)}>
       {children}
     </button>
   );

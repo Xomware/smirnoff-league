@@ -207,3 +207,21 @@ export function RestoreGlyph(props: IconProps) {
     </Icon>
   );
 }
+
+function NavArrow({ d, ...props }: IconProps & { d: string }) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="7" className="fill-(--xp-start) stroke-(--xp-start-dark)" />
+      <path d="M4 5.5a5 4 0 0 1 8 0" className="fill-none stroke-(--xp-start-light) stroke-2 opacity-70" />
+      <path d={d} className="fill-(--xp-text-inverse)" />
+    </Icon>
+  );
+}
+
+export function BackArrowIcon(props: IconProps) {
+  return <NavArrow d="M3.5 8L7.5 4.5v2h5v3h-5v2z" {...props} />;
+}
+
+export function ForwardArrowIcon(props: IconProps) {
+  return <NavArrow d="M12.5 8L8.5 4.5v2h-5v3h5v2z" {...props} />;
+}
