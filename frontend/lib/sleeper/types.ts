@@ -42,7 +42,9 @@ export interface SleeperMatchup {
   matchup_id: number | null;
   points: number;
   custom_points: number | null;
-  starters: string[];
+  // null when Sleeper has no lineup data for the roster yet (seen W3 2026);
+  // an actual empty slot is "0".
+  starters: string[] | null;
   starters_points: number[];
   players: string[] | null;
   players_points: Record<string, number> | null;

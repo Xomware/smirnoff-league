@@ -38,7 +38,7 @@ function goldenWeek(week: number): GoldenWeek {
 }
 
 function rosterStarting(week: GoldenWeek, playerId: string): number {
-  const row = week.matchups.find((m) => m.starters.includes(playerId));
+  const row = week.matchups.find((m) => m.starters?.includes(playerId));
   if (!row) throw new Error(`nobody started ${playerId} in week ${week.week}`);
   return row.roster_id;
 }
@@ -161,6 +161,16 @@ describe("weekIces rules", () => {
     ]);
   });
 
+  it("S11: a roster Sleeper returns with null starters is skipped, not iced", () => {
+    // Real W3 data: roster 10 came back with starters null and 0 points
+    // while its roster had a full lineup. Missing data, not an empty lineup.
+    const missing = row(1, 0, { starters: null, starters_points: [] });
+    const ices = weekIces(3, [missing, row(2, 90), row(3, 120)], SLOTS, ON);
+
+    expect(ices.filter((i) => i.rosterId === 1)).toEqual([]);
+    expect(ices.filter((i) => i.reason === "lowest").map((i) => i.rosterId)).toEqual([2]);
+  });
+
   it("S6: a tie for lowest after rounding gives both rosters an ice", () => {
     const ices = weekIces(3, [row(1, 101.3), row(2, 101.29999999999998), row(3, 120)], SLOTS, ON);
 
@@ -204,7 +214,7 @@ describe("season tally from real weeks", () => {
     const w2 = goldenWeek(2);
     // W3: W1's scores replayed, with roster 3 leaving its QB slot empty.
     const w3 = w1.matchups.map((m) =>
-      m.roster_id === 3 ? { ...m, starters: ["0", ...m.starters.slice(1)] } : m,
+      m.roster_id === 3 ? { ...m, starters: ["0", ...m.starters!.slice(1)] } : m,
     );
     // W15: W2's scores replayed after the ice rules switch off.
     const season: [number, MatchupRow[]][] = [
