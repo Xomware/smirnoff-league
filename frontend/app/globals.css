@@ -1,1 +1,320 @@
 @import "tailwindcss";
+
+:root {
+  --xp-font: Tahoma, Verdana, "Segoe UI", sans-serif;
+  --xp-title-font: "Trebuchet MS", Tahoma, sans-serif;
+
+  --xp-text: #1b1b17;
+  --xp-text-inverse: #fbfbf6;
+  --xp-face: #ece9d8;
+  --xp-face-shadow: #aca899;
+  --xp-cream: #fbf8ec;
+  --xp-select: #316ac5;
+
+  --xp-sky-top: #2b64c9;
+  --xp-sky-bottom: #8ec1f2;
+  --xp-hill: #4f9a2f;
+  --xp-hill-dark: #3a7a1f;
+
+  --xp-title-light: #3d95ff;
+  --xp-title: #0a5ce6;
+  --xp-title-dark: #0544c4;
+  --xp-frame: #0831d9;
+  --xp-close: #e0533a;
+  --xp-close-dark: #b4321b;
+
+  --xp-taskbar-light: #3f8cf3;
+  --xp-taskbar: #245edb;
+  --xp-taskbar-dark: #1941a5;
+  --xp-tray: #0b67c2;
+  --xp-tray-dark: #094f9e;
+
+  --xp-start-light: #5fbf55;
+  --xp-start: #3a9a36;
+  --xp-start-dark: #2b7a28;
+
+  --xp-menu-side: #d3e5fa;
+  --xp-red: #c8311e;
+  --xp-wood: #9b5a24;
+  --xp-screen: #1e2c3a;
+  --xp-lime: #7cf05a;
+  --xp-gold: #e8b92c;
+  --xp-silver: #c9ccd1;
+  --xp-bronze: #c07a3e;
+
+  --ice-tint: #e3f3ff;
+  --ice-glass: #cfeafb;
+  --ice-frost: #9fd4f5;
+  --ice-deep: #1d6fa8;
+  --ice-label: #1d4f91;
+  --ice-glow: rgb(150 215 255 / 0.9);
+
+  --taskbar-height: 44px;
+}
+
+@layer base {
+  body {
+    font-family: var(--xp-font);
+    color: var(--xp-text);
+    background:
+      radial-gradient(ellipse 120% 40% at 30% 100%, var(--xp-hill) 60%, transparent 61%),
+      radial-gradient(ellipse 90% 30% at 90% 100%, var(--xp-hill-dark) 60%, transparent 61%),
+      linear-gradient(var(--xp-sky-top), var(--xp-sky-bottom));
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .xp-window {
+    width: min(100%, 40rem);
+    border: 3px solid var(--xp-frame);
+    border-top-width: 0;
+    border-radius: 8px 8px 0 0;
+    background: var(--xp-face);
+    box-shadow: 2px 3px 8px rgb(10 30 80 / 0.4);
+  }
+
+  .xp-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+    border-radius: 7px 7px 0 0;
+    color: var(--xp-text-inverse);
+    background: linear-gradient(var(--xp-title-light), var(--xp-title) 20%, var(--xp-title) 80%, var(--xp-title-dark));
+  }
+
+  .xp-titlebar-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: bold 0.875rem var(--xp-title-font);
+    text-shadow: 1px 1px var(--xp-frame);
+  }
+
+  .xp-titlebar-controls {
+    display: flex;
+    gap: 2px;
+  }
+
+  .xp-control {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 1px solid var(--xp-text-inverse);
+    border-radius: 3px;
+    color: var(--xp-text-inverse);
+    background: linear-gradient(135deg, var(--xp-title-light), var(--xp-title-dark));
+  }
+
+  .xp-control-close {
+    background: linear-gradient(135deg, var(--xp-close), var(--xp-close-dark));
+  }
+
+  .xp-window-body {
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .xp-taskbar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 50;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    height: var(--taskbar-height);
+    background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar) 15%, var(--xp-taskbar) 85%, var(--xp-taskbar-dark));
+  }
+
+  .xp-start {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 6.5rem;
+    padding: 0 1.25rem 0 0.75rem;
+    border-radius: 0 12px 12px 0;
+    color: var(--xp-text-inverse);
+    font: italic bold 1.25rem var(--xp-title-font);
+    text-shadow: 1px 1px 2px var(--xp-start-dark);
+    background: linear-gradient(var(--xp-start-light), var(--xp-start) 30%, var(--xp-start-dark));
+    box-shadow: inset -2px 0 3px var(--xp-start-dark);
+    cursor: pointer;
+  }
+
+  .xp-start:hover {
+    filter: brightness(1.12);
+  }
+
+  .xp-start:active,
+  .xp-start[aria-expanded="true"] {
+    background: linear-gradient(var(--xp-start-dark), var(--xp-start) 70%, var(--xp-start-light));
+  }
+
+  .xp-start:focus-visible,
+  .xp-start-menu-link:focus-visible {
+    outline: 2px dotted var(--xp-text-inverse);
+    outline-offset: -5px;
+  }
+
+  .xp-tray {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border-left: 1px solid var(--xp-tray-dark);
+    color: var(--xp-text-inverse);
+    font-size: 0.8125rem;
+    background: linear-gradient(var(--xp-tray), var(--xp-tray-dark));
+  }
+
+  .xp-start-menu {
+    position: fixed;
+    bottom: var(--taskbar-height);
+    left: 0;
+    z-index: 50;
+    width: min(20rem, 100vw);
+    border: 2px solid var(--xp-taskbar-dark);
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    background: var(--xp-cream);
+    box-shadow: 3px -2px 10px rgb(10 30 80 / 0.5);
+  }
+
+  .xp-start-menu-header,
+  .xp-start-menu-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--xp-text-inverse);
+    background: linear-gradient(var(--xp-title-light), var(--xp-title-dark));
+  }
+
+  .xp-start-menu-header {
+    font: bold 1rem var(--xp-title-font);
+    text-shadow: 1px 1px var(--xp-frame);
+  }
+
+  .xp-start-menu-footer {
+    justify-content: flex-end;
+    background: linear-gradient(var(--xp-title), var(--xp-title-dark));
+    font-size: 0.75rem;
+  }
+
+  .xp-start-menu-avatar {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 2px solid var(--xp-text-inverse);
+    border-radius: 4px;
+    background: var(--ice-tint);
+  }
+
+  .xp-start-menu-list {
+    padding: 0.25rem;
+    border-right: 4rem solid var(--xp-menu-side);
+  }
+
+  .xp-start-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+    padding: 0 0.625rem;
+    font-size: 0.875rem;
+    font-weight: bold;
+  }
+
+  .xp-start-menu-link:hover,
+  .xp-start-menu-link:focus-visible {
+    color: var(--xp-text-inverse);
+    background: var(--xp-select);
+  }
+
+  .xp-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .xp-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--xp-face-shadow);
+    border-radius: 3px;
+    font-weight: bold;
+    background: var(--xp-cream);
+  }
+
+  .xp-team-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  .xp-player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid transparent;
+    border-bottom-color: var(--xp-face-shadow);
+  }
+
+  .xp-player-pos {
+    flex: none;
+    width: 2.25rem;
+    font-size: 0.6875rem;
+    font-weight: bold;
+  }
+
+  .xp-player-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .xp-player-pts {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ice {
+    border: 1px solid var(--ice-frost);
+    color: var(--ice-deep);
+    background: linear-gradient(160deg, var(--xp-cream), var(--ice-tint) 45%, var(--ice-glass));
+    box-shadow: inset 0 0 6px var(--ice-glow), 0 0 4px var(--ice-glow);
+    text-shadow: 0 0 3px var(--ice-glow), 0 1px 0 var(--xp-text-inverse);
+  }
+
+  .xp-team-name.ice {
+    padding: 0 0.375rem;
+    border-radius: 3px;
+  }
+
+  .ice-badge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.0625rem 0.375rem 0.0625rem 0.125rem;
+    border: 1px solid var(--ice-frost);
+    border-radius: 999px;
+    color: var(--ice-label);
+    font-size: 0.6875rem;
+    font-weight: bold;
+    background: linear-gradient(var(--xp-cream), var(--ice-glass));
+    box-shadow: 0 0 4px var(--ice-glow);
+  }
+}
