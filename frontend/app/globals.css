@@ -1018,11 +1018,13 @@
     }
 
     /* A 44px hit area without growing the rows or the sentences drill links sit in. */
-    .xp-drill {
+    .xp-drill,
+    .xp-sort {
       position: relative;
     }
 
-    .xp-drill::after {
+    .xp-drill::after,
+    .xp-sort::after {
       content: "";
       position: absolute;
       top: 50%;
@@ -1038,6 +1040,8 @@
     .xp-slot-from,
     .xp-tag,
     .xp-player-pos,
+    .xp-watch-tag,
+    .xp-game-chip,
     .ice-badge {
       font-size: 0.75rem;
     }

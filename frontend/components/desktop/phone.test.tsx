@@ -36,6 +36,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  // The desktop mirrors its windows into ?open=, which the next render would reopen.
+  window.history.replaceState(null, "", "/");
 });
 
 describe("phone taskbar", () => {
@@ -79,7 +81,7 @@ describe("at 390px", () => {
     renderDesktop();
 
     fireEvent.click(screen.getByRole("button", { name: "start" }));
-    fireEvent.click(screen.getByRole("link", { name: "Scores" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Start menu" })).getByRole("button", { name: "Scores" }));
     const scores = visibleWindows()[0];
     expect(visibleWindows()).toHaveLength(1);
     expect(scores.getAttribute("aria-label")).toBe("Scores");

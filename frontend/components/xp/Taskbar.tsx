@@ -70,7 +70,7 @@ export function Taskbar() {
             openWindow(kind);
           }}
           onReset={() => {
-            setOpen(false);
+            setMenu(null);
             dispatch({ type: "restore", windows: defaultLayout(window.innerWidth, window.innerHeight) });
           }}
           onEditProfile={() => {
