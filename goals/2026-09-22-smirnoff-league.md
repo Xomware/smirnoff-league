@@ -5,7 +5,7 @@
 **Tracking issue:** #1
 **Repo:** Xomware/smirnoff-league
 **Base branch:** main
-**Status:** not started
+**Status:** in progress
 
 ## Objective
 
@@ -41,7 +41,7 @@ A signed-in-only Smirnoff League site on `smirnoff.xomware.com`. It has a public
 
 ### Task 0.1 — Terraform OIDC roles
 - **Issue:** #2
-- **Status:** `todo`
+- **Status:** `done` — Xomware/xomware-infrastructure#67 (merged, applied)
 - **Files:** `xomware-infrastructure/terraform/oidc_smirnoff_terraform.tf`
 - **Depends on:** none
 - **Approach:** copy `oidc_reeses_terraform.tf`, swap the repo name/id, merge to `master`, set the two repo secrets
@@ -54,13 +54,13 @@ A signed-in-only Smirnoff League site on `smirnoff.xomware.com`. It has a public
 
 ### Task A.1 — Scaffold + hosting + CI
 - **Issue:** #3
-- **Status:** `todo`
+- **Status:** `in progress`
 - **Files:** `frontend/`, `infrastructure/terraform/*`, `.github/workflows/{terraform,deploy-frontend}.yml`
 - **Depends on:** #2
 
 ### Task A.2 — Cognito app client
 - **Issue:** #4
-- **Status:** `todo`
+- **Status:** `done` — Xomware/xomware-infrastructure#68 (merged, applied)
 - **Files:** `xomware-infrastructure/terraform/{cognito,cognito_ssm}.tf`
 - **Depends on:** none
 
@@ -132,6 +132,9 @@ Tests and definition of done for each task are in its issue.
 
 | Date | Task | Issue | PR | Commit | Notes / gotchas |
 | ---- | ---- | ----- | -- | ------ | --------------- |
+| 2026-09-22 | 0.1 | #2 | xomware-infrastructure#67 | feature/smirnoff-terraform-roles | Plan 6 add/0 change. Reuses reeses guardrail + state-lock policy docs. Secrets set by Dom after apply |
+| 2026-09-22 | A.2 | #4 | xomware-infrastructure#68 | feature/smirnoff-cognito-client | Plan 2 add/0 change. Google-only client (no COGNITO provider), unlike reeses |
+| 2026-09-22 | A.1 | #3 | (this PR) | feature/3-scaffold-hosting | next 16.3.6 (16.3.0 has a critical advisory, reeses still on it). No KMS; deploy role in this stack. AWS_ROLE_ARN set after first apply |
 
 ## Open questions / deferred
 
