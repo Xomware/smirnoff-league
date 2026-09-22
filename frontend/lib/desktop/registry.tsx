@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
+import { StatsView } from "@/components/views/stats-view";
 import { BracketsWindow } from "@/components/windows/BracketsWindow";
 import { HomeWindow } from "@/components/windows/HomeWindow";
 import { IcesWindow } from "@/components/windows/IcesWindow";
@@ -9,6 +10,7 @@ import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
 import {
   BracketIcon,
+  ChartIcon,
   IceBottleIcon,
   IceCubeIcon,
   InfoIcon,
@@ -25,7 +27,7 @@ export interface WindowSpec {
   defaultSize: { w: number; h: number };
 }
 
-// One entry per window kind. Later kinds (team, player, week, stats) append here.
+// One entry per window kind. Later kinds (team, player, week) append here.
 const SPECS = {
   home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: 240 } },
   recap: { title: "Now Playing - Draft Recap", Icon: MediaPlayerIcon, component: RecapWindow, defaultSize: { w: 640, h: 420 } },
@@ -34,6 +36,7 @@ const SPECS = {
   standings: { title: "League Standings", Icon: StandingsIcon, component: StandingsWindow, defaultSize: { w: 520, h: 520 } },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
+  stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;

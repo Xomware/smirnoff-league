@@ -7,6 +7,7 @@ import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
+import { SpeakerToggle } from "./SpeakerToggle";
 import { StartMenu } from "./StartMenu";
 
 function subscribeToClock(onTick: () => void) {
@@ -99,7 +100,10 @@ export function Taskbar() {
             );
           })}
         </ul>
-        <time className="xp-tray">{time}</time>
+        <div className="xp-tray">
+          <SpeakerToggle />
+          <time>{time}</time>
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { WindowKind } from "@/lib/desktop/registry";
 import {
   BracketIcon,
+  ChartIcon,
   HomeIcon,
   IceBottleIcon,
   IceCubeIcon,
@@ -17,6 +18,7 @@ const ITEMS = [
   { kind: "standings", label: "Standings", Icon: StandingsIcon },
   { kind: "brackets", label: "Brackets", Icon: BracketIcon },
   { kind: "ices", label: "Ice Ledger", Icon: IceCubeIcon },
+  { kind: "stats", label: "Ice Stats", Icon: ChartIcon },
 ] as const;
 
 interface StartMenuProps {

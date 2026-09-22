@@ -79,6 +79,15 @@ export function BracketIcon(props: IconProps) {
   );
 }
 
+export function ChartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="1.5" width="13" height="13" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M4 12.5v-4M7 12.5v-7M10 12.5v-3M13 12.5v-8" className="stroke-(--ice-deep) stroke-2" />
+    </Icon>
+  );
+}
+
 export function MediaPlayerIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -120,11 +129,42 @@ export function ProfileIcon(props: IconProps) {
 export function InfoIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-select) stroke-(--xp-title-dark)" />
-      <path d="M8 7v5M8 4.5v1" className="stroke-(--xp-text-inverse) stroke-[1.5]" />
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-select) stroke-(--xp-frame)" />
+      <path d="M8 7v4.5M8 4.5v1" className="stroke-(--xp-text-inverse) stroke-[1.5]" />
     </Icon>
   );
 }
+
+export function ErrorIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-red) stroke-(--xp-close-dark)" />
+      <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" className="stroke-(--xp-text-inverse) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
+export function SpeakerIcon({ muted, ...props }: IconProps & { muted: boolean }) {
+  return (
+    <Icon {...props}>
+      <path d="M2 6h2.5L8 3v10l-3.5-3H2z" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      {muted ? (
+        <path d="M10 6l4 4M14 6l-4 4" className="stroke-(--xp-red) stroke-[1.5]" />
+      ) : (
+        <path d="M10 6a3 3 0 0 1 0 4M11.5 4.5a5 5 0 0 1 0 7" className="fill-none stroke-(--xp-cream)" />
+      )}
+    </Icon>
+  );
+}
+
+export const ALERT_ICONS = {
+  ice: IceBottleIcon,
+  info: InfoIcon,
+  warning: WarningIcon,
+  error: ErrorIcon,
+};
+
+export type AlertIconName = keyof typeof ALERT_ICONS;
 
 export function MinimizeGlyph(props: IconProps) {
   return (
