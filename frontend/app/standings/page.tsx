@@ -5,11 +5,14 @@ import { Fragment, useMemo } from "react";
 import { StandingsIcon, WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
+import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { dangerZone, sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
 
 export default function StandingsPage() {
   const { data, error, teamFor } = useLeague();
+  const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
+  const owed = (rosterId: number) => tally?.owed.find((t) => t.rosterId === rosterId)?.total ?? 0;
   const playoffTeams = data?.league.settings.playoff_teams ?? 0;
 
   const rows = useMemo(() => (data ? sortStandings(data.rosters) : []), [data]);
@@ -54,7 +57,7 @@ export default function StandingsPage() {
                         </span>
                       </td>
                       <td className="max-w-0">
-                        <TeamName name={teamFor(s.rosterId).name} iced={false} ices={0} />
+                        <TeamName name={teamFor(s.rosterId).name} iced={owed(s.rosterId) > 0} ices={owed(s.rosterId)} />
                       </td>
                       <td className="tabular-nums">
                         {s.wins}-{s.losses}
