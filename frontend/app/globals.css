@@ -196,6 +196,58 @@
     letter-spacing: 0.05em;
   }
 
+  .xp-round-title {
+    margin-bottom: 0.375rem;
+    font-weight: bold;
+  }
+
+  .xp-bracket-match {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid var(--xp-face-shadow);
+    border-radius: 3px;
+    background: var(--xp-cream);
+  }
+
+  .xp-slot {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    min-height: 2rem;
+  }
+
+  .xp-slot-out .xp-team-name {
+    text-decoration: line-through;
+    font-weight: normal;
+  }
+
+  .xp-seed {
+    flex: none;
+    width: 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: bold;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .xp-slot-from {
+    font-size: 0.6875rem;
+  }
+
+  .xp-tag {
+    flex: none;
+    padding: 0 0.375rem;
+    border: 1px solid var(--xp-text);
+    border-radius: 3px;
+    font-size: 0.6875rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    background: var(--xp-balloon);
+  }
+
   .xp-window {
     width: min(100%, 40rem);
     border: 3px solid var(--xp-frame);
