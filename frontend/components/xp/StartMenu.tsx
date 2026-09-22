@@ -7,6 +7,7 @@ import {
   HomeIcon,
   IceBottleIcon,
   IceCubeIcon,
+  IceStandingsIcon,
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
@@ -21,6 +22,7 @@ const ITEMS = [
   { kind: "ices", label: "Ice Ledger", Icon: IceCubeIcon },
   { kind: "watch", label: "Ice Watch", Icon: StopwatchIcon },
   { kind: "stats", label: "Ice Stats", Icon: ChartIcon },
+  { kind: "ice-standings", label: "Ice Standings", Icon: IceStandingsIcon },
 ] as const;
 
 interface StartMenuProps {

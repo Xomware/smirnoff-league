@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
+import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { PlayerView } from "@/components/views/player-view";
 import { StatsView } from "@/components/views/stats-view";
 import { TeamView } from "@/components/views/team-view";
@@ -17,6 +18,7 @@ import {
   ChartIcon,
   IceBottleIcon,
   IceCubeIcon,
+  IceStandingsIcon,
   InfoIcon,
   MediaPlayerIcon,
   ProfileIcon,
@@ -63,6 +65,7 @@ const SPECS = {
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
+  "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
   team: {
     title: (p, { data, teamFor }) => (data ? `Team Profile - ${teamFor(Number(p.rosterId)).name}` : "Team Profile"),
     Icon: ProfileIcon,
