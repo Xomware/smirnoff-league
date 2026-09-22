@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { useAuth } from "@/lib/auth/use-auth";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
+import { SpeakerToggle } from "./SpeakerToggle";
 import { StartMenu } from "./StartMenu";
 
 function subscribeToClock(onTick: () => void) {
@@ -74,7 +75,10 @@ export function Taskbar() {
           <IceBottleIcon width={20} height={20} />
           start
         </button>
-        <time className="xp-tray">{time}</time>
+        <div className="xp-tray">
+          <SpeakerToggle />
+          <time>{time}</time>
+        </div>
       </div>
     </div>
   );

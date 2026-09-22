@@ -18,6 +18,10 @@ vi.stubGlobal(
     }) as unknown as MediaQueryList,
 );
 
+// Node 25 defines its own global localStorage, which is an empty stub unless
+// node runs with --localstorage-file, and it shadows jsdom's working one.
+vi.stubGlobal("localStorage", (globalThis as unknown as { jsdom: { window: Window } }).jsdom.window.localStorage);
+
 vi.stubGlobal(
   "IntersectionObserver",
   class {
