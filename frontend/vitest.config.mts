@@ -6,7 +6,8 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    environment: "node",
+    environment: "jsdom",
     include: ["**/*.test.{ts,tsx}"],
+    setupFiles: ["./vitest.setup.ts"],
   },
 });
