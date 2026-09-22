@@ -1,0 +1,14 @@
+{
+  "$comment": "Declaring the marketplace and plugin here means cloud sessions and scheduled routines install them at session start. Plugins enabled only in user settings do not transfer to those environments.",
+  "extraKnownMarketplaces": {
+    "xomware": {
+      "source": {
+        "source": "github",
+        "repo": "Xomware/xomware-claude-setup"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "xomware@xomware": true
+  }
+}

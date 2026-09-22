@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+.env*
+__pycache__/
+.pytest_cache/
+.venv/
+.terraform/
+*.tfstate*
+.DS_Store
+
+# Claude Code session memory (personal, not shared)
+.claude/memory/
+# Claude setup backups
+.claude/.backups/
