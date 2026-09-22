@@ -20,9 +20,10 @@ const LINKS: { href: string; label: string; Icon: ComponentType<SVGProps<SVGSVGE
 interface StartMenuProps {
   id: string;
   onNavigate: () => void;
+  onSignOut: () => void;
 }
 
-export function StartMenu({ id, onNavigate }: StartMenuProps) {
+export function StartMenu({ id, onNavigate, onSignOut }: StartMenuProps) {
   return (
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
@@ -41,7 +42,12 @@ export function StartMenu({ id, onNavigate }: StartMenuProps) {
           </li>
         ))}
       </ul>
-      <div className="xp-start-menu-footer">Stay hydrated. Stay iced.</div>
+      <div className="xp-start-menu-footer">
+        <span className="mr-auto">Stay hydrated. Stay iced.</span>
+        <button type="button" className="xp-log-off" onClick={onSignOut}>
+          Sign out
+        </button>
+      </div>
     </nav>
   );
 }

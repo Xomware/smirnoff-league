@@ -9,6 +9,8 @@ import { useAuth } from "@/lib/auth/use-auth";
 
 interface AuthGateProps {
   children: ReactNode;
+  // App chrome (the taskbar) shown only to signed-in users, never on the landing.
+  shell?: ReactNode;
 }
 
 /**
@@ -22,12 +24,19 @@ interface AuthGateProps {
  * visitor is the common cold load, and the prerendered HTML then never
  * contains a gated page.
  */
-export function AuthGate({ children }: AuthGateProps) {
+export function AuthGate({ children, shell }: AuthGateProps) {
   const pathname = usePathname();
   const { status, signInWithGoogle } = useAuth();
 
   // The callback must render signed out: it is where the sign-in completes.
   if (pathname.replace(/\/$/, "") === CALLBACK_PATH) return children;
-  if (status === "signedIn") return children;
+  if (status === "signedIn") {
+    return (
+      <>
+        {children}
+        {shell}
+      </>
+    );
+  }
   return <Landing onSignIn={authConfigured ? signInWithGoogle : undefined} />;
 }
