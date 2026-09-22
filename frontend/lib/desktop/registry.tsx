@@ -25,7 +25,7 @@ import {
 import { useLeague } from "@/lib/league/use-league";
 import type { WindowParams, WindowState } from "./windows";
 
-type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
+export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
 
 export interface WindowSpec {
   title: string | ((params: WindowParams, league: League) => string);
@@ -78,12 +78,14 @@ const SPECS = {
 export type WindowKind = keyof typeof SPECS;
 export const REGISTRY: Record<WindowKind, WindowSpec> = SPECS;
 
+export function windowTitle({ kind, params }: WindowState, league: League): string {
+  const { title } = REGISTRY[kind];
+  return typeof title === "string" ? title : title(params, league);
+}
+
 // Team and player titles need the league, so the window and its taskbar tab
 // both read titles through this hook.
 export function useWindowTitle(): (win: WindowState) => string {
   const { data, teamFor } = useLeague();
-  return ({ kind, params }) => {
-    const { title } = REGISTRY[kind];
-    return typeof title === "string" ? title : title(params, { data, teamFor });
-  };
+  return (win) => windowTitle(win, { data, teamFor });
 }

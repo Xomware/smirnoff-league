@@ -2,10 +2,18 @@
 
 import { Component, type PointerEvent, type ReactNode, useLayoutEffect, useRef } from "react";
 
-import { CloseGlyph, MaximizeGlyph, MinimizeGlyph, RestoreGlyph } from "@/components/xp/icons";
+import { type DrillTarget, NavigateContext } from "@/components/views/drill-link";
+import {
+  BackArrowIcon,
+  CloseGlyph,
+  ForwardArrowIcon,
+  MaximizeGlyph,
+  MinimizeGlyph,
+  RestoreGlyph,
+} from "@/components/xp/icons";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
-import { TASKBAR_HEIGHT, type WindowState } from "@/lib/desktop/windows";
+import { historyOf, TASKBAR_HEIGHT, windowId, type WindowState } from "@/lib/desktop/windows";
 
 const MIN_W = 240;
 const MIN_H = 140;
@@ -51,6 +59,14 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
   const ref = useRef<HTMLElement>(null);
   const drag = useRef<Drag | null>(null);
   const focusOnMount = useRef(isActive);
+  const { views, at } = historyOf(win);
+
+  // The clicked link unmounts with the old view, so hand focus to the window
+  // rather than letting it fall to <body>.
+  const navigate = ({ kind, ...params }: DrillTarget) => {
+    dispatch({ type: "navigate", id, kind, params });
+    ref.current?.focus({ preventScroll: true });
+  };
 
   // A layout effect, not a passive one: focusing dispatches a focus action,
   // and a deferred one could land after the user opens another window and
@@ -129,9 +145,35 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
           </button>
         </span>
       </header>
-      <div className="xp-window-body">
+      {views.length > 1 && (
+        <div className="xp-toolbar">
+          <button
+            type="button"
+            className="xp-nav"
+            aria-label="Back"
+            disabled={at === 0}
+            onClick={() => dispatch({ type: "back", id })}
+          >
+            <BackArrowIcon width={24} height={24} />
+            <span aria-hidden>Back</span>
+          </button>
+          <button
+            type="button"
+            className="xp-nav"
+            aria-label="Forward"
+            disabled={at === views.length - 1}
+            onClick={() => dispatch({ type: "forward", id })}
+          >
+            <ForwardArrowIcon width={24} height={24} />
+          </button>
+        </div>
+      )}
+      {/* Keyed by view so each page starts scrolled to the top with fresh state. */}
+      <div className="xp-window-body" key={windowId(win.kind, win.params)}>
         <WindowBoundary>
-          <Body params={win.params} />
+          <NavigateContext value={navigate}>
+            <Body params={win.params} />
+          </NavigateContext>
         </WindowBoundary>
       </div>
       {!maximized && <div className="xp-resize" aria-hidden onPointerDown={(e) => start("resize", e)} {...dragHandlers} />}
