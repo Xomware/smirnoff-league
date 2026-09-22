@@ -95,9 +95,9 @@ describe("?open=", () => {
   it("opens the Team window for roster 6", async () => {
     renderAt("/?open=team:6");
 
-    const team = await screen.findByRole("region", { name: "Team Profile" });
+    const team = await screen.findByRole("region", { name: "Team Profile - Team 6" });
     expect(await within(team).findByText(/PF 194\.00/)).toBeTruthy();
-    expect(focusedTab()?.textContent).toBe("Team Profile");
+    expect(focusedTab()?.textContent).toBe("Team Profile - Team 6");
   });
 
   it("keeps the URL in sync as windows open and close", async () => {
@@ -119,7 +119,7 @@ describe("?open=", () => {
     );
     renderAt("/?open=standings,team:6");
 
-    const team = await screen.findByRole("region", { name: "Team Profile" });
+    const team = await screen.findByRole("region", { name: /^Team Profile/ });
     expect(team.hidden).toBe(false);
     expect(team.dataset.maximized).toBe("true");
     // Hidden windows drop out of the accessibility tree, so find it by label.
@@ -131,7 +131,7 @@ describe("?open=", () => {
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     renderAt("/?open=standings,team:6");
 
-    const team = await screen.findByRole("region", { name: "Team Profile" });
+    const team = await screen.findByRole("region", { name: /^Team Profile/ });
     fireEvent.click(within(team).getByRole("button", { name: "Copy link" }));
 
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/?open=team:6`);

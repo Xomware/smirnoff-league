@@ -15,7 +15,7 @@ import {
 import { useAlerts } from "@/lib/alerts/alerts";
 import { windowUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
-import { REGISTRY, windowTitle } from "@/lib/desktop/registry";
+import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { historyOf, TASKBAR_HEIGHT, windowId, type WindowState } from "@/lib/desktop/windows";
 
 const MIN_W = 240;
@@ -56,7 +56,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
   const { active, phone, dispatch } = useDesktop();
   const { notify } = useAlerts();
   const { Icon, component: Body } = REGISTRY[win.kind];
-  const title = windowTitle(win);
+  const title = useWindowTitle()(win);
   const { id } = win;
   const isActive = active?.id === id;
   const maximized = win.maximized || phone;

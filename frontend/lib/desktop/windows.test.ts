@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { windowTitle } from "./registry";
+import { type League, windowTitle } from "./registry";
 import { activeWindow, defaultLayout, desktopReducer, historyOf, type WindowState } from "./windows";
 
 const size = { w: 400, h: 300 };
@@ -85,6 +85,12 @@ describe("desktopReducer", () => {
   });
 });
 
+// Enough league for the titles that don't read it; named titles are in desktop.test.tsx.
+const noLeague: League = {
+  data: null,
+  teamFor: () => ({ name: "", avatarUrl: null, record: { wins: 0, losses: 0, ties: 0 } }),
+};
+
 describe("window history", () => {
   const standings = () => openAll("standings");
   const nav = (state: WindowState[], kind: "team" | "player" | "week", params: Record<string, number | string>) =>
@@ -95,7 +101,7 @@ describe("window history", () => {
 
     expect(state).toHaveLength(1);
     expect(state[0]).toMatchObject({ id: "standings", kind: "week", params: { week: 3 } });
-    expect(windowTitle(state[0])).toBe("Week 3");
+    expect(windowTitle(state[0], noLeague)).toBe("Week 3");
     expect(historyOf(state[0])).toEqual({
       views: [
         { kind: "standings", params: {} },
@@ -111,7 +117,7 @@ describe("window history", () => {
 
     state = desktopReducer(state, { type: "back", id: "standings" });
     expect(state[0]).toMatchObject({ kind: "standings", params: {} });
-    expect(windowTitle(state[0])).toBe("League Standings");
+    expect(windowTitle(state[0], noLeague)).toBe("League Standings");
     expect(desktopReducer(state, { type: "back", id: "standings" })).toBe(state);
 
     state = desktopReducer(state, { type: "forward", id: "standings" });
