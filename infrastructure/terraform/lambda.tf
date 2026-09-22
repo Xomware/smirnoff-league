@@ -7,9 +7,14 @@ locals {
     { name = "update", description = "Save the caller's profile", path_part = "update", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
-  all_api_lambdas = {
-    for l in local.users_lambdas : "users_${l.name}" => l
-  }
+  admin_lambdas = [
+    { name = "finalize", description = "Finalize or re-finalize a week's ices", path_part = "finalize", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+  ]
+
+  all_api_lambdas = merge(
+    { for l in local.users_lambdas : "users_${l.name}" => l },
+    { for l in local.admin_lambdas : "admin_${l.name}" => l },
+  )
 }
 
 resource "aws_lambda_function" "api" {
