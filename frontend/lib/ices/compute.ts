@@ -74,3 +74,9 @@ export function weekIces(
   // Code-point order, matching Python's sorted() in the fixture builder.
   return ices.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
+
+// While a week is live, a 0.0 may be a player who hasn't kicked off and the
+// lowest team can still change. Only an empty slot is certain before the week ends.
+export function lockedIces(week: number, matchups: MatchupRow[], slots: readonly string[]): Ice[] {
+  return weekIces(week, matchups, slots, defaultWeekSettings(week)).filter((i) => i.reason === "empty");
+}

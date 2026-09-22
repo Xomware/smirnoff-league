@@ -1,14 +1,9 @@
-# Admin emails are set by hand, never from git (public repo). Terraform only
-# creates the parameter; ignore_changes keeps an apply from resetting it.
-#   aws ssm put-parameter --name /smirnoff/admin-emails --type StringList --overwrite --value "a@x,b@y"
+# The value comes from the ADMIN_EMAILS repo secret via TF_VAR_admin_emails.
+# To add an admin, edit the secret and re-run the Terraform workflow.
 resource "aws_ssm_parameter" "admin_emails" {
   name  = "/${var.app_name}/admin-emails"
   type  = "StringList"
-  value = "unset"
-
-  lifecycle {
-    ignore_changes = [value]
-  }
+  value = var.admin_emails
 }
 
 resource "aws_ssm_parameter" "api_url" {

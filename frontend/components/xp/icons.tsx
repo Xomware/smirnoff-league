@@ -79,6 +79,15 @@ export function BracketIcon(props: IconProps) {
   );
 }
 
+export function MediaPlayerIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-title) stroke-(--xp-text)" />
+      <path d="M6.5 5v6l5-3z" className="fill-(--xp-text-inverse)" />
+    </Icon>
+  );
+}
+
 export function WarningIcon(props: IconProps) {
   return (
     <Icon {...props}>

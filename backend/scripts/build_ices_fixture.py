@@ -10,7 +10,7 @@ from urllib.request import urlopen
 LEAGUE_ID = "1394061072742227968"
 BASE = "https://api.sleeper.app/v1"
 SLOTS = ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "FLEX", "K", "DEF"]
-KEYS = ["roster_id", "matchup_id", "points", "starters", "starters_points"]
+KEYS = ["roster_id", "matchup_id", "points", "starters", "starters_points", "players", "players_points"]
 OUT = Path(__file__).resolve().parents[2] / "fixtures" / "ices-golden.json"
 
 # Hand-verified against the live league, keyed by the starter who zeroed.

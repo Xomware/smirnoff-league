@@ -6,7 +6,7 @@ import { ScoresIcon } from "@/components/xp/icons";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
-import { defaultWeekSettings, SLOTS, weekIces } from "@/lib/ices/compute";
+import { defaultWeekSettings, lockedIces, SLOTS, weekIces } from "@/lib/ices/compute";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 
@@ -84,12 +84,14 @@ export default function ScoresPage() {
   const ices = useMemo<IceIndex>(() => {
     const index: IceIndex = { byRoster: new Map(), slots: new Set() };
     if (!matchups || week === undefined) return index;
-    for (const ice of weekIces(week, matchups, SLOTS, defaultWeekSettings(week))) {
+    const ices =
+      week === current ? lockedIces(week, matchups, SLOTS) : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
+    for (const ice of ices) {
       index.byRoster.set(ice.rosterId, (index.byRoster.get(ice.rosterId) ?? 0) + 1);
       if (ice.slotIndex !== null) index.slots.add(`${ice.rosterId}:${ice.slotIndex}`);
     }
     return index;
-  }, [matchups, week]);
+  }, [matchups, week, current]);
 
   const pairs = useMemo(() => {
     const byId = new Map<number, SleeperMatchup[]>();
