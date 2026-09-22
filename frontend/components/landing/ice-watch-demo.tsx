@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { IceBadge } from "@/components/xp/IceBadge";
-import { IceCubeIcon } from "@/components/xp/icons";
+import { IceBottleIcon } from "@/components/xp/icons";
 import { Window } from "@/components/xp/Window";
 
 // One fake receiver, three bad weeks. Each drop ends frozen and adds an ice.
@@ -70,7 +70,7 @@ export function IceWatchDemo({ animate }: IceWatchDemoProps) {
   }, [animate]);
 
   return (
-    <Window title="Ice Watch - Live (demo)" icon={<IceCubeIcon />}>
+    <Window title="Ice Watch - Live (demo)" icon={<IceBottleIcon />}>
       <p className="mb-2 flex items-center gap-2 text-xs font-bold">
         <span className="landing-live-dot" aria-hidden />
         LIVE <span className="font-normal">Demo data. Fake player, real consequences.</span>
