@@ -27,3 +27,27 @@ variable "environment" {
   type        = string
   default     = "production"
 }
+
+variable "lambda_runtime" {
+  description = "Python runtime for all Lambdas and the shared layer."
+  type        = string
+  default     = "python3.12"
+}
+
+variable "lambda_timeout" {
+  description = "Lambda timeout, seconds."
+  type        = number
+  default     = 30
+}
+
+variable "lambda_memory" {
+  description = "Lambda memory, MB."
+  type        = number
+  default     = 512
+}
+
+variable "api_stage_name" {
+  description = "API Gateway stage. Hidden behind the custom domain's base path mapping."
+  type        = string
+  default     = "prod"
+}

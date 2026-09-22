@@ -13,6 +13,11 @@ output "cloudfront_distribution_id" {
   value       = module.web.cloudfront_distribution_id
 }
 
+output "api_url" {
+  description = "API base URL. Also published to SSM for the frontend build."
+  value       = "https://${local.api_domain_name}"
+}
+
 output "deploy_role_arn" {
   description = "Set as the AWS_ROLE_ARN repo secret after the first apply."
   value       = aws_iam_role.deploy.arn
