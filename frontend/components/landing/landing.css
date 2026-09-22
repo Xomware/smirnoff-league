@@ -1,0 +1,207 @@
+/* The XP "Welcome" log-on screen plus the landing's reveal and dialog chrome. */
+.landing {
+  --login-band: #00309c;
+  --login-face: #5a7edc;
+  --login-glow: #7a9ce6;
+  --login-rule-top: #b9ccf2;
+  --login-rule-bottom: #f29a3c;
+  --login-tile-hover: rgb(0 48 156 / 0.45);
+  --xp-balloon: #ffffe1;
+  --xp-balloon-edge: #6e6a55;
+}
+
+.landing-login {
+  color: var(--xp-text-inverse);
+  background: radial-gradient(ellipse 60% 70% at 25% 45%, var(--login-glow), var(--login-face) 70%);
+}
+
+.landing-band-top {
+  background: var(--login-band);
+  border-bottom: 2px solid var(--login-rule-top);
+}
+
+.landing-band-bottom,
+.landing-footer {
+  color: var(--xp-text-inverse);
+  background: var(--login-band);
+  border-top: 2px solid var(--login-rule-bottom);
+}
+
+.landing-divider {
+  width: 1px;
+  margin: 2rem 0;
+  background: linear-gradient(transparent, var(--login-rule-top), transparent);
+}
+
+.landing-logo {
+  font: italic bold 2.5rem/1.1 var(--xp-title-font);
+  text-shadow: 2px 2px 0 var(--login-band);
+}
+
+.landing-heading {
+  color: var(--xp-text-inverse);
+  text-shadow: 1px 1px 0 var(--xp-frame), 0 0 8px var(--xp-frame);
+}
+
+.landing-link {
+  text-decoration: underline;
+}
+
+.landing-link:hover {
+  color: var(--login-rule-bottom);
+}
+
+.landing-link:focus-visible,
+.landing-tile:focus-visible {
+  outline: 2px dotted var(--xp-text-inverse);
+  outline-offset: 4px;
+}
+
+.landing-tile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 4.5rem;
+  padding: 0.5rem 1.5rem 0.5rem 0.5rem;
+  border-radius: 8px;
+  color: var(--xp-text-inverse);
+  cursor: pointer;
+}
+
+.landing-tile-avatar {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border: 3px solid var(--xp-text-inverse);
+  border-radius: 6px;
+  background: var(--ice-tint);
+}
+
+.landing-tile-name {
+  font: 1.375rem var(--xp-title-font);
+}
+
+.landing-tile:hover:not(:disabled),
+.landing-tile:focus-visible {
+  background: var(--login-tile-hover);
+}
+
+.landing-tile:hover:not(:disabled) .landing-tile-avatar,
+.landing-tile:focus-visible .landing-tile-avatar {
+  border-color: var(--xp-gold);
+}
+
+.landing-tile:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.landing-tile:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.landing-boot-bar {
+  position: relative;
+  width: 8rem;
+  height: 1rem;
+  padding: 2px;
+  overflow: hidden;
+  border: 2px solid var(--login-rule-top);
+  border-radius: 4px;
+  background: var(--login-band);
+}
+
+.landing-boot-bar span {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 0.5rem;
+  background: linear-gradient(var(--xp-title-light), var(--xp-title-dark));
+  animation: landing-boot 1.8s linear infinite;
+}
+
+.landing-boot-bar span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.landing-boot-bar span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes landing-boot {
+  from { left: -1.5rem; }
+  to { left: 8.5rem; }
+}
+
+.landing-faux-button {
+  min-width: 4.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--xp-frame);
+  border-radius: 3px;
+  text-align: center;
+  background: linear-gradient(var(--xp-cream), var(--xp-face));
+}
+
+.landing-balloon {
+  position: relative;
+  width: min(100%, 24rem);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--xp-balloon-edge);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: var(--xp-balloon);
+  box-shadow: 2px 3px 8px rgb(10 30 80 / 0.4);
+}
+
+/* The tail points down-right, at where the tray would be. */
+.landing-balloon::after {
+  content: "";
+  position: absolute;
+  right: 2rem;
+  bottom: -12px;
+  border: 12px solid transparent;
+  border-top-color: var(--xp-balloon);
+  border-bottom: 0;
+  border-right: 0;
+}
+
+.landing-live-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--xp-close);
+  animation: landing-blink 1s steps(1) infinite;
+}
+
+@keyframes landing-blink {
+  50% { opacity: 0; }
+}
+
+.landing [data-reveal] {
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+.landing[data-motion="on"] [data-reveal]:not([data-shown]) {
+  opacity: 0;
+  transform: translateY(2rem) scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-boot-bar span,
+  .landing-live-dot {
+    animation: none;
+  }
+
+  .landing-boot-bar span { left: 2.75rem; }
+  .landing-boot-bar span:nth-child(2) { left: 3.5rem; }
+  .landing-boot-bar span:nth-child(3) { left: 4.25rem; }
+
+  .landing [data-reveal],
+  .landing-tile {
+    transition: none;
+  }
+}

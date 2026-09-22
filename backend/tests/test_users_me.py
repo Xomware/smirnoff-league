@@ -1,15 +1,16 @@
 import json
 
 from lambdas.users_me.handler import handler
-from tests.events import authorized_event
+from tests.conftest import set_admins
+from tests.events import SUB, authorized_event
 
 
-def test_returns_caller_identity_from_authorizer_claims():
+def test_first_call_has_no_profile(aws):
     res = handler(authorized_event(), None)
     assert res["statusCode"] == 200
     assert json.loads(res["body"]) == {
         "data": {
-            "sub": "3f1c2b9a-0000-4000-8000-000000000001",
+            "sub": SUB,
             "email": "player@example.com",
             "profile": None,
             "isAdmin": False,
@@ -17,6 +18,12 @@ def test_returns_caller_identity_from_authorizer_claims():
         "error": None,
         "meta": None,
     }
+
+
+def test_listed_email_is_admin(aws):
+    set_admins(aws, "PLAYER@example.com")
+    res = handler(authorized_event(), None)
+    assert json.loads(res["body"])["data"]["isAdmin"] is True
 
 
 def test_missing_sub_is_401():
