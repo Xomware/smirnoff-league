@@ -8,9 +8,11 @@ import { Window } from "@/components/xp/Window";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { dangerZone, sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
+import { useProfile } from "@/lib/profile/use-profile";
 
 export default function StandingsPage() {
   const { data, error, teamFor } = useLeague();
+  const { myRosterId } = useProfile();
   const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
   const owed = (rosterId: number) => tally?.owed.find((t) => t.rosterId === rosterId)?.total ?? 0;
   const playoffTeams = data?.league.settings.playoff_teams ?? 0;
@@ -57,7 +59,12 @@ export default function StandingsPage() {
                         </span>
                       </td>
                       <td className="max-w-0">
-                        <TeamName name={teamFor(s.rosterId).name} iced={owed(s.rosterId) > 0} ices={owed(s.rosterId)} />
+                        <TeamName
+                          name={teamFor(s.rosterId).name}
+                          iced={owed(s.rosterId) > 0}
+                          ices={owed(s.rosterId)}
+                          isMine={s.rosterId === myRosterId}
+                        />
                       </td>
                       <td className="tabular-nums">
                         {s.wins}-{s.losses}

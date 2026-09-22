@@ -23,10 +23,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => nav.pathname,
   useRouter: () => ({ replace: nav.replace }),
 }));
+vi.mock("@/lib/api/users", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/users")>()),
+  getMe: vi.fn(),
+}));
 
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 import AuthCallbackPage from "@/app/auth/callback/page";
+import { getMe } from "@/lib/api/users";
 import { AuthGate } from "./auth-gate";
 
 function signedIn() {
@@ -34,6 +39,12 @@ function signedIn() {
   vi.mocked(fetchAuthSession).mockResolvedValue({
     tokens: { idToken: { payload: { email: "member@example.com" } } },
   } as unknown as Awaited<ReturnType<typeof fetchAuthSession>>);
+  vi.mocked(getMe).mockResolvedValue({
+    sub: "u",
+    email: "member@example.com",
+    isAdmin: false,
+    profile: { name: "Member", username: "member", rosterId: 1, createdAt: "", updatedAt: "" },
+  });
 }
 
 function signedOut() {

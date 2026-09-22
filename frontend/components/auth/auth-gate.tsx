@@ -4,8 +4,10 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Landing } from "@/components/landing/landing";
+import { ProfileGate } from "@/components/onboarding/profile-gate";
 import { authConfigured, CALLBACK_PATH } from "@/lib/auth/amplify";
 import { useAuth } from "@/lib/auth/use-auth";
+import { ProfileProvider } from "@/lib/profile/use-profile";
 
 interface AuthGateProps {
   children: ReactNode;
@@ -32,10 +34,9 @@ export function AuthGate({ children, shell }: AuthGateProps) {
   if (pathname.replace(/\/$/, "") === CALLBACK_PATH) return children;
   if (status === "signedIn") {
     return (
-      <>
-        {children}
-        {shell}
-      </>
+      <ProfileProvider>
+        <ProfileGate shell={shell}>{children}</ProfileGate>
+      </ProfileProvider>
     );
   }
   return <Landing onSignIn={authConfigured ? signInWithGoogle : undefined} />;
