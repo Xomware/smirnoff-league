@@ -1,16 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { golden } from "@/lib/test/league-mock";
+import { golden, W1_POSITIONS } from "@/lib/test/league-mock";
 import { avoidableIces, closestEscapes, iceStats, iceStreaks, repeatOffenders, type StatsMatchup } from "./stats";
 
-// Positions from Sleeper's players.json for the W1 bench players (points > 0)
-// behind each zero ice, plus the zeroed starters. players.json isn't in git.
-const W1_POSITIONS: Record<string, string> = {
-  "7553": "TE", "12545": "QB", "5022": "TE", "5872": "WR", "8180": "WR",
-  "8121": "WR", "4147": "RB", "9504": "WR",
-  "12517": "TE", "11586": "RB", "13285": "WR", "3163": "QB", "9482": "TE",
-  "11576": "RB", "421": "QB",
-};
 const w1Position = (id: string) => W1_POSITIONS[id];
 
 const row = (rosterId: number, starters: string[], startersPoints: number[], bench: Record<string, number> = {}): StatsMatchup => ({
