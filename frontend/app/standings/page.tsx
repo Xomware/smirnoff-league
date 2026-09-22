@@ -7,9 +7,11 @@ import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
 import { dangerZone, sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
+import { useProfile } from "@/lib/profile/use-profile";
 
 export default function StandingsPage() {
   const { data, error, teamFor } = useLeague();
+  const { myRosterId } = useProfile();
   const playoffTeams = data?.league.settings.playoff_teams ?? 0;
 
   const rows = useMemo(() => (data ? sortStandings(data.rosters) : []), [data]);
@@ -54,7 +56,12 @@ export default function StandingsPage() {
                         </span>
                       </td>
                       <td className="max-w-0">
-                        <TeamName name={teamFor(s.rosterId).name} iced={false} ices={0} />
+                        <TeamName
+                          name={teamFor(s.rosterId).name}
+                          iced={false}
+                          ices={0}
+                          isMine={s.rosterId === myRosterId}
+                        />
                       </td>
                       <td className="tabular-nums">
                         {s.wins}-{s.losses}

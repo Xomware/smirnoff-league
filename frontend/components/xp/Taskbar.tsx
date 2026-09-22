@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { useAuth } from "@/lib/auth/use-auth";
+import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
 import { StartMenu } from "./StartMenu";
 
@@ -24,6 +25,7 @@ function readServerClock() {
 export function Taskbar() {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
+  const { setEditing } = useProfile();
   const menuId = useId();
   const root = useRef<HTMLDivElement>(null);
   const start = useRef<HTMLButtonElement>(null);
@@ -50,7 +52,15 @@ export function Taskbar() {
   return (
     <div ref={root}>
       {open && (
-        <StartMenu id={menuId} onNavigate={() => setOpen(false)} onSignOut={() => void signOut()} />
+        <StartMenu
+          id={menuId}
+          onNavigate={() => setOpen(false)}
+          onEditProfile={() => {
+            setOpen(false);
+            setEditing(true);
+          }}
+          onSignOut={() => void signOut()}
+        />
       )}
       <div className="xp-taskbar">
         <button

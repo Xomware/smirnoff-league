@@ -88,6 +88,26 @@ export function WarningIcon(props: IconProps) {
   );
 }
 
+export function StarIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path
+        d="M8 1l2 4.5 4.8.5-3.6 3.2 1 4.8L8 11.5 3.8 14l1-4.8L1.2 6l4.8-.5z"
+        className="fill-(--xp-gold) stroke-(--xp-text)"
+      />
+    </Icon>
+  );
+}
+
+export function ProfileIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="5" r="3" className="fill-(--ice-glass) stroke-(--ice-deep)" />
+      <path d="M2.5 15c0-3.5 2.5-5.5 5.5-5.5s5.5 2 5.5 5.5z" className="fill-(--xp-select) stroke-(--ice-deep)" />
+    </Icon>
+  );
+}
+
 export function MinimizeGlyph(props: IconProps) {
   return (
     <Icon {...props}>
