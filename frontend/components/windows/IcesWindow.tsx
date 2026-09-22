@@ -20,31 +20,33 @@ export function IcesWindow() {
   return (
     <div className="grid gap-3">
       <div>
-        <table className="xp-table">
-          <caption className="mb-2 text-left text-sm font-bold">Owed — provisional</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="w-12">#</th>
-              <th scope="col">Team</th>
-              <th scope="col" className="w-18 text-right">Owed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tally.owed.map((t, i) => (
-              <tr key={t.rosterId}>
-                <td>{i + 1}</td>
-                <td className="max-w-0">
-                  <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
-                    <TeamName name={teamFor(t.rosterId).name} iced={t.total > 0} ices={0} />
-                  </DrillLink>
-                </td>
-                <td className="text-right">
-                  {t.total > 0 ? <IceBadge count={t.total} /> : <span className="tabular-nums">0</span>}
-                </td>
+        <div className="xp-table-scroll">
+          <table className="xp-table">
+            <caption className="mb-2 text-left text-sm font-bold">Owed — provisional</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="w-12">#</th>
+                <th scope="col">Team</th>
+                <th scope="col" className="w-18 text-right">Owed</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {tally.owed.map((t, i) => (
+                <tr key={t.rosterId}>
+                  <td>{i + 1}</td>
+                  <td className="md:max-w-0">
+                    <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
+                      <TeamName name={teamFor(t.rosterId).name} iced={t.total > 0} ices={0} />
+                    </DrillLink>
+                  </td>
+                  <td className="text-right">
+                    {t.total > 0 ? <IceBadge count={t.total} /> : <span className="tabular-nums">0</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <p className="xp-note mt-2">
           Owed from Sleeper scores for finished weeks. Completions and late ices arrive with the ledger.
         </p>

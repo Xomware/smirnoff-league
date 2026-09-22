@@ -47,6 +47,15 @@
   text-decoration: underline;
 }
 
+@media (max-width: 767.98px) {
+  .landing-link {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+}
+
 .landing-link:hover {
   color: var(--login-rule-bottom);
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { AuthGate } from "@/components/auth/auth-gate";
 import { Taskbar } from "@/components/xp/Taskbar";
@@ -11,6 +11,12 @@ export const metadata: Metadata = {
   description: "Scores, brackets and the ice ledger for the Smirnoff League.",
   // A private league's site: keep it out of search results.
   robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

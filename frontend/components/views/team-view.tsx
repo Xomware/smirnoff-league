@@ -80,54 +80,56 @@ export function TeamView({ rosterId }: TeamViewProps) {
         </section>
       )}
 
-      <table className="xp-table">
-        <caption className="mb-2 text-left font-bold">Weekly results</caption>
-        <thead>
-          <tr>
-            <th scope="col" className="w-20">Week</th>
-            <th scope="col">Opponent</th>
-            <th scope="col" className="w-28 text-right">Score</th>
-            <th scope="col" className="w-10">W/L</th>
-            <th scope="col">Ices</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.map((r) => (
-            <tr key={r.week}>
-              <td>
-                <DrillLink to={{ kind: "week", week: r.week }}>Week {r.week}</DrillLink>
-              </td>
-              <td className="max-w-0">
-                {r.opponent ? (
-                  <DrillLink to={{ kind: "team", rosterId: r.opponent.rosterId }}>
-                    <TeamName name={teamFor(r.opponent.rosterId).name} iced={false} ices={0} />
-                  </DrillLink>
-                ) : (
-                  "Bye"
-                )}
-              </td>
-              <td className="text-right tabular-nums">
-                {r.points.toFixed(2)}
-                {r.opponent && ` - ${r.opponent.points.toFixed(2)}`}
-              </td>
-              <td className="font-bold">{r.result ?? "-"}</td>
-              <td>
-                {r.ices.length === 0 ? (
-                  "None"
-                ) : (
-                  <ul className="flex flex-col gap-1">
-                    {r.ices.map((ice) => (
-                      <li key={ice.id}>
-                        <IceCause ice={ice} players={data.players} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </td>
+      <div className="xp-table-scroll">
+        <table className="xp-table">
+          <caption className="mb-2 text-left font-bold">Weekly results</caption>
+          <thead>
+            <tr>
+              <th scope="col" className="w-20">Week</th>
+              <th scope="col">Opponent</th>
+              <th scope="col" className="w-28 text-right">Score</th>
+              <th scope="col" className="w-10">W/L</th>
+              <th scope="col">Ices</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {results.map((r) => (
+              <tr key={r.week}>
+                <td>
+                  <DrillLink to={{ kind: "week", week: r.week }}>Week {r.week}</DrillLink>
+                </td>
+                <td className="md:max-w-0">
+                  {r.opponent ? (
+                    <DrillLink to={{ kind: "team", rosterId: r.opponent.rosterId }}>
+                      <TeamName name={teamFor(r.opponent.rosterId).name} iced={false} ices={0} />
+                    </DrillLink>
+                  ) : (
+                    "Bye"
+                  )}
+                </td>
+                <td className="text-right tabular-nums">
+                  {r.points.toFixed(2)}
+                  {r.opponent && ` - ${r.opponent.points.toFixed(2)}`}
+                </td>
+                <td className="font-bold">{r.result ?? "-"}</td>
+                <td>
+                  {r.ices.length === 0 ? (
+                    "None"
+                  ) : (
+                    <ul className="flex flex-col gap-1">
+                      {r.ices.map((ice) => (
+                        <li key={ice.id}>
+                          <IceCause ice={ice} players={data.players} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <section aria-label="Season ices">
         <h3 className="font-bold">Season ices: {owed?.total ?? 0}</h3>
