@@ -9,6 +9,15 @@ export const golden: { weeks: { week: number; matchups: StatsMatchup[] }[] } = J
   readFileSync(join(__dirname, "../../../fixtures/ices-golden.json"), "utf8"),
 );
 
+// Positions from Sleeper's players.json for the W1 bench players (points > 0)
+// behind each zero ice, plus the zeroed starters. players.json isn't in git.
+export const W1_POSITIONS: Record<string, string> = {
+  "7553": "TE", "12545": "QB", "5022": "TE", "5872": "WR", "8180": "WR",
+  "8121": "WR", "4147": "RB", "9504": "WR",
+  "12517": "TE", "11586": "RB", "13285": "WR", "3163": "QB", "9482": "TE",
+  "11576": "RB", "421": "QB",
+};
+
 const league = "/league/1394061072742227968";
 const rosterIds = golden.weeks[0].matchups.map((m) => m.roster_id);
 
@@ -41,6 +50,12 @@ const responses: Record<string, unknown> = {
   ...Object.fromEntries(golden.weeks.map((w) => [`${league}/matchups/${w.week}`, w.matchups])),
   [`${league}/matchups/3`]: [],
   "/data/players.json": {
+    ...Object.fromEntries(
+      Object.entries(W1_POSITIONS).map(([id, position]) => [
+        id,
+        { name: `Player ${id}`, position, team: null, injury_status: null },
+      ]),
+    ),
     "8121": { name: "Romeo Doubs", position: "WR", team: "GB", injury_status: null },
   },
 };

@@ -499,4 +499,43 @@
     background: linear-gradient(var(--xp-cream), var(--ice-glass));
     box-shadow: 0 0 4px var(--ice-glow);
   }
+
+  .xp-dialog {
+    min-width: 0;
+    border: 1px solid var(--xp-frame);
+    border-radius: 6px 6px 0 0;
+    background: var(--xp-cream);
+    box-shadow: 1px 2px 4px rgb(10 30 80 / 0.25);
+  }
+
+  .xp-dialog-title {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px 5px 0 0;
+    color: var(--xp-text-inverse);
+    font: bold 0.8125rem var(--xp-title-font);
+    text-shadow: 1px 1px var(--xp-frame);
+    background: linear-gradient(var(--xp-title-light), var(--xp-title) 30%, var(--xp-title-dark));
+  }
+
+  .xp-wanted {
+    background: var(--xp-balloon);
+  }
+
+  .xp-wanted-poster {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+    padding: 0.5rem;
+    border: 2px solid var(--xp-wood);
+    text-align: center;
+    background: var(--xp-cream);
+  }
+
+  .xp-wanted-head {
+    color: var(--xp-wood);
+    font: bold 1.25rem Georgia, "Times New Roman", serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
 }
