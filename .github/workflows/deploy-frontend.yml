@@ -82,6 +82,13 @@ jobs:
             echo "NEXT_PUBLIC_COGNITO_DOMAIN=$(get /xomware/shared/cognito/hosted-ui-domain)"
           } >> "$GITHUB_ENV"
 
+      # Written by this repo's Terraform (ssm.tf), so it follows the API domain.
+      - name: Resolve API URL from SSM
+        run: |
+          set -euo pipefail
+          URL=$(aws ssm get-parameter --name /smirnoff/api-url --query Parameter.Value --output text)
+          echo "NEXT_PUBLIC_API_URL=$URL" >> "$GITHUB_ENV"
+
       - name: Build
         env:
           # postbuild's verify-build fails unless the values above reached the bundle.
