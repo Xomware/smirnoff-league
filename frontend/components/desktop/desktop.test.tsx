@@ -32,6 +32,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  // The desktop mirrors its windows into ?open=, which the next render would reopen.
+  window.history.replaceState(null, "", "/");
 });
 
 describe("DesktopWindow", () => {

@@ -11,6 +11,8 @@ import os
 
 import boto3
 
+from lambdas.common.api import ForbiddenError, caller_email
+
 _ssm = None
 
 
@@ -25,3 +27,10 @@ def is_admin(email: str) -> bool:
     value = _client().get_parameter(Name=os.environ["ADMIN_EMAILS_PARAM"])["Parameter"]["Value"]
     admins = {e.strip().lower() for e in value.split(",")}
     return email.strip().lower() in admins
+
+
+def require_admin(event: dict) -> str:
+    email = caller_email(event)
+    if not is_admin(email):
+        raise ForbiddenError("Admins only")
+    return email

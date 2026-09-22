@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
+import { defaultLayout } from "@/lib/desktop/windows";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
 import { SpeakerToggle } from "./SpeakerToggle";
@@ -67,6 +68,10 @@ export function Taskbar() {
           onOpen={(kind) => {
             setMenu(null);
             openWindow(kind);
+          }}
+          onReset={() => {
+            setOpen(false);
+            dispatch({ type: "restore", windows: defaultLayout(window.innerWidth, window.innerHeight) });
           }}
           onEditProfile={() => {
             setMenu(null);
