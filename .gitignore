@@ -23,3 +23,8 @@ frontend/public/data/
 *.pdf
 *.mp4
 *.mov
+
+# Agent worktrees and Next-generated agent docs
+.claude/worktrees/
+frontend/AGENTS.md
+frontend/CLAUDE.md

@@ -22,6 +22,6 @@ describe("Ice Ledger page", () => {
     expect(within(week1).getByText("Lowest score")).toBeTruthy();
 
     const live = screen.getByRole("region", { name: /week 3 — live, provisional/i });
-    expect(within(live).getByText(/no games played yet/i)).toBeTruthy();
+    expect(within(live).getByText(/no empty slots this week/i)).toBeTruthy();
   });
 });

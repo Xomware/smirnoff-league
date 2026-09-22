@@ -24,7 +24,18 @@ describe("seasonTally", () => {
     expect(tally.owed.reduce((n, t) => n + t.total, 0)).toBe(8);
     expect(tally.weeks.map((w) => w.week)).toEqual([1, 2]);
     expect(tally.live?.week).toBe(3);
-    expect(tally.live?.ices).toHaveLength(5);
+  });
+
+  it("only locks in empty slots while the week is live", () => {
+    // W1 replayed as live: its zeros could be players yet to kick off, and the
+    // lowest team can still change, so neither counts until the week ends.
+    expect(tally.live?.ices).toEqual([]);
+
+    const withEmpty = golden.weeks[0].matchups.map((m) =>
+      m.roster_id === 1 ? { ...m, starters: ["0", ...m.starters.slice(1)] } : m,
+    );
+    const live = seasonTally([...golden.weeks, { week: 3, matchups: withEmpty }], 3).live;
+    expect(live?.ices).toEqual([expect.objectContaining({ rosterId: 1, reason: "empty", slot: "QB" })]);
   });
 
   it("breaks totals down by reason", () => {
@@ -38,12 +49,12 @@ describe("seasonTally", () => {
     expect(doubs).toMatchObject({ rosterId: 6, reason: "zero", slot: "WR", points: 0 });
   });
 
-  it("has no live ices before the current week kicks off", () => {
+  it("still locks in empty slots before kickoff", () => {
     const unplayed = golden.weeks[0].matchups.map((m) => ({
       ...m,
       points: 0,
       starters_points: m.starters_points.map(() => 0),
     }));
-    expect(seasonTally([...golden.weeks, { week: 3, matchups: unplayed }], 3).live).toBeNull();
+    expect(seasonTally([...golden.weeks, { week: 3, matchups: unplayed }], 3).live?.ices).toEqual([]);
   });
 });

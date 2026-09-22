@@ -97,10 +97,9 @@ export default function IcesPage() {
       {data && tally && !error && (
         <>
           <Window title={`Week ${currentWeek} — live, provisional`} icon={<IceCubeIcon />}>
-            {!tally.live ? (
-              <p>No games played yet this week.</p>
-            ) : tally.live.ices.length === 0 ? (
-              <p>Nobody is iced so far this week.</p>
+            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Only empty slots count now.</p>
+            {!tally.live || tally.live.ices.length === 0 ? (
+              <p>No empty slots this week.</p>
             ) : (
               <WeekList ices={tally.live.ices} players={data.players} teamFor={teamFor} />
             )}
