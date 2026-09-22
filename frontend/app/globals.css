@@ -760,6 +760,63 @@
     user-select: none;
   }
 
+  .xp-toolbar {
+    display: flex;
+    flex: none;
+    gap: 2px;
+    padding: 2px 4px;
+    border-bottom: 1px solid var(--xp-face-shadow);
+    background: linear-gradient(var(--xp-cream), var(--xp-face));
+  }
+
+  .xp-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 2rem;
+    padding: 2px 6px 2px 2px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font: inherit;
+    font-size: 0.8125rem;
+    color: var(--xp-text);
+    background: none;
+    cursor: pointer;
+  }
+
+  .xp-nav:hover:enabled {
+    border-color: var(--xp-face-shadow);
+    background: var(--xp-cream);
+  }
+
+  .xp-nav:active:enabled {
+    background: var(--xp-face);
+    box-shadow: inset 1px 1px 2px rgb(10 30 80 / 0.25);
+  }
+
+  .xp-nav:focus-visible {
+    outline: 2px dotted var(--xp-text);
+    outline-offset: -3px;
+  }
+
+  .xp-nav:disabled {
+    cursor: default;
+    color: var(--xp-face-shadow);
+  }
+
+  .xp-nav:disabled svg {
+    filter: grayscale(1);
+    opacity: 0.5;
+  }
+
+  @media (max-width: 767.98px) {
+    .xp-nav {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      justify-content: center;
+    }
+  }
+
   .xp-desktop-window .xp-window-body {
     flex: 1;
     min-height: 0;
