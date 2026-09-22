@@ -25,6 +25,7 @@ permissions:
 env:
   TF_DIR: infrastructure/terraform
   AWS_REGION: us-east-1
+  TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
 
 jobs:
   terraform:

@@ -51,3 +51,9 @@ variable "api_stage_name" {
   type        = string
   default     = "prod"
 }
+
+variable "admin_emails" {
+  description = "Comma-separated admin emails. Comes from the ADMIN_EMAILS repo secret so no address lands in this public repo."
+  type        = string
+  sensitive   = true
+}
