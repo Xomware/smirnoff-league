@@ -20,7 +20,16 @@ vi.mock("aws-amplify/auth", () => ({
 vi.mock("aws-amplify/utils", () => ({ Hub: { listen: vi.fn(() => () => {}) } }));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn() }),
+}));
+vi.mock("@/lib/api/users", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/users")>()),
+  getMe: vi.fn(async () => ({
+    sub: "u",
+    email: "member@example.com",
+    isAdmin: false,
+    profile: { name: "Member", username: "member", rosterId: 1, createdAt: "", updatedAt: "" },
+  })),
 }));
 
 import { AuthGate } from "@/components/auth/auth-gate";
@@ -97,7 +106,8 @@ describe("Home", () => {
   it("opens a window from a desktop icon with Enter", async () => {
     renderSignedIn();
 
-    fireEvent.keyDown(await screen.findByRole("button", { name: "Scores" }), { key: "Enter" });
+    // Enter on a focused button is a click with detail 0.
+    fireEvent.click(await screen.findByRole("button", { name: "Scores" }), { detail: 0 });
 
     expect(await screen.findByRole("region", { name: "Scores" })).toBeTruthy();
     expect(tabs().getByRole("button", { name: "Scores" }).getAttribute("aria-pressed")).toBe("true");

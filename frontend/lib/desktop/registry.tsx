@@ -26,7 +26,7 @@ export interface WindowSpec {
 }
 
 // One entry per window kind. Later kinds (team, player, week, stats) append here.
-export const REGISTRY = {
+const SPECS = {
   home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: 240 } },
   recap: { title: "Now Playing - Draft Recap", Icon: MediaPlayerIcon, component: RecapWindow, defaultSize: { w: 640, h: 420 } },
   news: { title: "League News", Icon: InfoIcon, component: NewsWindow, defaultSize: { w: 380, h: 180 } },
@@ -36,4 +36,5 @@ export const REGISTRY = {
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
 } satisfies Record<string, WindowSpec>;
 
-export type WindowKind = keyof typeof REGISTRY;
+export type WindowKind = keyof typeof SPECS;
+export const REGISTRY: Record<WindowKind, WindowSpec> = SPECS;

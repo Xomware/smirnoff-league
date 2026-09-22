@@ -7,9 +7,10 @@ import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { useLeague } from "@/lib/league/use-league";
 
 export function HomeWindow() {
-  const { data, error, teamFor } = useLeague();
+  const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
-  const { tally } = useSeasonIces(currentWeek);
+  const { tally, error: icesError } = useSeasonIces(currentWeek);
+  const error = leagueError ?? icesError;
 
   const liveByRoster = new Map<number, number>();
   for (const ice of tally?.live?.ices ?? []) {

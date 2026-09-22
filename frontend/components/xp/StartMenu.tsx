@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { ComponentType, SVGProps } from "react";
+
+import type { WindowKind } from "@/lib/desktop/registry";
 import {
   BracketIcon,
   HomeIcon,
@@ -10,22 +11,22 @@ import {
   StandingsIcon,
 } from "./icons";
 
-const LINKS: { href: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }[] = [
-  { href: "/", label: "Home", Icon: HomeIcon },
-  { href: "/scores", label: "Scores", Icon: ScoresIcon },
-  { href: "/standings", label: "Standings", Icon: StandingsIcon },
-  { href: "/brackets", label: "Brackets", Icon: BracketIcon },
-  { href: "/ices", label: "Ices", Icon: IceCubeIcon },
-];
+const ITEMS = [
+  { kind: "home", label: "Home", Icon: HomeIcon },
+  { kind: "scores", label: "Scores", Icon: ScoresIcon },
+  { kind: "standings", label: "Standings", Icon: StandingsIcon },
+  { kind: "brackets", label: "Brackets", Icon: BracketIcon },
+  { kind: "ices", label: "Ice Ledger", Icon: IceCubeIcon },
+] as const;
 
 interface StartMenuProps {
   id: string;
-  onNavigate: () => void;
+  onOpen: (kind: WindowKind) => void;
   onEditProfile: () => void;
   onSignOut: () => void;
 }
 
-export function StartMenu({ id, onNavigate, onEditProfile, onSignOut }: StartMenuProps) {
+export function StartMenu({ id, onOpen, onEditProfile, onSignOut }: StartMenuProps) {
   return (
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
@@ -35,9 +36,10 @@ export function StartMenu({ id, onNavigate, onEditProfile, onSignOut }: StartMen
         Smirnoff League
       </div>
       <ul className="xp-start-menu-list">
-        {LINKS.map(({ href, label, Icon }) => (
-          <li key={href}>
-            <Link href={href} className="xp-start-menu-link" onClick={onNavigate}>
+        {ITEMS.map(({ kind, label, Icon }) => (
+          <li key={kind}>
+            {/* Links home so the old routes, still live until they redirect, land on the desktop. */}
+            <Link href="/" className="xp-start-menu-link" onClick={() => onOpen(kind)}>
               <Icon width={24} height={24} />
               {label}
             </Link>

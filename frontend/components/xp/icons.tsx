@@ -117,6 +117,15 @@ export function ProfileIcon(props: IconProps) {
   );
 }
 
+export function InfoIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-select) stroke-(--xp-title-dark)" />
+      <path d="M8 7v5M8 4.5v1" className="stroke-(--xp-text-inverse) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
 export function MinimizeGlyph(props: IconProps) {
   return (
     <Icon {...props}>
@@ -137,6 +146,14 @@ export function CloseGlyph(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M4 4l8 8M12 4l-8 8" className="stroke-current stroke-2" />
+    </Icon>
+  );
+}
+
+export function RestoreGlyph(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5.5 3.5h7v7M3.5 5.5h7v7h-7z" className="fill-none stroke-current stroke-[1.5]" />
     </Icon>
   );
 }

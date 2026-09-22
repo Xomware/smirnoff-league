@@ -1,6 +1,6 @@
 "use client";
 
-import { type PointerEvent, useEffect, useRef } from "react";
+import { Component, type PointerEvent, type ReactNode, useEffect, useRef } from "react";
 
 import { CloseGlyph, MaximizeGlyph, MinimizeGlyph, RestoreGlyph } from "@/components/xp/icons";
 import { useDesktop } from "@/lib/desktop/desktop-context";
@@ -22,6 +22,21 @@ interface Drag {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), Math.max(lo, hi));
 
+// One window's render error must not take the whole desktop down with it.
+// Closing and reopening the window remounts it and tries again.
+class WindowBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return <p role="alert">This window hit an error. Close it and open it again.</p>;
+  }
+}
+
 interface DesktopWindowProps {
   win: WindowState;
 }
@@ -40,7 +55,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
     if (focusOnMount.current) ref.current?.focus({ preventScroll: true });
   }, []);
 
-  const start = (mode: Drag["mode"]) => (e: PointerEvent<HTMLElement>) => {
+  const start = (mode: Drag["mode"], e: PointerEvent<HTMLElement>) => {
     if (e.button !== 0 || maximized || (e.target as Element).closest("button")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     drag.current = { mode, px: e.clientX, py: e.clientY, x: win.x, y: win.y, w: win.w, h: win.h };
@@ -80,7 +95,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
     >
       <header
         className="xp-titlebar"
-        onPointerDown={start("move")}
+        onPointerDown={(e) => start("move", e)}
         onDoubleClick={() => !phone && dispatch({ type: "toggleMaximize", id })}
         {...dragHandlers}
       >
@@ -111,9 +126,11 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
         </span>
       </header>
       <div className="xp-window-body">
-        <Body params={win.params} />
+        <WindowBoundary>
+          <Body params={win.params} />
+        </WindowBoundary>
       </div>
-      {!maximized && <div className="xp-resize" aria-hidden onPointerDown={start("resize")} {...dragHandlers} />}
+      {!maximized && <div className="xp-resize" aria-hidden onPointerDown={(e) => start("resize", e)} {...dragHandlers} />}
     </section>
   );
 }

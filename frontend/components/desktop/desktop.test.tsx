@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
-  useRouter: () => ({ push: vi.fn() }),
+vi.mock("@/components/windows/ScoresWindow", () => ({
+  ScoresWindow: () => {
+    throw new Error("bad matchup row");
+  },
 }));
 
 import { Taskbar } from "@/components/xp/Taskbar";
@@ -20,7 +21,8 @@ function renderDesktop() {
   );
 }
 
-const windowNamed = (name: string) => screen.getByRole("region", { name, hidden: true });
+// Hidden windows drop out of the accessibility tree, so find them by label.
+const windowNamed = (name: string) => document.querySelector<HTMLElement>(`section[aria-label="${name}"]`)!;
 const tab = (name: string) => within(screen.getByRole("list", { name: "Open windows" })).getByRole("button", { name });
 
 beforeEach(() => {
@@ -56,6 +58,19 @@ describe("DesktopWindow", () => {
     fireEvent.pointerMove(bar, { pointerId: 1, clientX: -5000, clientY: -5000 });
     expect(standings.style.left).toBe("0px");
     expect(standings.style.top).toBe("0px");
+  });
+});
+
+describe("a window that crashes", () => {
+  it("shows an error in that window and leaves the rest of the desktop up", () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    renderDesktop();
+
+    fireEvent.doubleClick(screen.getByRole("button", { name: "Scores" }));
+
+    expect(within(windowNamed("Scores")).getByRole("alert").textContent).toMatch(/hit an error/);
+    expect(windowNamed("League Standings")).toBeTruthy();
+    expect(tab("Scores").getAttribute("aria-pressed")).toBe("true");
   });
 });
 

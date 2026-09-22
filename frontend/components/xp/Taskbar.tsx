@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { useAuth } from "@/lib/auth/use-auth";
+import { useDesktop } from "@/lib/desktop/desktop-context";
+import { REGISTRY } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
 import { StartMenu } from "./StartMenu";
@@ -26,6 +28,7 @@ export function Taskbar() {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
   const { setEditing } = useProfile();
+  const { windows, active, dispatch, open: openWindow } = useDesktop();
   const menuId = useId();
   const root = useRef<HTMLDivElement>(null);
   const start = useRef<HTMLButtonElement>(null);
@@ -54,7 +57,10 @@ export function Taskbar() {
       {open && (
         <StartMenu
           id={menuId}
-          onNavigate={() => setOpen(false)}
+          onOpen={(kind) => {
+            setOpen(false);
+            openWindow(kind);
+          }}
           onEditProfile={() => {
             setOpen(false);
             setEditing(true);
@@ -74,6 +80,25 @@ export function Taskbar() {
           <IceBottleIcon width={20} height={20} />
           start
         </button>
+        <ul className="xp-tasks" aria-label="Open windows">
+          {windows.map((w) => {
+            const { title, Icon } = REGISTRY[w.kind];
+            const pressed = active?.id === w.id;
+            return (
+              <li key={w.id}>
+                <button
+                  type="button"
+                  className="xp-task"
+                  aria-pressed={pressed}
+                  onClick={() => dispatch({ type: pressed ? "minimize" : "focus", id: w.id })}
+                >
+                  <Icon className="shrink-0" />
+                  <span className="truncate max-md:sr-only">{title}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
         <time className="xp-tray">{time}</time>
       </div>
     </div>

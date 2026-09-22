@@ -78,13 +78,13 @@ export function defaultLayout(vw: number, vh: number): WindowState[] {
   const sideX = ICON_COLUMN + mainW + gap * 2;
   const sideW = Math.max(280, Math.min(560, vw - sideX - gap));
   const standingsH = Math.max(240, Math.round(height * 0.6));
-  const rects: [WindowKind, number, number, number, number][] = [
-    ["recap", ICON_COLUMN + gap, 272, mainW, Math.max(240, height - 272 - gap)],
-    ["standings", sideX, gap, sideW, standingsH],
-    ["news", sideX + gap * 2, standingsH + gap * 2, Math.min(400, sideW - gap * 2), 180],
-    ["home", ICON_COLUMN + gap, gap, mainW, 240],
+  const rects: [WindowKind, number, number, number, number, number][] = [
+    ["home", ICON_COLUMN + gap, gap, mainW, 240, 4],
+    ["recap", ICON_COLUMN + gap, 272, mainW, Math.max(240, height - 272 - gap), 1],
+    ["standings", sideX, gap, sideW, standingsH, 2],
+    ["news", sideX + gap * 2, standingsH + gap * 2, Math.min(400, sideW - gap * 2), 180, 3],
   ];
-  return rects.map(([kind, x, y, w, h], i) => ({
+  return rects.map(([kind, x, y, w, h, z]) => ({
     id: kind,
     kind,
     params: {},
@@ -92,7 +92,7 @@ export function defaultLayout(vw: number, vh: number): WindowState[] {
     y,
     w,
     h,
-    z: i + 1,
+    z,
     minimized: false,
     maximized: false,
   }));

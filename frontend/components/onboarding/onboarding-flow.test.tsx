@@ -28,6 +28,7 @@ import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 import StandingsPage from "@/app/standings/page";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { Taskbar } from "@/components/xp/Taskbar";
+import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { getMe, updateMe, type Me } from "@/lib/api/users";
 import { stubSleeper } from "./league-stub";
 
@@ -61,9 +62,11 @@ describe("first sign-in", () => {
     vi.mocked(updateMe).mockResolvedValue(PROFILE);
 
     render(
-      <AuthGate shell={<Taskbar />}>
-        <StandingsPage />
-      </AuthGate>,
+      <DesktopProvider>
+        <AuthGate shell={<Taskbar />}>
+          <StandingsPage />
+        </AuthGate>
+      </DesktopProvider>,
     );
 
     expect(await screen.findByRole("heading", { name: "Your name" })).toBeTruthy();
