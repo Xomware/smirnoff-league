@@ -56,8 +56,15 @@ jobs:
       - name: Unit tests
         run: python -m pytest -q
 
+  wait-for-terraform:
+    permissions:
+      actions: read # find the Terraform run on this commit
+      contents: read
+    uses: ./.github/workflows/wait-for-terraform.yml
+
+  # Every AWS job below is gated on this one's outputs, so holding it holds them.
   detect-changes:
-    needs: test
+    needs: [test, wait-for-terraform]
     runs-on: ubuntu-latest
     defaults:
       run:

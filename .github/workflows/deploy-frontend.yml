@@ -20,6 +20,12 @@ permissions:
   contents: read
 
 jobs:
+  wait-for-terraform:
+    permissions:
+      actions: read # find the Terraform run on this commit
+      contents: read
+    uses: ./.github/workflows/wait-for-terraform.yml
+
   # AWS_ROLE_ARN comes from the first Terraform apply, so the first push to main
   # runs before it exists. Secrets cannot be read in a job-level `if`, hence
   # this job.
@@ -40,7 +46,7 @@ jobs:
           fi
 
   deploy:
-    needs: check-role
+    needs: [wait-for-terraform, check-role]
     if: needs.check-role.outputs.configured == 'true'
     permissions:
       id-token: write # mint the OIDC token traded for the deploy role
