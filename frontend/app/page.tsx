@@ -1,3 +1,4 @@
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { IceCubeIcon } from "@/components/xp/icons";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { Taskbar } from "@/components/xp/Taskbar";
@@ -34,6 +35,7 @@ export default function Home() {
               <PlayerRow key={p.name} {...p} iced={p.ices > 0} />
             ))}
           </ul>
+          <SignOutButton />
         </Window>
       </main>
       <Taskbar />
