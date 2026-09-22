@@ -112,7 +112,9 @@ describe("opening Ice Watch", () => {
   it("opens from the Start menu", async () => {
     renderDesktop();
     fireEvent.click(screen.getByRole("button", { name: /start/i }));
-    fireEvent.click(screen.getByRole("link", { name: "Ice Watch" }));
+    // The desktop icon shares the name, so pick the one inside the menu.
+    const item = screen.getAllByRole("button", { name: "Ice Watch" }).find((b) => b.closest(".xp-start-menu-list"));
+    fireEvent.click(item!);
     expect(await screen.findByRole("region", { name: "Ice Watch" })).toBeTruthy();
   });
 });
