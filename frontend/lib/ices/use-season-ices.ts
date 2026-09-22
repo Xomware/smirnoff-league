@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import type { WeekMatchups } from "@/lib/league/drill";
 import { getMatchups } from "@/lib/sleeper/client";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 import { type SeasonTally, seasonTally } from "./tally";
@@ -22,8 +23,15 @@ function matchupsFor(week: number, currentWeek: number): Promise<SleeperMatchup[
   return rows;
 }
 
+interface Season {
+  tally: SeasonTally;
+  weeks: WeekMatchups<SleeperMatchup>[];
+  live: SleeperMatchup[];
+}
+
+// `weeks` holds raw matchups for finished weeks only; `live` is the current week's.
 export function useSeasonIces(currentWeek: number | undefined) {
-  const [tally, setTally] = useState<SeasonTally | null>(null);
+  const [season, setSeason] = useState<Season | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,12 +39,20 @@ export function useSeasonIces(currentWeek: number | undefined) {
     let live = true;
     const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
     Promise.all(weeks.map((week) => matchupsFor(week, currentWeek).then((matchups) => ({ week, matchups }))))
-      .then((rows) => live && setTally(seasonTally(rows, currentWeek)))
+      .then(
+        (rows) =>
+          live &&
+          setSeason({
+            tally: seasonTally(rows, currentWeek),
+            weeks: rows.filter((w) => w.week < currentWeek),
+            live: rows.find((w) => w.week === currentWeek)?.matchups ?? [],
+          }),
+      )
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
     };
   }, [currentWeek]);
 
-  return { tally, error };
+  return { tally: season?.tally ?? null, weeks: season?.weeks ?? null, live: season?.live ?? null, error };
 }

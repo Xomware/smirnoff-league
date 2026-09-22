@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceCubeIcon, MediaPlayerIcon, ScoresIcon, StandingsIcon } from "@/components/xp/icons";
+import { DrillLink } from "@/components/views/drill-link";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
@@ -64,7 +65,9 @@ export default function Home() {
                 <ul className="mt-1 grid gap-1">
                   {watch.map(([rosterId, count]) => (
                     <li key={rosterId} className="flex items-center justify-between gap-2">
-                      <TeamName name={teamFor(rosterId).name} iced ices={0} />
+                      <DrillLink to={{ kind: "team", rosterId }}>
+                        <TeamName name={teamFor(rosterId).name} iced ices={0} />
+                      </DrillLink>
                       <IceBadge count={count} />
                     </li>
                   ))}
