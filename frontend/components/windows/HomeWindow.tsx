@@ -4,7 +4,9 @@ import { DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
+import { useIceWatch } from "@/lib/ices/use-ice-watch";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
+import { watchStates } from "@/lib/ices/watch";
 import { useLeague } from "@/lib/league/use-league";
 
 export function HomeWindow() {
@@ -12,6 +14,11 @@ export function HomeWindow() {
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, error: icesError } = useSeasonIces(currentWeek);
   const error = leagueError ?? icesError;
+  const live = useIceWatch(currentWeek);
+  const onWatch =
+    data && currentWeek && live.matchups && live.games?.some((g) => g.state === "in")
+      ? watchStates(currentWeek, live.matchups, live.games, data.players).reduce((n, t) => n + t.locked + t.watch + t.finalIce, 0)
+      : null;
 
   const liveByRoster = new Map<number, number>();
   for (const ice of tally?.live?.ices ?? []) {
@@ -39,7 +46,7 @@ export function HomeWindow() {
               <dt>Week</dt>
               <dd>{currentWeek}</dd>
               <dt>Ice Watch this week (live)</dt>
-              <dd>{tally.live?.ices.length ?? 0}</dd>
+              <dd>{onWatch ?? tally.live?.ices.length ?? 0}</dd>
             </dl>
             {watch.length === 0 ? (
               <p className="mt-2 text-(--xp-select) italic">Nobody is iced yet this week.</p>

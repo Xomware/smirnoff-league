@@ -11,6 +11,7 @@ import { NewsWindow } from "@/components/windows/NewsWindow";
 import { RecapWindow } from "@/components/windows/RecapWindow";
 import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
+import { WatchWindow } from "@/components/windows/WatchWindow";
 import {
   BracketIcon,
   ChartIcon,
@@ -21,6 +22,7 @@ import {
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
+  StopwatchIcon,
 } from "@/components/xp/icons";
 import type { WindowParams, WindowState } from "./windows";
 
@@ -56,6 +58,7 @@ const SPECS = {
   standings: { title: "League Standings", Icon: StandingsIcon, component: StandingsWindow, defaultSize: { w: 520, h: 520 } },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
+  watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
   team: { title: "Team Profile", Icon: ProfileIcon, component: TeamWindow, defaultSize: { w: 600, h: 600 } },
   player: { title: "Player Card", Icon: ProfileIcon, component: PlayerWindow, defaultSize: { w: 520, h: 520 } },
