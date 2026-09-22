@@ -3,9 +3,9 @@ import { join } from "node:path";
 
 import { vi } from "vitest";
 
-import type { MatchupRow } from "@/lib/ices/compute";
+import type { StatsMatchup } from "@/lib/ices/stats";
 
-export const golden: { weeks: { week: number; matchups: MatchupRow[] }[] } = JSON.parse(
+export const golden: { weeks: { week: number; matchups: StatsMatchup[] }[] } = JSON.parse(
   readFileSync(join(__dirname, "../../../fixtures/ices-golden.json"), "utf8"),
 );
 

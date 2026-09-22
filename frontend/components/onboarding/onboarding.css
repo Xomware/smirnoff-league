@@ -1,0 +1,143 @@
+/* The "New Connection Wizard" frame: a blue banner down the left, pages on the right. */
+.xp-wizard .xp-window-body {
+  padding: 0;
+}
+
+.xp-wizard-body {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.xp-wizard-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  color: var(--xp-text-inverse);
+  background: linear-gradient(160deg, var(--xp-title-light), var(--xp-title-dark));
+}
+
+.xp-wizard-banner-title {
+  font: bold 1rem var(--xp-title-font);
+  text-shadow: 1px 1px var(--xp-frame);
+}
+
+.xp-wizard-steps {
+  display: none;
+}
+
+.xp-wizard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--xp-cream);
+}
+
+.xp-wizard-heading {
+  font: bold 1.125rem var(--xp-title-font);
+}
+
+.xp-wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--xp-face-shadow);
+  box-shadow: inset 0 1px var(--xp-cream);
+}
+
+@media (min-width: 40rem) {
+  .xp-wizard-body {
+    grid-template-columns: 11rem 1fr;
+  }
+
+  .xp-wizard-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .xp-wizard-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-left: 1.25rem;
+    list-style: decimal;
+  }
+
+  .xp-wizard-steps [aria-current="step"] {
+    font-weight: bold;
+  }
+
+  .xp-wizard-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+.xp-wizard .xp-button:disabled {
+  color: var(--xp-face-shadow);
+  box-shadow: none;
+  background: var(--xp-face);
+  cursor: default;
+}
+
+.xp-input {
+  min-height: 2.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--xp-button-border);
+  background: var(--xp-cream);
+}
+
+.xp-input:focus-visible {
+  outline: 2px solid var(--xp-select);
+  outline-offset: 1px;
+}
+
+.xp-input[aria-invalid="true"] {
+  border-color: var(--xp-red);
+}
+
+.xp-wizard-teams {
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid var(--xp-button-border);
+  background: var(--xp-cream);
+}
+
+.xp-wizard-team {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  cursor: pointer;
+}
+
+.xp-wizard-team:hover {
+  box-shadow: inset 0 0 0 2px var(--xp-gold);
+}
+
+.xp-wizard-team:has(:checked) {
+  color: var(--xp-text-inverse);
+  background: var(--xp-select);
+}
+
+.xp-wizard-team:has(:checked) .xp-avatar {
+  color: var(--xp-text);
+}
+
+.xp-wizard-team:has(:focus-visible) {
+  outline: 2px dotted var(--xp-text);
+  outline-offset: -3px;
+}
+
+.xp-wizard-team input {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--xp-select);
+}

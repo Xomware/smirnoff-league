@@ -83,7 +83,7 @@ export function useLeague(week?: number) {
       const s = roster?.settings;
       return {
         name: user?.metadata?.team_name || user?.display_name || `Team ${rosterId}`,
-        avatarUrl: user?.avatar ? `https://sleepercdn.com/avatars/thumb/${user.avatar}` : null,
+        avatarUrl: user?.avatar ? `https://sleepercdn.com/avatars/thumbs/${user.avatar}` : null,
         record: { wins: s?.wins ?? 0, losses: s?.losses ?? 0, ties: s?.ties ?? 0 },
       };
     },

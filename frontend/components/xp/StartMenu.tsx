@@ -5,6 +5,7 @@ import {
   HomeIcon,
   IceBottleIcon,
   IceCubeIcon,
+  ProfileIcon,
   ScoresIcon,
   StandingsIcon,
 } from "./icons";
@@ -20,10 +21,11 @@ const LINKS: { href: string; label: string; Icon: ComponentType<SVGProps<SVGSVGE
 interface StartMenuProps {
   id: string;
   onNavigate: () => void;
+  onEditProfile: () => void;
   onSignOut: () => void;
 }
 
-export function StartMenu({ id, onNavigate, onSignOut }: StartMenuProps) {
+export function StartMenu({ id, onNavigate, onEditProfile, onSignOut }: StartMenuProps) {
   return (
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
@@ -41,6 +43,12 @@ export function StartMenu({ id, onNavigate, onSignOut }: StartMenuProps) {
             </Link>
           </li>
         ))}
+        <li>
+          <button type="button" className="xp-start-menu-link w-full" onClick={onEditProfile}>
+            <ProfileIcon width={24} height={24} />
+            My Profile
+          </button>
+        </li>
       </ul>
       <div className="xp-start-menu-footer">
         <span className="mr-auto">Stay hydrated. Stay iced.</span>

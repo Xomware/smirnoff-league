@@ -22,6 +22,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/brackets/",
   useRouter: () => ({ replace: vi.fn() }),
 }));
+vi.mock("@/lib/api/users", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/users")>()),
+  getMe: vi.fn(async () => ({
+    sub: "u",
+    email: "member@example.com",
+    isAdmin: false,
+    profile: { name: "Member", username: "member", rosterId: 1, createdAt: "", updatedAt: "" },
+  })),
+}));
 
 import { AuthGate } from "@/components/auth/auth-gate";
 import BracketsPage from "./page";
