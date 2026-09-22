@@ -1,4 +1,4 @@
-import { defaultWeekSettings, type Ice, type MatchupRow, SLOTS, weekIces } from "./compute";
+import { defaultWeekSettings, type Ice, lockedIces, type MatchupRow, SLOTS, weekIces } from "./compute";
 
 export interface RosterTally {
   rosterId: number;
@@ -53,14 +53,11 @@ export function seasonTally(
     }
   }
 
-  // Before kickoff every starter reads 0 points, which the rule would call an
-  // ice for all 140 of them. No live ices until someone has scored.
   const current = weeks.find((w) => w.week === currentWeek);
-  const started = current?.matchups.some((m) => m.points !== 0);
 
   return {
     owed: [...rosters.values()].sort((a, b) => b.total - a.total || a.rosterId - b.rosterId),
     weeks: finished,
-    live: current && started ? icesFor(current) : null,
+    live: current ? { week: current.week, ices: lockedIces(current.week, current.matchups, SLOTS) } : null,
   };
 }
