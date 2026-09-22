@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 import { IceBadge } from "./IceBadge";
 
 interface PlayerRowProps {
-  name: string;
+  name: ReactNode;
   position: string;
   points: number;
   iced: boolean;

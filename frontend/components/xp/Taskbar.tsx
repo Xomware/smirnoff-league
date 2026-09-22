@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 
 import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
-import { REGISTRY } from "@/lib/desktop/registry";
+import { REGISTRY, windowTitle } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
 import { SpeakerToggle } from "./SpeakerToggle";
@@ -83,7 +83,8 @@ export function Taskbar() {
         </button>
         <ul className="xp-tasks" aria-label="Open windows">
           {windows.map((w) => {
-            const { title, Icon } = REGISTRY[w.kind];
+            const { Icon } = REGISTRY[w.kind];
+            const title = windowTitle(w);
             const pressed = active?.id === w.id;
             return (
               <li key={w.id}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
@@ -46,7 +47,9 @@ export function HomeWindow() {
               <ul aria-label="Ice Watch this week" className="mt-2 grid gap-1">
                 {watch.map(([rosterId, count]) => (
                   <li key={rosterId} className="flex items-center justify-between gap-2">
-                    <TeamName name={teamFor(rosterId).name} iced ices={0} />
+                    <DrillLink to={{ kind: "team", rosterId }}>
+                      <TeamName name={teamFor(rosterId).name} iced ices={0} />
+                    </DrillLink>
                     <IceBadge count={count} />
                   </li>
                 ))}

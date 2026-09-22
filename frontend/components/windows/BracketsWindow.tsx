@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { DrillLink } from "@/components/views/drill-link";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import {
@@ -40,7 +41,9 @@ function SlotRow({ slot, out, teamFor }: SlotRowProps) {
           TBD {slot.from && <span className="xp-slot-from">({slot.from})</span>}
         </span>
       ) : (
-        <TeamName name={teamFor(slot.rosterId).name} iced={false} ices={0} />
+        <DrillLink to={{ kind: "team", rosterId: slot.rosterId }}>
+          <TeamName name={teamFor(slot.rosterId).name} iced={false} ices={0} />
+        </DrillLink>
       )}
       {out && <span className="sr-only">(out)</span>}
     </li>
@@ -65,7 +68,10 @@ function BracketView({ bracket, roundNames, startWeek, exits, teamFor }: Bracket
       {bracket.rounds.map((matches, i) => (
         <section key={i} className="min-w-0" aria-label={roundNames[i] ?? `Round ${i + 1}`}>
           <h3 className="xp-round-title">
-            {roundNames[i] ?? `Round ${i + 1}`} <span className="font-normal">Week {startWeek + i}</span>
+            {roundNames[i] ?? `Round ${i + 1}`}{" "}
+            <span className="font-normal">
+              <DrillLink to={{ kind: "week", week: startWeek + i }}>Week {startWeek + i}</DrillLink>
+            </span>
           </h3>
           <ol className="flex flex-col gap-2">
             {matches.map((m) => (
@@ -83,7 +89,11 @@ function BracketView({ bracket, roundNames, startWeek, exits, teamFor }: Bracket
               {bracket.byes.map((s) => (
                 <li key={s.rosterId} className="xp-slot">
                   <span className="xp-seed">{s.seed}</span>
-                  {s.rosterId !== null && <TeamName name={teamFor(s.rosterId).name} iced={false} ices={0} />}
+                  {s.rosterId !== null && (
+                    <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
+                      <TeamName name={teamFor(s.rosterId).name} iced={false} ices={0} />
+                    </DrillLink>
+                  )}
                   <span className="xp-tag ml-auto">Bye</span>
                 </li>
               ))}
@@ -189,7 +199,9 @@ export function BracketsWindow() {
             <ol aria-label="At risk of the closet" className="flex flex-col gap-1">
               {view.risk.map((id) => (
                 <li key={id} className="min-w-0">
-                  <TeamName name={teamFor(id).name} iced={false} ices={0} />
+                  <DrillLink to={{ kind: "team", rosterId: id }}>
+                    <TeamName name={teamFor(id).name} iced={false} ices={0} />
+                  </DrillLink>
                 </li>
               ))}
             </ol>

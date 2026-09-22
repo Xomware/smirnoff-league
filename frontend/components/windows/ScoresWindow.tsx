@@ -2,6 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 
+import { DrillLink } from "@/components/views/drill-link";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import { defaultWeekSettings, lockedIces, SLOTS, weekIces } from "@/lib/ices/compute";
@@ -50,22 +51,34 @@ function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
       {open && (
         <div id={starters} className="mt-2 grid gap-2 sm:grid-cols-2">
           {sides.map((s) => (
-            <ul key={s.roster_id} aria-label={`${teamFor(s.roster_id).name} starters`} className="bg-(--xp-cream)">
-              {SLOTS.map((slot, i) => {
-                const pid = s.starters[i];
-                const iced = ices.slots.has(`${s.roster_id}:${i}`);
-                return (
-                  <PlayerRow
-                    key={i}
-                    name={!pid || pid === "0" ? "Empty" : (players[pid]?.name ?? pid)}
-                    position={slot}
-                    points={s.starters_points[i] ?? 0}
-                    iced={iced}
-                    ices={iced ? 1 : 0}
-                  />
-                );
-              })}
-            </ul>
+            <div key={s.roster_id}>
+              {/* The team names above sit inside the expand toggle, where a nested button is invalid. */}
+              <DrillLink to={{ kind: "team", rosterId: s.roster_id }}>
+                <TeamName name={teamFor(s.roster_id).name} iced={false} ices={0} />
+              </DrillLink>
+              <ul aria-label={`${teamFor(s.roster_id).name} starters`} className="mt-1 bg-(--xp-cream)">
+                {SLOTS.map((slot, i) => {
+                  const pid = s.starters[i];
+                  const iced = ices.slots.has(`${s.roster_id}:${i}`);
+                  return (
+                    <PlayerRow
+                      key={i}
+                      name={
+                        !pid || pid === "0" ? (
+                          "Empty"
+                        ) : (
+                          <DrillLink to={{ kind: "player", playerId: pid }}>{players[pid]?.name ?? pid}</DrillLink>
+                        )
+                      }
+                      position={slot}
+                      points={s.starters_points[i] ?? 0}
+                      iced={iced}
+                      ices={iced ? 1 : 0}
+                    />
+                  );
+                })}
+              </ul>
+            </div>
           ))}
         </div>
       )}

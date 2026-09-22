@@ -74,6 +74,24 @@ describe("a window that crashes", () => {
   });
 });
 
+describe("drill-down", () => {
+  it("opens a team window from Standings, once per team", async () => {
+    renderDesktop();
+    const standings = windowNamed("League Standings");
+    const team6 = (await within(standings).findByText("Team 6")).closest("button")!;
+
+    fireEvent.click(team6);
+    fireEvent.click(tab("League Standings"));
+    fireEvent.click(team6);
+
+    const teamTabs = within(screen.getByRole("list", { name: "Open windows" })).getAllByRole("button", {
+      name: "Team Profile",
+    });
+    expect(teamTabs).toHaveLength(1);
+    expect(teamTabs[0].getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
 describe("Taskbar tabs", () => {
   it("minimizes the focused window and restores it on a second click", () => {
     renderDesktop();

@@ -1,50 +1,12 @@
 "use client";
 
+import { DrillLink } from "@/components/views/drill-link";
+import { WeekIces } from "@/components/views/week-ices";
 import { IceBadge } from "@/components/xp/IceBadge";
-import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
-import type { Ice } from "@/lib/ices/compute";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
-import { type Player, type Team, useLeague } from "@/lib/league/use-league";
-
-interface WeekListProps {
-  ices: Ice[];
-  players: Record<string, Player>;
-  teamFor: (rosterId: number) => Team;
-}
-
-function causeOf(ice: Ice, players: Record<string, Player>): string {
-  if (ice.reason === "lowest") return "Lowest score";
-  if (ice.reason === "empty") return "Empty slot";
-  return players[ice.playerId!]?.name ?? ice.playerId!;
-}
-
-function WeekList({ ices, players, teamFor }: WeekListProps) {
-  const byRoster = new Map<number, Ice[]>();
-  for (const ice of ices) byRoster.set(ice.rosterId, [...(byRoster.get(ice.rosterId) ?? []), ice]);
-
-  return (
-    <div className="grid gap-3">
-      {[...byRoster].map(([rosterId, owed]) => (
-        <div key={rosterId}>
-          <TeamName name={teamFor(rosterId).name} iced ices={owed.length} />
-          <ul aria-label={`${teamFor(rosterId).name} ices`} className="mt-1 bg-(--xp-cream)">
-            {owed.map((ice) => (
-              <PlayerRow
-                key={ice.id}
-                name={causeOf(ice, players)}
-                position={ice.slot ?? "TEAM"}
-                points={ice.points}
-                iced
-                ices={0}
-              />
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
+import { byRoster } from "@/lib/league/drill";
+import { useLeague } from "@/lib/league/use-league";
 
 export function IcesWindow() {
   const { data, error: leagueError, teamFor } = useLeague();
@@ -72,7 +34,9 @@ export function IcesWindow() {
               <tr key={t.rosterId}>
                 <td>{i + 1}</td>
                 <td className="max-w-0">
-                  <TeamName name={teamFor(t.rosterId).name} iced={t.total > 0} ices={0} />
+                  <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
+                    <TeamName name={teamFor(t.rosterId).name} iced={t.total > 0} ices={0} />
+                  </DrillLink>
                 </td>
                 <td className="text-right">
                   {t.total > 0 ? <IceBadge count={t.total} /> : <span className="tabular-nums">0</span>}
@@ -92,7 +56,7 @@ export function IcesWindow() {
         {!tally.live || tally.live.ices.length === 0 ? (
           <p>No empty slots this week.</p>
         ) : (
-          <WeekList ices={tally.live.ices} players={data.players} teamFor={teamFor} />
+          <WeekIces groups={byRoster(tally.live.ices)} players={data.players} teamFor={teamFor} />
         )}
       </section>
       {[...tally.weeks].reverse().map(({ week, ices }) => (
@@ -101,7 +65,7 @@ export function IcesWindow() {
           {ices.length === 0 ? (
             <p>No ices this week.</p>
           ) : (
-            <WeekList ices={ices} players={data.players} teamFor={teamFor} />
+            <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />
           )}
         </section>
       ))}
