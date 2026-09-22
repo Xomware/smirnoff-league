@@ -5,7 +5,7 @@
 **Tracking issue:** #1
 **Repo:** Xomware/smirnoff-league
 **Base branch:** main
-**Status:** in progress
+**Status:** done
 
 ## Objective
 
@@ -54,7 +54,7 @@ A signed-in-only Smirnoff League site on `smirnoff.xomware.com`. It has a public
 
 ### Task A.1 — Scaffold + hosting + CI
 - **Issue:** #3
-- **Status:** `in progress`
+- **Status:** `done`
 - **Files:** `frontend/`, `infrastructure/terraform/*`, `.github/workflows/{terraform,deploy-frontend}.yml`
 - **Depends on:** #2
 
@@ -66,41 +66,41 @@ A signed-in-only Smirnoff League site on `smirnoff.xomware.com`. It has a public
 
 ### Task A.3 — Frontend auth + gate
 - **Issue:** #5
-- **Status:** `todo`
+- **Status:** `done`
 - **Files:** `frontend/lib/auth/*`, `frontend/components/auth/*`, `frontend/scripts/verify-build.mjs`
 - **Depends on:** #3, #4
 
 ### Task A.4 — XP shell
 - **Issue:** #6
-- **Status:** `todo`
+- **Status:** `done`
 - **Files:** `frontend/components/xp/*`
 - **Depends on:** #3
 
 ### Task A.5 — Landing page
 - **Issue:** #7
-- **Status:** `todo`
+- **Status:** `done`
 - **Files:** `frontend/components/landing/*`
 - **Depends on:** #5, #6
 
 ### Task A.6 — Sleeper client + ice compute
 - **Issue:** #8
-- **Status:** `todo`
+- **Status:** `done`
 - **Files:** `frontend/lib/sleeper/*`, `frontend/lib/ices/compute.ts`, `fixtures/ices-golden.json`, `backend/scripts/build_ices_fixture.py`
 - **Depends on:** #3
 
 ### Task A.7 — Scores, standings, danger zone
 - **Issue:** #9
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #5, #6, #8
 
 ### Task A.8 — Brackets + punishment risk
 - **Issue:** #10
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #5, #6, #8
 
 ### Task A.9 — Ice tally + draft recap embed
 - **Issue:** #11
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #5, #6, #8
 
 ---
@@ -111,17 +111,17 @@ A signed-in-only Smirnoff League site on `smirnoff.xomware.com`. It has a public
 
 ### Task B.1 — Backend infra
 - **Issue:** #12
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #3, #4
 
 ### Task B.2 — Users API + admin check
 - **Issue:** #13
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #12
 
 ### Task B.3 — Onboarding wizard
 - **Issue:** #14
-- **Status:** `todo`
+- **Status:** `done`
 - **Depends on:** #5, #13
 
 Tests and definition of done for each task are in its issue.
@@ -134,7 +134,8 @@ Tests and definition of done for each task are in its issue.
 | ---- | ---- | ----- | -- | ------ | --------------- |
 | 2026-09-22 | 0.1 | #2 | xomware-infrastructure#67 | feature/smirnoff-terraform-roles | Plan 6 add/0 change. Reuses reeses guardrail + state-lock policy docs. Secrets set by Dom after apply |
 | 2026-09-22 | A.2 | #4 | xomware-infrastructure#68 | feature/smirnoff-cognito-client | Plan 2 add/0 change. Google-only client (no COGNITO provider), unlike reeses |
-| 2026-09-22 | A.1 | #3 | (this PR) | feature/3-scaffold-hosting | next 16.3.6 (16.3.0 has a critical advisory, reeses still on it). No KMS; deploy role in this stack. AWS_ROLE_ARN set after first apply |
+| 2026-09-22 | A.1 | #3 | #15 | feature/3-scaffold-hosting | next 16.3.6 (16.3.0 has a critical advisory, reeses still on it). No KMS; deploy role in this stack. AWS_ROLE_ARN set after first apply |
+| 2026-09-22 | A.3-A.9, B.1-B.3 | #5-#14 | #16-#28 | main | Parallel worktree agents. Deploy race on IAM+app PRs fixed by #39. Live week counts only empty slots (#27). Admin list from ADMIN_EMAILS secret (#26) |
 
 ## Open questions / deferred
 

@@ -7,3 +7,4 @@ files themselves stay in `goals/` — this is just the index of finished work.
 
 | Goal | File | Tracking | Completed | Notes |
 | ---- | ---- | -------- | --------- | ----- |
+| Smirnoff League: MVP + onboarding | `goals/2026-09-22-smirnoff-league.md` | #1 | 2026-09-22 | 13 tasks, all merged |
