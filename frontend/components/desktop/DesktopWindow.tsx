@@ -12,7 +12,7 @@ import {
   RestoreGlyph,
 } from "@/components/xp/icons";
 import { useDesktop } from "@/lib/desktop/desktop-context";
-import { REGISTRY, windowTitle } from "@/lib/desktop/registry";
+import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { historyOf, TASKBAR_HEIGHT, windowId, type WindowState } from "@/lib/desktop/windows";
 
 const MIN_W = 240;
@@ -52,7 +52,7 @@ interface DesktopWindowProps {
 export function DesktopWindow({ win }: DesktopWindowProps) {
   const { active, phone, dispatch } = useDesktop();
   const { Icon, component: Body } = REGISTRY[win.kind];
-  const title = windowTitle(win);
+  const title = useWindowTitle()(win);
   const { id } = win;
   const isActive = active?.id === id;
   const maximized = win.maximized || phone;

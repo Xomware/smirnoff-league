@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react"
 
 import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
-import { REGISTRY, windowTitle } from "@/lib/desktop/registry";
+import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
 import { SpeakerToggle } from "./SpeakerToggle";
@@ -34,6 +34,7 @@ export function Taskbar() {
   const root = useRef<HTMLDivElement>(null);
   const start = useRef<HTMLButtonElement>(null);
   const time = useSyncExternalStore(subscribeToClock, readClock, readServerClock);
+  const windowTitle = useWindowTitle();
 
   useEffect(() => {
     if (!open) return;

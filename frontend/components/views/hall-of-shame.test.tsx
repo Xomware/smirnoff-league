@@ -1,8 +1,9 @@
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { iceStats } from "@/lib/ices/stats";
 import { golden, W1_POSITIONS } from "@/lib/test/league-mock";
+import { DrillContext } from "./drill-link";
 import { HallOfShame } from "./hall-of-shame";
 
 const stats = iceStats(golden.weeks, (id) => W1_POSITIONS[id]);
@@ -50,5 +51,20 @@ describe("Hall of Shame on the golden W1/W2 weeks", () => {
     expect(poster.textContent).toContain("Player 8121");
     expect(poster.textContent).toContain("caused 2 ices");
     expect(poster.textContent).toContain("Team 6, Team 9");
+  });
+
+  it("drills into the team and players named in a row", () => {
+    const onOpen = vi.fn();
+    render(
+      <DrillContext.Provider value={onOpen}>
+        <HallOfShame stats={stats} {...names} />
+      </DrillContext.Provider>,
+    );
+    const row = within(card("Avoidable Ices")).getAllByRole("listitem")[0];
+
+    fireEvent.click(within(row).getByRole("button", { name: "Team 2" }));
+    expect(onOpen).toHaveBeenLastCalledWith({ kind: "team", rosterId: 2 });
+    fireEvent.click(within(row).getByRole("button", { name: "Player 5022" }));
+    expect(onOpen).toHaveBeenLastCalledWith({ kind: "player", playerId: "5022" });
   });
 });
