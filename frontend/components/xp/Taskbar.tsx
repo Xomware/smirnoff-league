@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+
+import { useAuth } from "@/lib/auth/use-auth";
 import { IceBottleIcon } from "./icons";
 import { StartMenu } from "./StartMenu";
 
@@ -21,6 +23,7 @@ function readServerClock() {
 
 export function Taskbar() {
   const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
   const menuId = useId();
   const root = useRef<HTMLDivElement>(null);
   const start = useRef<HTMLButtonElement>(null);
@@ -46,7 +49,9 @@ export function Taskbar() {
 
   return (
     <div ref={root}>
-      {open && <StartMenu id={menuId} onNavigate={() => setOpen(false)} />}
+      {open && (
+        <StartMenu id={menuId} onNavigate={() => setOpen(false)} onSignOut={() => void signOut()} />
+      )}
       <div className="xp-taskbar">
         <button
           ref={start}

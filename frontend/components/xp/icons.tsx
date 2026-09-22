@@ -79,6 +79,15 @@ export function BracketIcon(props: IconProps) {
   );
 }
 
+export function WarningIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M8 1.5l6.5 12.5h-13z" className="fill-(--xp-gold) stroke-(--xp-text)" />
+      <path d="M8 6v4.5M8 12v1" className="stroke-(--xp-text) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
 export function MinimizeGlyph(props: IconProps) {
   return (
     <Icon {...props}>
