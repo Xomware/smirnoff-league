@@ -90,3 +90,41 @@ resource "aws_iam_role_policy" "deploy" {
   role   = aws_iam_role.deploy.id
   policy = data.aws_iam_policy_document.deploy.json
 }
+
+# The backend workflow's grants, as a second policy on the same role so adding
+# them leaves the frontend's untouched. Same grants as the reeses role in
+# xomware-infrastructure/terraform/oidc_unmanaged_apps.tf.
+data "aws_iam_policy_document" "deploy_backend" {
+  statement {
+    sid    = "DeployFunctions"
+    effect = "Allow"
+    actions = [
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
+      "lambda:GetFunction",
+      "lambda:GetFunctionConfiguration",
+      "lambda:PublishLayerVersion",
+      "lambda:ListLayerVersions",
+      "lambda:GetLayerVersion",
+    ]
+    resources = [
+      "arn:aws:lambda:${var.aws_region}:${local.account_id}:function:${var.app_name}-*",
+      "arn:aws:lambda:${var.aws_region}:${local.account_id}:layer:${var.app_name}-*",
+    ]
+  }
+
+  # ListFunctions has no resource-level form. verify-layer enumerates the
+  # smirnoff-* functions to check each one runs the newest layer.
+  statement {
+    sid       = "EnumerateFunctions"
+    effect    = "Allow"
+    actions   = ["lambda:ListFunctions"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "deploy_backend" {
+  name   = "deploy-backend"
+  role   = aws_iam_role.deploy.id
+  policy = data.aws_iam_policy_document.deploy_backend.json
+}

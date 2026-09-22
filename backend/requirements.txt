@@ -1,0 +1,2 @@
+# Lambda layer dependencies. boto3 is omitted because the Lambda runtime
+# provides it; test-only packages are installed by the workflows, not shipped.
