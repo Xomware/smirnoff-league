@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
+import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { PlayerView } from "@/components/views/player-view";
 import { StatsView } from "@/components/views/stats-view";
 import { TeamView } from "@/components/views/team-view";
@@ -16,6 +17,7 @@ import {
   ChartIcon,
   IceBottleIcon,
   IceCubeIcon,
+  IceStandingsIcon,
   InfoIcon,
   MediaPlayerIcon,
   ProfileIcon,
@@ -57,6 +59,7 @@ const SPECS = {
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
   ices: { title: "Ice Ledger", Icon: IceCubeIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
+  "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
   team: { title: "Team Profile", Icon: ProfileIcon, component: TeamWindow, defaultSize: { w: 600, h: 600 } },
   player: { title: "Player Card", Icon: ProfileIcon, component: PlayerWindow, defaultSize: { w: 520, h: 520 } },
   week: { title: (p) => `Week ${p.week}`, Icon: ScoresIcon, component: WeekWindow, defaultSize: { w: 600, h: 600 } },

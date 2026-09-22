@@ -52,6 +52,10 @@
   --ice-deep: #1d6fa8;
   --ice-label: #1d4f91;
   --ice-glow: rgb(150 215 255 / 0.9);
+  --ice-heat-1: #eef8ff;
+  --ice-heat-2: #d2ebfc;
+  --ice-heat-3: #acd9f7;
+  --ice-heat-4: #7fc2ee;
 
   --xp-button-border: #003c74;
   --xp-balloon: #ffffe1;
@@ -656,6 +660,81 @@
   .xp-team-name.ice {
     padding: 0 0.375rem;
     border-radius: 3px;
+  }
+
+  .xp-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0;
+    border: 0;
+    font: inherit;
+    font-weight: bold;
+    color: inherit;
+    background: none;
+    cursor: pointer;
+  }
+
+  .xp-sort:hover {
+    text-decoration: underline;
+  }
+
+  .xp-sort:active {
+    color: var(--xp-select);
+  }
+
+  .xp-sort:focus-visible {
+    outline: 2px dotted var(--xp-text);
+    outline-offset: 1px;
+  }
+
+  .xp-mine td,
+  .xp-mine th,
+  .ice-grid .xp-mine th[scope="row"] {
+    background: var(--xp-menu-side);
+  }
+
+  .ice-grid {
+    width: auto;
+    min-width: 100%;
+    table-layout: auto;
+  }
+
+  .ice-grid th[scope="row"] {
+    position: sticky;
+    left: 0;
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: var(--xp-cream);
+  }
+
+  .ice-grid td {
+    text-align: center;
+  }
+
+  .ice-grid .xp-drill {
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 1.75rem;
+    align-items: center;
+  }
+
+  .ice-grid td.ice-heat-1 {
+    background: var(--ice-heat-1);
+  }
+
+  .ice-grid td.ice-heat-2 {
+    background: var(--ice-heat-2);
+  }
+
+  .ice-grid td.ice-heat-3 {
+    background: var(--ice-heat-3);
+  }
+
+  .ice-grid td.ice-heat-4 {
+    background: var(--ice-heat-4);
   }
 
   .ice-badge {
