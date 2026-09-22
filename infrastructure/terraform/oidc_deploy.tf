@@ -81,6 +81,13 @@ data "aws_iam_policy_document" "deploy" {
       ] : "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/xomware/shared/cognito/${name}"
     ]
   }
+
+  statement {
+    sid       = "ReadApiUrl"
+    effect    = "Allow"
+    actions   = ["ssm:GetParameter"]
+    resources = [aws_ssm_parameter.api_url.arn]
+  }
 }
 
 data "aws_caller_identity" "current" {}

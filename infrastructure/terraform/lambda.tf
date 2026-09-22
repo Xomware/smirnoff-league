@@ -4,6 +4,7 @@
 locals {
   users_lambdas = [
     { name = "me", description = "Caller identity and profile", path_part = "me", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+    { name = "update", description = "Save the caller's profile", path_part = "update", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
   all_api_lambdas = {
