@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { Landing } from "@/components/landing/landing";
 import { ProfileGate } from "@/components/onboarding/profile-gate";
+import { AlertsProvider } from "@/lib/alerts/alerts";
 import { authConfigured, CALLBACK_PATH } from "@/lib/auth/amplify";
 import { useAuth } from "@/lib/auth/use-auth";
 import { ProfileProvider } from "@/lib/profile/use-profile";
@@ -35,7 +36,9 @@ export function AuthGate({ children, shell }: AuthGateProps) {
   if (status === "signedIn") {
     return (
       <ProfileProvider>
-        <ProfileGate shell={shell}>{children}</ProfileGate>
+        <AlertsProvider>
+          <ProfileGate shell={shell}>{children}</ProfileGate>
+        </AlertsProvider>
       </ProfileProvider>
     );
   }

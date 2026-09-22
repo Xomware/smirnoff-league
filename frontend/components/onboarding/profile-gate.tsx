@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { SignInGreeting } from "@/components/xp/SignInGreeting";
 import { Window } from "@/components/xp/Window";
 import { useProfile } from "@/lib/profile/use-profile";
 import { OnboardingWizard } from "./onboarding-wizard";
@@ -55,6 +56,7 @@ export function ProfileGate({ children, shell }: ProfileGateProps) {
     <>
       {children}
       {shell}
+      <SignInGreeting />
     </>
   );
 }
