@@ -1027,6 +1027,12 @@
       position: relative;
     }
 
+    /* The positioned drill links in the week cells would otherwise paint over
+       the sticky team column as the grid scrolls under it. */
+    .ice-grid th[scope="row"] {
+      z-index: 1;
+    }
+
     .xp-drill::after,
     .xp-sort::after {
       content: "";
