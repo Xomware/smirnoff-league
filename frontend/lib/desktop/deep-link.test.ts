@@ -48,6 +48,11 @@ describe("openParam", () => {
     expect(openParam(state)).toBe("standings,scores,team:6");
   });
 
+  it("names a window that navigated by what it shows now", () => {
+    const state = desktopReducer(open([], "standings"), { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
+    expect(openParam(state)).toBe("team:6");
+  });
+
   it("round-trips through parseOpen", () => {
     const state = open(open([], "team", { rosterId: 6 }), "standings");
     expect(parseOpen(`?open=${openParam(state)}`).map((l) => l.kind)).toEqual(["team", "standings"]);
@@ -65,6 +70,24 @@ describe("openLinks", () => {
     expect(state.map((w) => w.id)).toEqual(["standings", "team:6"]);
     expect(state[0]).toMatchObject({ x: saved.x, y: saved.y, w: saved.w, h: saved.h });
     expect(activeWindow(state)?.id).toBe("team:6");
+  });
+
+  it("finds a saved window by the view it shows, keeping its history", () => {
+    const navigated = desktopReducer(base, { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
+
+    const [team] = openLinks(navigated, parseOpen("?open=team:6"), 1440, 900);
+
+    expect(team).toMatchObject({ id: "standings", kind: "team", params: { rosterId: 6 } });
+    expect(team.history?.views).toHaveLength(2);
+  });
+
+  it("does not reuse a saved window's id already taken by an earlier link", () => {
+    const navigated = desktopReducer(base, { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
+
+    const state = openLinks(navigated, parseOpen("?open=standings,team:6"), 1440, 900);
+
+    expect(new Set(state.map((w) => w.id)).size).toBe(2);
+    expect(state.map((w) => w.kind)).toEqual(["standings", "team"]);
   });
 
   it("restores a minimized saved window", () => {

@@ -21,7 +21,8 @@ const ICONS: { kind: WindowKind; label: string }[] = [
 ];
 
 export function Desktop() {
-  const { windows, dispatch, open } = useDesktop();
+  const { windows, open, active, dispatch } = useDesktop();
+  const activeId = active?.id;
   const sub = useProfile().me?.sub;
   const restored = useRef<WindowState[] | null>(null);
   const live = useRef(false);
@@ -42,6 +43,19 @@ export function Desktop() {
     if (sub) saveLayout(sub, windows);
     syncUrl(windows);
   }, [windows, sub]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!activeId || !e.altKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      // Option+Arrow moves by word in a text field on macOS.
+      if (e.target instanceof Element && e.target.closest("input, textarea, [contenteditable]")) return;
+      // Otherwise the browser takes Alt+Left as its own Back and leaves the site.
+      e.preventDefault();
+      dispatch({ type: e.key === "ArrowLeft" ? "back" : "forward", id: activeId });
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [activeId, dispatch]);
 
   return (
     <DrillContext.Provider value={({ kind, ...params }) => open(kind, params)}>
