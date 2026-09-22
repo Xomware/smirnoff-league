@@ -6,6 +6,9 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/deploy-frontend.yml"
+  # Daily rebuild so players.json picks up names for new waiver pickups.
+  schedule:
+    - cron: "0 11 * * *"
   workflow_dispatch:
 
 env:
