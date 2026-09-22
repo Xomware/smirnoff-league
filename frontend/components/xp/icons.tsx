@@ -10,27 +10,21 @@ function Icon({ children, ...props }: IconProps) {
   );
 }
 
+// A Smirnoff Ice bottle: clear glass, silver cap, long neck, red neck band and
+// label. The white stripe stands in for "ICE" at 16px.
 export function IceBottleIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <rect x="6.5" y="0.5" width="3" height="2" className="fill-(--ice-deep)" />
+      <rect x="6.7" y="0.3" width="2.6" height="1.4" rx="0.3" className="fill-(--bottle-cap) stroke-(--bottle-edge)" strokeWidth="0.5" />
       <path
-        d="M6.5 2.5h3v2.5c0 1 2 1.5 2 3.5v6a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-6c0-2 2-2.5 2-3.5z"
-        className="fill-(--ice-glass) stroke-(--ice-deep)"
+        d="M6.9 1.7h2.2v3.6c0 .8 1.9 1.5 1.9 3.2v6a.9.9 0 0 1-.9.9H5.9a.9.9 0 0 1-.9-.9v-6c0-1.7 1.9-2.4 1.9-3.2z"
+        className="fill-(--bottle-glass) stroke-(--bottle-edge)"
+        strokeWidth="0.5"
       />
-      <rect x="4.5" y="8.5" width="7" height="3.5" className="fill-(--ice-label)" />
-      <path d="M6 10.25h4" className="stroke-(--xp-text-inverse)" />
-      <path d="M5.5 5.5v2" className="stroke-(--xp-text-inverse) opacity-80" />
-    </Icon>
-  );
-}
-
-export function IceCubeIcon(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M8 1.5l6 3v7l-6 3-6-3v-7z" className="fill-(--ice-glass) stroke-(--ice-deep)" />
-      <path d="M2 4.5l6 3 6-3M8 7.5v7" className="fill-none stroke-(--ice-deep)" />
-      <path d="M4 6.5v3" className="stroke-(--xp-text-inverse)" />
+      <rect x="6.9" y="2.4" width="2.2" height="1.3" className="fill-(--smirnoff-red)" />
+      <rect x="5" y="9" width="6" height="4.4" className="fill-(--smirnoff-red)" />
+      <rect x="5.8" y="10.6" width="4.4" height="1.1" className="fill-(--xp-text-inverse)" />
+      <rect x="5.8" y="6.9" width="0.6" height="1.8" className="fill-(--xp-text-inverse) opacity-85" />
     </Icon>
   );
 }
