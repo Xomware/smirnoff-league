@@ -53,9 +53,9 @@ export function playerWeeks(weeks: WeekMatchups[], playerId: string): PlayerWeek
   return byWeek(weeks).flatMap((w) => {
     const ices = finishedIces(w);
     return w.matchups
-      .filter((m) => m.players?.includes(playerId) || m.starters.includes(playerId))
+      .filter((m) => m.players?.includes(playerId) || m.starters?.includes(playerId))
       .map((m) => {
-        const slot = m.starters.indexOf(playerId);
+        const slot = m.starters?.indexOf(playerId) ?? -1;
         return {
           week: w.week,
           rosterId: m.roster_id,

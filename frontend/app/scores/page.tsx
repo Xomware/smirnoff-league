@@ -7,7 +7,12 @@ import { ScoresIcon } from "@/components/xp/icons";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
-import { defaultWeekSettings, lockedIces, SLOTS, weekIces } from "@/lib/ices/compute";
+import {
+  defaultWeekSettings,
+  lockedIces,
+  SLOTS,
+  weekIces,
+} from "@/lib/ices/compute";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 
@@ -42,8 +47,14 @@ function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
           const count = ices.byRoster.get(s.roster_id) ?? 0;
           return (
             <span key={s.roster_id} className="xp-matchup-side">
-              <TeamName name={teamFor(s.roster_id).name} iced={count > 0} ices={count} />
-              <span className={`xp-score${s.points === top ? " font-bold" : ""}`}>
+              <TeamName
+                name={teamFor(s.roster_id).name}
+                iced={count > 0}
+                ices={count}
+              />
+              <span
+                className={`xp-score${s.points === top ? " font-bold" : ""}`}
+              >
                 {s.points.toFixed(2)}
               </span>
             </span>
@@ -56,30 +67,45 @@ function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
             <div key={s.roster_id}>
               {/* The team names above sit inside the expand toggle, where a nested button is invalid. */}
               <DrillLink to={{ kind: "team", rosterId: s.roster_id }}>
-                <TeamName name={teamFor(s.roster_id).name} iced={false} ices={0} />
+                <TeamName
+                  name={teamFor(s.roster_id).name}
+                  iced={false}
+                  ices={0}
+                />
               </DrillLink>
-              <ul aria-label={`${teamFor(s.roster_id).name} starters`} className="mt-1 bg-(--xp-cream)">
-                {SLOTS.map((slot, i) => {
-                  const pid = s.starters[i];
-                  const iced = ices.slots.has(`${s.roster_id}:${i}`);
-                  return (
-                    <PlayerRow
-                      key={i}
-                      name={
-                        !pid || pid === "0" ? (
-                          "Empty"
-                        ) : (
-                          <DrillLink to={{ kind: "player", playerId: pid }}>{players[pid]?.name ?? pid}</DrillLink>
-                        )
-                      }
-                      position={slot}
-                      points={s.starters_points[i] ?? 0}
-                      iced={iced}
-                      ices={iced ? 1 : 0}
-                    />
-                  );
-                })}
-              </ul>
+              {s.starters === null ? (
+                <p className="xp-note mt-1">
+                  Sleeper has no lineup for this team yet.
+                </p>
+              ) : (
+                <ul
+                  aria-label={`${teamFor(s.roster_id).name} starters`}
+                  className="mt-1 bg-(--xp-cream)"
+                >
+                  {SLOTS.map((slot, i) => {
+                    const pid = s.starters![i];
+                    const iced = ices.slots.has(`${s.roster_id}:${i}`);
+                    return (
+                      <PlayerRow
+                        key={i}
+                        name={
+                          !pid || pid === "0" ? (
+                            "Empty"
+                          ) : (
+                            <DrillLink to={{ kind: "player", playerId: pid }}>
+                              {players[pid]?.name ?? pid}
+                            </DrillLink>
+                          )
+                        }
+                        position={slot}
+                        points={s.starters_points[i] ?? 0}
+                        iced={iced}
+                        ices={iced ? 1 : 0}
+                      />
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           ))}
         </div>
@@ -98,10 +124,16 @@ export default function ScoresPage() {
     const index: IceIndex = { byRoster: new Map(), slots: new Set() };
     if (!matchups || week === undefined) return index;
     const ices =
-      week === current ? lockedIces(week, matchups, SLOTS) : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
+      week === current
+        ? lockedIces(week, matchups, SLOTS)
+        : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
     for (const ice of ices) {
-      index.byRoster.set(ice.rosterId, (index.byRoster.get(ice.rosterId) ?? 0) + 1);
-      if (ice.slotIndex !== null) index.slots.add(`${ice.rosterId}:${ice.slotIndex}`);
+      index.byRoster.set(
+        ice.rosterId,
+        (index.byRoster.get(ice.rosterId) ?? 0) + 1,
+      );
+      if (ice.slotIndex !== null)
+        index.slots.add(`${ice.rosterId}:${ice.slotIndex}`);
     }
     return index;
   }, [matchups, week, current]);
@@ -119,18 +151,26 @@ export default function ScoresPage() {
     <main className="xp-page">
       <Window title="Scores" icon={<ScoresIcon />} controls>
         {error ? (
-          <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>
+          <p role="alert">
+            Could not reach Sleeper ({error}). Refresh to try again.
+          </p>
         ) : !data || current === undefined ? (
           <p role="status">Loading the league...</p>
         ) : (
           <label className="flex items-center gap-2 font-bold">
             Week
-            <select className="xp-select" value={week} onChange={(e) => setWeek(Number(e.target.value))}>
-              {Array.from({ length: current }, (_, i) => current - i).map((w) => (
-                <option key={w} value={w}>
-                  {w}
-                </option>
-              ))}
+            <select
+              className="xp-select"
+              value={week}
+              onChange={(e) => setWeek(Number(e.target.value))}
+            >
+              {Array.from({ length: current }, (_, i) => current - i).map(
+                (w) => (
+                  <option key={w} value={w}>
+                    {w}
+                  </option>
+                ),
+              )}
             </select>
           </label>
         )}
@@ -139,7 +179,9 @@ export default function ScoresPage() {
       {data && !error && (
         <div aria-live="polite" className="contents">
           {!matchups ? (
-            <p role="status" className="xp-note">Loading week {week}...</p>
+            <p role="status" className="xp-note">
+              Loading week {week}...
+            </p>
           ) : pairs.length === 0 ? (
             <p className="xp-note">No matchups for week {week} yet.</p>
           ) : (

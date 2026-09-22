@@ -52,12 +52,12 @@ export function TeamView({ rosterId }: TeamViewProps) {
         </span>
       </header>
 
-      {lineup && mine && (
+      {lineup && mine?.starters && (
         <section aria-label="Starters">
           <h3 className="font-bold">Starters, week {lineup.week}</h3>
           <ul aria-label={`Starters, week ${lineup.week}`} className="mt-1 bg-(--xp-cream)">
             {SLOTS.map((slot, i) => {
-              const pid = mine.starters[i];
+              const pid = mine.starters![i];
               const iced = icedSlots.has(i);
               return (
                 <PlayerRow

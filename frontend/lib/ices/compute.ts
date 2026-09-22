@@ -43,9 +43,12 @@ export function weekIces(
   const ices: Ice[] = [];
   const iceId = (rosterId: number, suffix: string) => `W${pad(week)}#R${pad(rosterId)}#${suffix}`;
 
-  for (const m of matchups) {
+  const known = matchups.filter((m) => m.starters !== null);
+
+  for (const m of known) {
+    const starters = m.starters!;
     slots.forEach((slot, i) => {
-      const playerId = m.starters[i];
+      const playerId = starters[i];
       const base = { id: iceId(m.roster_id, `S${i}`), week, rosterId: m.roster_id, slotIndex: i, slot };
       if (playerId === undefined || playerId === "0") {
         ices.push({ ...base, reason: "empty", playerId: null, points: 0 });
@@ -55,7 +58,7 @@ export function weekIces(
     });
   }
 
-  const pool = settings.lowestScope === "all" ? matchups : matchups.filter((m) => m.matchup_id !== null);
+  const pool = settings.lowestScope === "all" ? known : known.filter((m) => m.matchup_id !== null);
   const low = Math.min(...pool.map((m) => round2(m.points)));
   for (const m of pool) {
     if (round2(m.points) !== low) continue;
