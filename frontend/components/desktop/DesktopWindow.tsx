@@ -2,7 +2,9 @@
 
 import { Component, type PointerEvent, type ReactNode, useLayoutEffect, useRef } from "react";
 
-import { CloseGlyph, MaximizeGlyph, MinimizeGlyph, RestoreGlyph } from "@/components/xp/icons";
+import { CloseGlyph, LinkGlyph, MaximizeGlyph, MinimizeGlyph, RestoreGlyph } from "@/components/xp/icons";
+import { useAlerts } from "@/lib/alerts/alerts";
+import { windowUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, windowTitle } from "@/lib/desktop/registry";
 import { TASKBAR_HEIGHT, type WindowState } from "@/lib/desktop/windows";
@@ -43,6 +45,7 @@ interface DesktopWindowProps {
 
 export function DesktopWindow({ win }: DesktopWindowProps) {
   const { active, phone, dispatch } = useDesktop();
+  const { notify } = useAlerts();
   const { Icon, component: Body } = REGISTRY[win.kind];
   const title = windowTitle(win);
   const { id } = win;
@@ -79,6 +82,12 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
     }
   };
 
+  const copyLink = async () => {
+    const url = windowUrl(win);
+    await navigator.clipboard.writeText(url);
+    notify({ title: "Link copied", body: url, icon: "info" });
+  };
+
   const end = () => {
     drag.current = null;
   };
@@ -106,6 +115,9 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
         <Icon />
         <h2 className="xp-titlebar-text">{title}</h2>
         <span className="xp-titlebar-controls">
+          <button type="button" className="xp-control" aria-label="Copy link" title="Copy link" onClick={() => void copyLink()}>
+            <LinkGlyph />
+          </button>
           <button type="button" className="xp-control" aria-label="Minimize" onClick={() => dispatch({ type: "minimize", id })}>
             <MinimizeGlyph />
           </button>

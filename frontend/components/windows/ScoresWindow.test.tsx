@@ -5,7 +5,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MatchupRow } from "@/lib/ices/compute";
-import ScoresPage from "./page";
+import { ScoresWindow } from "./ScoresWindow";
 
 const golden: { weeks: { week: number; matchups: MatchupRow[] }[] } =
   JSON.parse(
@@ -104,9 +104,9 @@ afterEach(() => {
 const badgeOf = (team: string) =>
   screen.getByText(team).closest(".xp-team")?.querySelector(".ice-badge");
 
-describe("Scores page", () => {
+describe("Scores window", () => {
   it("shows week 1's 171.54 vs 127.36 matchup with ice badges on the iced rosters", async () => {
-    render(<ScoresPage />);
+    render(<ScoresWindow />);
 
     const picker = await screen.findByLabelText("Week");
     expect((picker as HTMLSelectElement).value).toBe("3");
@@ -123,7 +123,7 @@ describe("Scores page", () => {
   });
 
   it("expands a matchup to its starters, frosting the one who zeroed", async () => {
-    render(<ScoresPage />);
+    render(<ScoresWindow />);
     fireEvent.change(await screen.findByLabelText("Week"), {
       target: { value: "1" },
     });
@@ -138,7 +138,7 @@ describe("Scores page", () => {
   });
 
   it("renders the live week when Sleeper has no lineup for a roster", async () => {
-    render(<ScoresPage />);
+    render(<ScoresWindow />);
 
     const toggle = (await screen.findAllByText("0.00"))[0].closest("button")!;
     fireEvent.click(toggle);

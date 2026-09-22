@@ -2,16 +2,16 @@ import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { stubSleeper } from "@/lib/test/league-mock";
-import IcesPage from "./page";
+import { IcesWindow } from "./IcesWindow";
 
 beforeEach(stubSleeper);
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("Ice Ledger page", () => {
+describe("Ice Ledger window", () => {
   it("ranks owed ices, provisional, and names who caused each weekly ice", async () => {
-    render(<IcesPage />);
+    render(<IcesWindow />);
 
     const board = await screen.findByRole("table", { name: /owed — provisional/i });
     expect(within(board).getByText("Team 6").closest("tr")?.textContent).toContain("x2");

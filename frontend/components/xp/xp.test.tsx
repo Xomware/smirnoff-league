@@ -53,14 +53,11 @@ describe("Start menu", () => {
   it("opens from Start, and its items open windows on the desktop", () => {
     renderTaskbar();
     const start = screen.getByRole("button", { name: /start/i });
-    expect(screen.queryByRole("link", { name: "Brackets" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Brackets" })).toBeNull();
 
     fireEvent.click(start);
     expect(start.getAttribute("aria-expanded")).toBe("true");
-    const brackets = screen.getByRole("link", { name: "Brackets" });
-    expect(brackets.getAttribute("href")).toBe("/");
-
-    fireEvent.click(brackets);
+    fireEvent.click(screen.getByRole("button", { name: "Brackets" }));
 
     expect(start.getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByRole("button", { name: "Brackets" }).getAttribute("aria-pressed")).toBe("true");
@@ -79,7 +76,7 @@ describe("Start menu", () => {
 
     fireEvent.keyDown(document, { key: "Escape" });
 
-    expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
+    expect(screen.queryByRole("navigation", { name: "Start menu" })).toBeNull();
     expect(start.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(start);
   });

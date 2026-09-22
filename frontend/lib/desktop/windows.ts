@@ -19,7 +19,8 @@ export type WindowAction =
   | { type: "open"; kind: WindowKind; params: WindowParams; size: { w: number; h: number } }
   | { type: "close" | "focus" | "minimize" | "toggleMaximize"; id: string }
   | { type: "move"; id: string; x: number; y: number }
-  | { type: "resize"; id: string; w: number; h: number };
+  | { type: "resize"; id: string; w: number; h: number }
+  | { type: "restore"; windows: WindowState[] };
 
 // Matches --taskbar-height; windows live in the viewport above it.
 export const TASKBAR_HEIGHT = 44;
@@ -66,6 +67,8 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
       return update(state, action.id, { x: action.x, y: action.y });
     case "resize":
       return update(state, action.id, { w: action.w, h: action.h });
+    case "restore":
+      return action.windows;
   }
 }
 

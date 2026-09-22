@@ -25,8 +25,8 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
-import StandingsPage from "@/app/standings/page";
 import { AuthGate } from "@/components/auth/auth-gate";
+import { StandingsWindow } from "@/components/windows/StandingsWindow";
 import { Taskbar } from "@/components/xp/Taskbar";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { getMe, updateMe, type Me } from "@/lib/api/users";
@@ -64,7 +64,7 @@ describe("first sign-in", () => {
     render(
       <DesktopProvider>
         <AuthGate shell={<Taskbar />}>
-          <StandingsPage />
+          <StandingsWindow />
         </AuthGate>
       </DesktopProvider>,
     );

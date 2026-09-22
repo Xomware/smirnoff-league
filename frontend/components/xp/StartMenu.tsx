@@ -1,9 +1,8 @@
-import Link from "next/link";
-
 import type { WindowKind } from "@/lib/desktop/registry";
 import {
   BracketIcon,
   ChartIcon,
+  DesktopIcon,
   HomeIcon,
   IceBottleIcon,
   IceCubeIcon,
@@ -24,11 +23,12 @@ const ITEMS = [
 interface StartMenuProps {
   id: string;
   onOpen: (kind: WindowKind) => void;
+  onReset: () => void;
   onEditProfile: () => void;
   onSignOut: () => void;
 }
 
-export function StartMenu({ id, onOpen, onEditProfile, onSignOut }: StartMenuProps) {
+export function StartMenu({ id, onOpen, onReset, onEditProfile, onSignOut }: StartMenuProps) {
   return (
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
@@ -40,17 +40,22 @@ export function StartMenu({ id, onOpen, onEditProfile, onSignOut }: StartMenuPro
       <ul className="xp-start-menu-list">
         {ITEMS.map(({ kind, label, Icon }) => (
           <li key={kind}>
-            {/* Links home so the old routes, still live until they redirect, land on the desktop. */}
-            <Link href="/" className="xp-start-menu-link" onClick={() => onOpen(kind)}>
+            <button type="button" className="xp-start-menu-link w-full" onClick={() => onOpen(kind)}>
               <Icon width={24} height={24} />
               {label}
-            </Link>
+            </button>
           </li>
         ))}
         <li>
           <button type="button" className="xp-start-menu-link w-full" onClick={onEditProfile}>
             <ProfileIcon width={24} height={24} />
             My Profile
+          </button>
+        </li>
+        <li>
+          <button type="button" className="xp-start-menu-link w-full" onClick={onReset}>
+            <DesktopIcon width={24} height={24} />
+            Reset desktop
           </button>
         </li>
       </ul>
