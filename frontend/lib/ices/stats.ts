@@ -91,7 +91,7 @@ export function avoidableIces(weeks: StatsWeek[], positionOf: PositionOf): Avoid
       const m = matchups.find((r) => r.roster_id === ice.rosterId)!;
       const points = m.players_points ?? {};
       const best = (m.players ?? [])
-        .filter((id) => !m.starters.includes(id) && (points[id] ?? 0) > 0 && eligible(ice.slot!, posOf(id)))
+        .filter((id) => !m.starters?.includes(id) && (points[id] ?? 0) > 0 && eligible(ice.slot!, posOf(id)))
         .sort((a, b) => points[b] - points[a])[0];
       if (best) found.push({ ice, playerId: best, points: points[best] });
     }
@@ -103,9 +103,10 @@ export function closestEscapes(weeks: StatsWeek[]): Escape[] {
   const escapes: Escape[] = [];
   for (const { week, matchups } of weeks) {
     for (const m of matchups) {
+      if (m.starters === null) continue;
       SLOTS.forEach((slot, i) => {
         const points = m.starters_points[i];
-        if (points > 0 && points <= 1) escapes.push({ week, rosterId: m.roster_id, slotIndex: i, slot, playerId: m.starters[i], points });
+        if (points > 0 && points <= 1) escapes.push({ week, rosterId: m.roster_id, slotIndex: i, slot, playerId: m.starters![i], points });
       });
     }
   }

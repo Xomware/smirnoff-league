@@ -32,7 +32,7 @@ describe("seasonTally", () => {
     expect(tally.live?.ices).toEqual([]);
 
     const withEmpty = golden.weeks[0].matchups.map((m) =>
-      m.roster_id === 1 ? { ...m, starters: ["0", ...m.starters.slice(1)] } : m,
+      m.roster_id === 1 ? { ...m, starters: ["0", ...m.starters!.slice(1)] } : m,
     );
     const live = seasonTally([...golden.weeks, { week: 3, matchups: withEmpty }], 3).live;
     expect(live?.ices).toEqual([expect.objectContaining({ rosterId: 1, reason: "empty", slot: "QB" })]);
