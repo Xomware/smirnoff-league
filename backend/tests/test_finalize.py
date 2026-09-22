@@ -2,12 +2,14 @@ import io
 import json
 import os
 import urllib.request
+from datetime import datetime, timedelta, timezone
 
 import boto3
 import pytest
 from boto3.dynamodb.conditions import Key
 
 from lambdas.admin_finalize.handler import handler as admin_finalize
+from lambdas.cron_tick import handler as cron_module
 from lambdas.cron_tick.handler import handler as cron_tick
 from tests.conftest import set_admins
 from tests.events import authorized_event
@@ -18,10 +20,31 @@ MATCHUPS = SLEEPER + "/league/1394061072742227968/matchups/{}"
 ESPN = "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&week={}"
 SCHEDULED = {"source": "aws.events", "detail-type": "Scheduled Event", "detail": {}}
 ADMIN = "boss@example.com"
+# After W1's Monday night game and before its deadline, so no ice is late yet.
+BEFORE_W1_DEADLINE = datetime(2026, 9, 16, 12, tzinfo=timezone.utc)
 
 
-def scoreboard(*completed):
-    return {"events": [{"status": {"type": {"completed": c}}} for c in completed]}
+def scoreboard(last_game, *completed):
+    """Events a day apart, ending at last_game, in ESPN's minute-precision format."""
+    end = datetime.fromisoformat(last_game)
+    return {
+        "events": [
+            {
+                "date": (end - timedelta(days=len(completed) - 1 - i)).strftime("%Y-%m-%dT%H:%MZ"),
+                "status": {"type": {"completed": c}},
+            }
+            for i, c in enumerate(completed)
+        ]
+    }
+
+
+def freeze(monkeypatch, now):
+    class Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return now
+
+    monkeypatch.setattr(cron_module, "datetime", Frozen)
 
 
 @pytest.fixture
@@ -32,9 +55,9 @@ def web(monkeypatch):
         MATCHUPS.format(1): golden_week(1)["matchups"],
         MATCHUPS.format(2): golden_week(2)["matchups"],
         MATCHUPS.format(3): golden_week(1)["matchups"],
-        ESPN.format(1): scoreboard(True, True),
-        ESPN.format(2): scoreboard(True, True),
-        ESPN.format(3): scoreboard(True, False),
+        ESPN.format(1): scoreboard("2026-09-15T00:15Z", True, True),
+        ESPN.format(2): scoreboard("2026-09-22T00:15Z", True, True),
+        ESPN.format(3): scoreboard("2026-09-29T00:15Z", True, False),
     }
     requested = []
 
@@ -45,6 +68,7 @@ def web(monkeypatch):
         return io.BytesIO(json.dumps(routes[url]).encode())
 
     monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    freeze(monkeypatch, BEFORE_W1_DEADLINE)
     return routes, requested
 
 
