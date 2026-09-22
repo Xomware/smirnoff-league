@@ -29,6 +29,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 
 import { AuthGate } from "@/components/auth/auth-gate";
 import { getMe } from "@/lib/api/users";
+import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubAudio } from "@/lib/test/audio-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { Taskbar } from "./Taskbar";
@@ -56,9 +57,11 @@ afterEach(() => {
 
 const renderSignedIn = () =>
   render(
-    <AuthGate shell={<Taskbar />}>
-      <p>home</p>
-    </AuthGate>,
+    <DesktopProvider>
+      <AuthGate shell={<Taskbar />}>
+        <p>home</p>
+      </AuthGate>
+    </DesktopProvider>,
   );
 
 describe("signing in", () => {

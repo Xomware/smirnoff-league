@@ -15,6 +15,10 @@
   --xp-sky-bottom: #8ec1f2;
   --xp-hill: #4f9a2f;
   --xp-hill-dark: #3a7a1f;
+  --xp-hill-light: #7cc242;
+  --xp-cloud: rgb(244 248 251 / 0.7);
+  --xp-title-inactive: #7a96df;
+  --xp-title-inactive-light: #9db9eb;
 
   --xp-title-light: #3d95ff;
   --xp-title: #0a5ce6;
@@ -323,6 +327,23 @@
 
   .xp-control-close {
     background: linear-gradient(135deg, var(--xp-close), var(--xp-close-dark));
+  }
+
+  button.xp-control {
+    cursor: pointer;
+  }
+
+  button.xp-control:hover {
+    filter: brightness(1.15);
+  }
+
+  button.xp-control:active {
+    filter: brightness(0.85);
+  }
+
+  button.xp-control:focus-visible {
+    outline: 2px dotted var(--xp-text-inverse);
+    outline-offset: 1px;
   }
 
   .xp-window-body {
@@ -650,6 +671,187 @@
     font-weight: bold;
     background: linear-gradient(var(--xp-cream), var(--ice-glass));
     box-shadow: 0 0 4px var(--ice-glow);
+  }
+
+  /* Bliss, in gradients: a few soft clouds over a blue sky and one green hill. */
+  .xp-desktop {
+    position: fixed;
+    inset: 0 0 var(--taskbar-height) 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 26% 8% at 20% 16%, var(--xp-cloud), transparent 70%),
+      radial-gradient(ellipse 20% 6% at 64% 10%, var(--xp-cloud), transparent 70%),
+      radial-gradient(ellipse 16% 5% at 86% 28%, var(--xp-cloud), transparent 70%),
+      radial-gradient(ellipse 110% 48% at 30% 108%, var(--xp-hill-light), var(--xp-hill) 70%, transparent 70.5%),
+      radial-gradient(ellipse 80% 40% at 100% 112%, var(--xp-hill), var(--xp-hill-dark) 70%, transparent 70.5%),
+      linear-gradient(var(--xp-sky-top), var(--xp-sky-bottom) 75%);
+  }
+
+  .xp-desktop-icons {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .xp-desktop-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 5.5rem;
+    padding: 0.25rem;
+    color: var(--xp-text-inverse);
+    font-size: 0.75rem;
+  }
+
+  .xp-desktop-icon-label {
+    padding: 0 0.25rem;
+    text-align: center;
+    text-shadow: 1px 1px 1px var(--xp-screen);
+  }
+
+  .xp-desktop-icon:hover svg {
+    filter: brightness(1.12);
+  }
+
+  .xp-desktop-icon:focus svg {
+    filter: brightness(0.8) sepia(1) hue-rotate(180deg) saturate(3);
+  }
+
+  .xp-desktop-icon:focus .xp-desktop-icon-label {
+    background: var(--xp-select);
+    text-shadow: none;
+  }
+
+  .xp-desktop-icon:focus-visible .xp-desktop-icon-label {
+    outline: 1px dotted var(--xp-text-inverse);
+  }
+
+  .xp-desktop-window {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .xp-desktop-window:focus {
+    outline: none;
+  }
+
+  .xp-desktop-window[data-maximized] {
+    inset: 0;
+    width: auto;
+    border-radius: 0;
+  }
+
+  .xp-desktop-window:not([data-active]) {
+    border-color: var(--xp-title-inactive);
+  }
+
+  .xp-desktop-window:not([data-active]) .xp-titlebar {
+    background: linear-gradient(var(--xp-title-inactive-light), var(--xp-title-inactive));
+  }
+
+  .xp-desktop-window .xp-titlebar {
+    flex: none;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .xp-desktop-window .xp-window-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  /* An iframe under the pointer would swallow the drag. */
+  .xp-desktop-window:has(.xp-titlebar:active, .xp-resize:active) iframe {
+    pointer-events: none;
+  }
+
+  .xp-resize {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1rem;
+    height: 1rem;
+    cursor: nwse-resize;
+    touch-action: none;
+    background: linear-gradient(135deg, transparent 50%, var(--xp-face-shadow) 50% 60%, transparent 60% 70%, var(--xp-face-shadow) 70% 80%, transparent 80%);
+  }
+
+  .xp-tasks {
+    display: flex;
+    flex: 1;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.25rem 0.5rem;
+    overflow-x: auto;
+  }
+
+  .xp-tasks > li {
+    flex: 0 1 10rem;
+    min-width: 2.75rem;
+  }
+
+  .xp-task {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+    height: 100%;
+    padding: 0 0.5rem;
+    border: 1px solid var(--xp-taskbar-dark);
+    border-radius: 3px;
+    color: var(--xp-text-inverse);
+    font-size: 0.75rem;
+    background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar));
+    cursor: pointer;
+  }
+
+  .xp-task:hover {
+    filter: brightness(1.12);
+  }
+
+  .xp-task[aria-pressed="true"] {
+    background: var(--xp-taskbar-dark);
+    box-shadow: inset 1px 1px 3px var(--xp-screen);
+  }
+
+  .xp-task:focus-visible {
+    outline: 2px dotted var(--xp-text-inverse);
+    outline-offset: -4px;
+  }
+
+  .xp-group {
+    padding: 0.5rem;
+    border: 1px solid var(--xp-face-shadow);
+    border-radius: 3px;
+  }
+
+  .xp-group-title {
+    margin-bottom: 0.375rem;
+    font-weight: bold;
+    color: var(--xp-title-dark);
+  }
+
+  .xp-inset {
+    border: 1px solid var(--xp-face-shadow);
+    background: var(--xp-cream);
+    box-shadow: inset 1px 1px 0 var(--xp-face-shadow);
+  }
+
+  .xp-summary {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1.5rem;
+  }
+
+  .xp-summary dd {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
   }
 
   .xp-dialog {

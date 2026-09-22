@@ -1,5 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+
+import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { IceBadge } from "./IceBadge";
 import { PlayerRow } from "./PlayerRow";
 import { Taskbar } from "./Taskbar";
@@ -40,26 +42,38 @@ describe("ice variant", () => {
   });
 });
 
+const renderTaskbar = () =>
+  render(
+    <DesktopProvider>
+      <Taskbar />
+    </DesktopProvider>,
+  );
+
 describe("Start menu", () => {
-  it("opens from Start and lists nav links", () => {
-    render(<Taskbar />);
+  it("opens from Start, and its items open windows on the desktop", () => {
+    renderTaskbar();
     const start = screen.getByRole("button", { name: /start/i });
-    expect(screen.queryByRole("link", { name: "Standings" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Brackets" })).toBeNull();
 
     fireEvent.click(start);
-
     expect(start.getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByRole("link", { name: "Standings" }).getAttribute("href")).toBe("/standings");
+    const brackets = screen.getByRole("link", { name: "Brackets" });
+    expect(brackets.getAttribute("href")).toBe("/");
+
+    fireEvent.click(brackets);
+
+    expect(start.getAttribute("aria-expanded")).toBe("false");
+    expect(screen.getByRole("button", { name: "Brackets" }).getAttribute("aria-pressed")).toBe("true");
   });
 
   it("offers sign out", () => {
-    render(<Taskbar />);
+    renderTaskbar();
     fireEvent.click(screen.getByRole("button", { name: /start/i }));
     expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
   });
 
   it("closes on Escape and returns focus to Start", () => {
-    render(<Taskbar />);
+    renderTaskbar();
     const start = screen.getByRole("button", { name: /start/i });
     fireEvent.click(start);
 

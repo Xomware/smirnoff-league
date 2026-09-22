@@ -79,6 +79,15 @@ export function BracketIcon(props: IconProps) {
   );
 }
 
+export function ChartIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="1.5" width="13" height="13" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M4 12.5v-4M7 12.5v-7M10 12.5v-3M13 12.5v-8" className="stroke-(--ice-deep) stroke-2" />
+    </Icon>
+  );
+}
+
 export function MediaPlayerIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -177,6 +186,14 @@ export function CloseGlyph(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M4 4l8 8M12 4l-8 8" className="stroke-current stroke-2" />
+    </Icon>
+  );
+}
+
+export function RestoreGlyph(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M5.5 3.5h7v7M3.5 5.5h7v7h-7z" className="fill-none stroke-current stroke-[1.5]" />
     </Icon>
   );
 }
