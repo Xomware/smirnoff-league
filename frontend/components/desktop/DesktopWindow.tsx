@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, type PointerEvent, type ReactNode, useEffect, useRef } from "react";
+import { Component, type PointerEvent, type ReactNode, useLayoutEffect, useRef } from "react";
 
 import { CloseGlyph, MaximizeGlyph, MinimizeGlyph, RestoreGlyph } from "@/components/xp/icons";
 import { useDesktop } from "@/lib/desktop/desktop-context";
@@ -51,7 +51,10 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
   const drag = useRef<Drag | null>(null);
   const focusOnMount = useRef(isActive);
 
-  useEffect(() => {
+  // A layout effect, not a passive one: focusing dispatches a focus action,
+  // and a deferred one could land after the user opens another window and
+  // raise this one back over it.
+  useLayoutEffect(() => {
     if (focusOnMount.current) ref.current?.focus({ preventScroll: true });
   }, []);
 
