@@ -35,6 +35,16 @@ export function IceCubeIcon(props: IconProps) {
   );
 }
 
+export function StopwatchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="6.5" y="0.5" width="3" height="1.5" className="fill-(--ice-deep)" />
+      <circle cx="8" cy="9" r="6" className="fill-(--ice-tint) stroke-(--ice-deep)" />
+      <path d="M8 9V5.5M8 9l2.5 1.5" className="fill-none stroke-(--xp-red) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
 export function HomeIcon(props: IconProps) {
   return (
     <Icon {...props}>

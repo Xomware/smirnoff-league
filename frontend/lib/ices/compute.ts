@@ -32,6 +32,8 @@ export function defaultWeekSettings(week: number): WeekSettings {
 const pad = (n: number) => String(n).padStart(2, "0");
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+export const iceId = (week: number, rosterId: number, suffix: string) => `W${pad(week)}#R${pad(rosterId)}#${suffix}`;
+
 export function weekIces(
   week: number,
   matchups: MatchupRow[],
@@ -41,7 +43,6 @@ export function weekIces(
   if (!settings.iceRulesActive) return [];
 
   const ices: Ice[] = [];
-  const iceId = (rosterId: number, suffix: string) => `W${pad(week)}#R${pad(rosterId)}#${suffix}`;
 
   const known = matchups.filter((m) => m.starters !== null);
 
@@ -49,7 +50,7 @@ export function weekIces(
     const starters = m.starters!;
     slots.forEach((slot, i) => {
       const playerId = starters[i];
-      const base = { id: iceId(m.roster_id, `S${i}`), week, rosterId: m.roster_id, slotIndex: i, slot };
+      const base = { id: iceId(week, m.roster_id, `S${i}`), week, rosterId: m.roster_id, slotIndex: i, slot };
       if (playerId === undefined || playerId === "0") {
         ices.push({ ...base, reason: "empty", playerId: null, points: 0 });
       } else if (m.starters_points[i] <= 0) {
@@ -63,7 +64,7 @@ export function weekIces(
   for (const m of pool) {
     if (round2(m.points) !== low) continue;
     ices.push({
-      id: iceId(m.roster_id, "LOWEST"),
+      id: iceId(week, m.roster_id, "LOWEST"),
       week,
       rosterId: m.roster_id,
       reason: "lowest",

@@ -10,6 +10,7 @@ import {
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
+  StopwatchIcon,
 } from "./icons";
 
 const ITEMS = [
@@ -18,6 +19,7 @@ const ITEMS = [
   { kind: "standings", label: "Standings", Icon: StandingsIcon },
   { kind: "brackets", label: "Brackets", Icon: BracketIcon },
   { kind: "ices", label: "Ice Ledger", Icon: IceCubeIcon },
+  { kind: "watch", label: "Ice Watch", Icon: StopwatchIcon },
   { kind: "stats", label: "Ice Stats", Icon: ChartIcon },
 ] as const;
 
