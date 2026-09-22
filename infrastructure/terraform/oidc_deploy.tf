@@ -67,7 +67,23 @@ data "aws_iam_policy_document" "deploy" {
     actions   = ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"]
     resources = [module.web.cloudfront_distribution_arn]
   }
+
+  # The build bakes the shared pool's public config into the bundle.
+  statement {
+    sid     = "ReadCognitoConfig"
+    effect  = "Allow"
+    actions = ["ssm:GetParameter", "ssm:GetParameters"]
+    resources = [
+      for name in [
+        "user-pool-id",
+        "hosted-ui-domain",
+        "clients/smirnoff-id",
+      ] : "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/xomware/shared/cognito/${name}"
+    ]
+  }
 }
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role_policy" "deploy" {
   name   = "deploy"

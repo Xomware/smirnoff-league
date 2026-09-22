@@ -57,12 +57,33 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
-
       - uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      # Read from SSM rather than copied into GitHub secrets: xomware-infrastructure
+      # owns these values, and a stale copy would keep building a bundle that
+      # points at a rotated client while every sign-in fails. None are secret;
+      # they all ship in the bundle or the sign-in redirect URL.
+      - name: Resolve Cognito config from SSM
+        run: |
+          set -euo pipefail
+          get() {
+            aws ssm get-parameter --name "$1" \
+              --query Parameter.Value --output text
+          }
+          {
+            echo "NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(get /xomware/shared/cognito/user-pool-id)"
+            echo "NEXT_PUBLIC_COGNITO_CLIENT_ID=$(get /xomware/shared/cognito/clients/smirnoff-id)"
+            echo "NEXT_PUBLIC_COGNITO_DOMAIN=$(get /xomware/shared/cognito/hosted-ui-domain)"
+          } >> "$GITHUB_ENV"
+
+      - name: Build
+        env:
+          # postbuild's verify-build fails unless the values above reached the bundle.
+          REQUIRE_AUTH_ENV: "1"
+        run: npm run build
 
       # Found by the alias it serves rather than stored as a secret: exactly one
       # distribution fronts this hostname.
