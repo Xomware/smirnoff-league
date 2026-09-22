@@ -25,11 +25,10 @@ function matchupsFor(week: number, currentWeek: number): Promise<SleeperMatchup[
 
 interface Season {
   tally: SeasonTally;
-  weeks: WeekMatchups<SleeperMatchup>[];
-  live: SleeperMatchup[];
+  finishedWeeks: WeekMatchups<SleeperMatchup>[];
+  liveMatchups: SleeperMatchup[];
 }
 
-// `weeks` holds raw matchups for finished weeks only; `live` is the current week's.
 export function useSeasonIces(currentWeek: number | undefined) {
   const [season, setSeason] = useState<Season | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +43,8 @@ export function useSeasonIces(currentWeek: number | undefined) {
           live &&
           setSeason({
             tally: seasonTally(rows, currentWeek),
-            weeks: rows.filter((w) => w.week < currentWeek),
-            live: rows.find((w) => w.week === currentWeek)?.matchups ?? [],
+            finishedWeeks: rows.filter((w) => w.week < currentWeek),
+            liveMatchups: rows.find((w) => w.week === currentWeek)?.matchups ?? [],
           }),
       )
       .catch((e: Error) => live && setError(e.message));
@@ -54,5 +53,10 @@ export function useSeasonIces(currentWeek: number | undefined) {
     };
   }, [currentWeek]);
 
-  return { tally: season?.tally ?? null, weeks: season?.weeks ?? null, live: season?.live ?? null, error };
+  return {
+    tally: season?.tally ?? null,
+    finishedWeeks: season?.finishedWeeks ?? null,
+    liveMatchups: season?.liveMatchups ?? null,
+    error,
+  };
 }

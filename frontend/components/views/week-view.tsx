@@ -10,7 +10,7 @@ interface WeekViewProps {
 }
 
 export function WeekView({ week }: WeekViewProps) {
-  const { data, teamFor, currentWeek, weeks, live, error } = useSeason();
+  const { data, teamFor, currentWeek, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data || !weeks || !live) return <p role="status">Loading week {week}...</p>;

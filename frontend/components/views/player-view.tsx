@@ -11,7 +11,7 @@ interface PlayerViewProps {
 }
 
 export function PlayerView({ playerId }: PlayerViewProps) {
-  const { data, teamFor, weeks, error } = useSeason();
+  const { data, teamFor, finishedWeeks: weeks, error } = useSeason();
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data || !weeks) return <p role="status">Loading the player...</p>;

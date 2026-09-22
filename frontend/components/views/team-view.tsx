@@ -12,7 +12,7 @@ interface TeamViewProps {
 }
 
 export function TeamView({ rosterId }: TeamViewProps) {
-  const { data, teamFor, currentWeek, tally, weeks, live, error } = useSeason();
+  const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data || !tally || !weeks || !live || currentWeek === undefined) {
