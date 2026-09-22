@@ -52,6 +52,12 @@ describe("Start menu", () => {
     expect(screen.getByRole("link", { name: "Standings" }).getAttribute("href")).toBe("/standings");
   });
 
+  it("offers sign out", () => {
+    render(<Taskbar />);
+    fireEvent.click(screen.getByRole("button", { name: /start/i }));
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeTruthy();
+  });
+
   it("closes on Escape and returns focus to Start", () => {
     render(<Taskbar />);
     const start = screen.getByRole("button", { name: /start/i });
