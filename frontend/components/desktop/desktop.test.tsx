@@ -75,20 +75,71 @@ describe("a window that crashes", () => {
 });
 
 describe("drill-down", () => {
-  it("opens a team window from Standings, once per team", async () => {
+  const sectionCount = () => document.querySelectorAll("section.xp-desktop-window").length;
+
+  it("navigates the window in place on a plain click", async () => {
+    renderDesktop();
+    const before = sectionCount();
+    const standings = windowNamed("League Standings");
+
+    fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
+
+    expect(sectionCount()).toBe(before);
+    expect(standings.getAttribute("aria-label")).toBe("Team Profile");
+    expect(within(standings).getByRole("heading", { name: "Team Profile" })).toBeTruthy();
+  });
+
+  it("opens a new window on Ctrl-click or middle-click, once per team", async () => {
     renderDesktop();
     const standings = windowNamed("League Standings");
     const team6 = (await within(standings).findByText("Team 6")).closest("button")!;
 
-    fireEvent.click(team6);
+    fireEvent.click(team6, { ctrlKey: true });
     fireEvent.click(tab("League Standings"));
-    fireEvent.click(team6);
+    fireEvent(team6, new MouseEvent("auxclick", { bubbles: true, button: 1 }));
 
+    expect(windowNamed("League Standings")).toBe(standings);
     const teamTabs = within(screen.getByRole("list", { name: "Open windows" })).getAllByRole("button", {
       name: "Team Profile",
     });
     expect(teamTabs).toHaveLength(1);
     expect(teamTabs[0].getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("goes back on Alt+Left in the focused window", async () => {
+    renderDesktop();
+    const standings = windowNamed("League Standings");
+    fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
+
+    const handled = !fireEvent.keyDown(document.body, { key: "ArrowLeft", altKey: true });
+
+    expect(handled).toBe(true);
+    expect(standings.getAttribute("aria-label")).toBe("League Standings");
+    fireEvent.keyDown(document.body, { key: "ArrowRight", altKey: true });
+    expect(standings.getAttribute("aria-label")).toBe("Team Profile");
+  });
+
+  it("walks Standings to a team to a zeroed player, and Back twice returns to Standings", async () => {
+    renderDesktop();
+    const win = windowNamed("League Standings");
+
+    fireEvent.click((await within(win).findByText("Team 6")).closest("button")!);
+    const results = await within(win).findByRole("table", { name: "Weekly results" });
+    fireEvent.click(within(results).getByRole("button", { name: /Romeo Doubs/ }));
+    expect(await within(win).findByRole("heading", { name: "Romeo Doubs" })).toBeTruthy();
+    expect(win.getAttribute("aria-label")).toBe("Player Card");
+
+    const back = within(win).getByRole("button", { name: "Back" });
+    const forward = within(win).getByRole("button", { name: "Forward" });
+    expect(forward).toHaveProperty("disabled", true);
+    fireEvent.click(back);
+    expect(win.getAttribute("aria-label")).toBe("Team Profile");
+    fireEvent.click(back);
+
+    expect(win.getAttribute("aria-label")).toBe("League Standings");
+    expect(await within(win).findByText("Team 6")).toBeTruthy();
+    expect(back).toHaveProperty("disabled", true);
+    expect(forward).toHaveProperty("disabled", false);
   });
 });
 

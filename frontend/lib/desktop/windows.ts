@@ -2,6 +2,11 @@ import type { WindowKind } from "./registry";
 
 export type WindowParams = Record<string, string | number>;
 
+export interface WindowView {
+  kind: WindowKind;
+  params: WindowParams;
+}
+
 export interface WindowState {
   id: string;
   kind: WindowKind;
@@ -13,13 +18,17 @@ export interface WindowState {
   z: number;
   minimized: boolean;
   maximized: boolean;
+  // Absent until the window first navigates; see historyOf.
+  history?: { views: WindowView[]; at: number };
 }
 
 export type WindowAction =
   | { type: "open"; kind: WindowKind; params: WindowParams; size: { w: number; h: number } }
   | { type: "close" | "focus" | "minimize" | "toggleMaximize"; id: string }
   | { type: "move"; id: string; x: number; y: number }
-  | { type: "resize"; id: string; w: number; h: number };
+  | { type: "resize"; id: string; w: number; h: number }
+  | { type: "navigate"; id: string; kind: WindowKind; params: WindowParams }
+  | { type: "back" | "forward"; id: string };
 
 // Matches --taskbar-height; windows live in the viewport above it.
 export const TASKBAR_HEIGHT = 44;
@@ -34,17 +43,34 @@ export function activeWindow(state: WindowState[]): WindowState | undefined {
   return state.filter((w) => !w.minimized).sort((a, b) => b.z - a.z)[0];
 }
 
+export function historyOf(w: WindowState): { views: WindowView[]; at: number } {
+  return w.history ?? { views: [{ kind: w.kind, params: w.params }], at: 0 };
+}
+
 const topZ = (state: WindowState[]) => Math.max(0, ...state.map((w) => w.z));
 
 function update(state: WindowState[], id: string, patch: Partial<WindowState>): WindowState[] {
   return state.map((w) => (w.id === id ? { ...w, ...patch } : w));
 }
 
+function go(state: WindowState[], id: string, step: number): WindowState[] {
+  const w = state.find((w) => w.id === id);
+  if (!w) return state;
+  const { views, at } = historyOf(w);
+  const view = views[at + step];
+  if (!view) return state;
+  return update(state, id, { ...view, history: { views, at: at + step } });
+}
+
 export function desktopReducer(state: WindowState[], action: WindowAction): WindowState[] {
   switch (action.type) {
     case "open": {
-      const id = windowId(action.kind, action.params);
-      if (state.some((w) => w.id === id)) return desktopReducer(state, { type: "focus", id });
+      const base = windowId(action.kind, action.params);
+      // A window keeps its id when it navigates, so match on what it shows now.
+      const showing = state.find((w) => windowId(w.kind, w.params) === base);
+      if (showing) return desktopReducer(state, { type: "focus", id: showing.id });
+      let id = base;
+      for (let n = 2; state.some((w) => w.id === id); n++) id = `${base}#${n}`;
       const step = 32 * (state.length % 6);
       const { kind, params, size } = action;
       const opened = { id, kind, params, ...size, x: ICON_COLUMN + 48 + step, y: 16 + step };
@@ -66,6 +92,17 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
       return update(state, action.id, { x: action.x, y: action.y });
     case "resize":
       return update(state, action.id, { w: action.w, h: action.h });
+    case "navigate": {
+      const w = state.find((w) => w.id === action.id);
+      if (!w) return state;
+      const { views, at } = historyOf(w);
+      const view = { kind: action.kind, params: action.params };
+      return update(state, w.id, { ...view, history: { views: [...views.slice(0, at + 1), view], at: at + 1 } });
+    }
+    case "back":
+      return go(state, action.id, -1);
+    case "forward":
+      return go(state, action.id, 1);
   }
 }
 
