@@ -78,6 +78,11 @@ describe("desktopReducer", () => {
     state = desktopReducer(state, { type: "toggleMaximize", id: "scores" });
     expect(byKind(state, "scores").maximized).toBe(false);
   });
+
+  it("restores a whole layout, which is how the desktop resets", () => {
+    const layout = defaultLayout(1440, 900);
+    expect(desktopReducer(openAll("scores", "ices"), { type: "restore", windows: layout })).toBe(layout);
+  });
 });
 
 // Enough league for the titles that don't read it; named titles are in desktop.test.tsx.

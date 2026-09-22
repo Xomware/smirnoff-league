@@ -33,7 +33,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 }));
 
 import { AuthGate } from "@/components/auth/auth-gate";
-import BracketsPage from "./page";
+import { BracketsWindow } from "./BracketsWindow";
 
 // Two weeks played: records spread 2-0 / 1-1 / 0-2, points-for breaks the ties.
 // Roster ids are shuffled against standings so seeds cannot come from id order.
@@ -98,11 +98,11 @@ const bottomSix = ["Team 11", "Team 6", "Team 13", "Team 4", "Team 10", "Team 8"
 
 const teams = (el: HTMLElement) => within(el).queryAllByText(/^Team \d+$/).map((n) => n.textContent);
 
-describe("Brackets page", () => {
+describe("Brackets window", () => {
   it("shows projected seeds and the closet watch list in week 3", async () => {
     render(
       <AuthGate>
-        <BracketsPage />
+        <BracketsWindow />
       </AuthGate>,
     );
 

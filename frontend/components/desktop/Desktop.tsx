@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { DrillContext } from "@/components/views/drill-link";
+import { openLinks, parseOpen, syncUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
+import { loadLayout, saveLayout } from "@/lib/desktop/persist";
 import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
+import { defaultLayout, type WindowState } from "@/lib/desktop/windows";
+import { useProfile } from "@/lib/profile/use-profile";
 import { DesktopWindow } from "./DesktopWindow";
 
 const ICONS: { kind: WindowKind; label: string }[] = [
@@ -21,6 +25,26 @@ const ICONS: { kind: WindowKind; label: string }[] = [
 export function Desktop() {
   const { windows, open, active, dispatch } = useDesktop();
   const activeId = active?.id;
+  const sub = useProfile().me?.sub;
+  const restored = useRef<WindowState[] | null>(null);
+  const live = useRef(false);
+
+  // Before paint, so the default layout never flashes up first.
+  useLayoutEffect(() => {
+    const { innerWidth: vw, innerHeight: vh } = window;
+    const base = (sub && loadLayout(sub)) || defaultLayout(vw, vh);
+    restored.current = openLinks(base, parseOpen(window.location.search), vw, vh);
+    dispatch({ type: "restore", windows: restored.current });
+  }, [sub, dispatch]);
+
+  useEffect(() => {
+    // The commit that dispatched the restore still holds the old layout, and
+    // saving that would overwrite the user's.
+    if (!live.current && windows !== restored.current) return;
+    live.current = true;
+    if (sub) saveLayout(sub, windows);
+    syncUrl(windows);
+  }, [windows, sub]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

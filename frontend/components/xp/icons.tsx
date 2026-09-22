@@ -55,6 +55,15 @@ export function HomeIcon(props: IconProps) {
   );
 }
 
+export function DesktopIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="2.5" width="13" height="9" className="fill-(--xp-title-light) stroke-(--xp-text)" />
+      <path d="M6 14.5h4M8 11.5v3" className="stroke-(--xp-text)" />
+    </Icon>
+  );
+}
+
 export function ScoresIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -207,6 +216,17 @@ export function CloseGlyph(props: IconProps) {
   return (
     <Icon {...props}>
       <path d="M4 4l8 8M12 4l-8 8" className="stroke-current stroke-2" />
+    </Icon>
+  );
+}
+
+export function LinkGlyph(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path
+        d="M6.5 9.5l3-3M7.5 5l1.25-1.25a2.5 2.5 0 0 1 3.5 3.5L11 8.5M8.5 11l-1.25 1.25a2.5 2.5 0 0 1-3.5-3.5L5 7.5"
+        className="fill-none stroke-current stroke-[1.5]"
+      />
     </Icon>
   );
 }
