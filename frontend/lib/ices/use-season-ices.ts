@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import type { WeekMatchups } from "@/lib/league/drill";
 import { getMatchups } from "@/lib/sleeper/client";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 import { type SeasonTally, seasonTally } from "./tally";
@@ -22,9 +23,14 @@ function matchupsFor(week: number, currentWeek: number): Promise<SleeperMatchup[
   return rows;
 }
 
+interface Season {
+  tally: SeasonTally;
+  finishedWeeks: WeekMatchups<SleeperMatchup>[];
+  liveMatchups: SleeperMatchup[];
+}
+
 export function useSeasonIces(currentWeek: number | undefined) {
-  const [tally, setTally] = useState<SeasonTally | null>(null);
-  const [finishedWeeks, setFinishedWeeks] = useState<{ week: number; matchups: SleeperMatchup[] }[] | null>(null);
+  const [season, setSeason] = useState<Season | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,16 +38,25 @@ export function useSeasonIces(currentWeek: number | undefined) {
     let live = true;
     const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
     Promise.all(weeks.map((week) => matchupsFor(week, currentWeek).then((matchups) => ({ week, matchups }))))
-      .then((rows) => {
-        if (!live) return;
-        setTally(seasonTally(rows, currentWeek));
-        setFinishedWeeks(rows.filter((w) => w.week < currentWeek));
-      })
+      .then(
+        (rows) =>
+          live &&
+          setSeason({
+            tally: seasonTally(rows, currentWeek),
+            finishedWeeks: rows.filter((w) => w.week < currentWeek),
+            liveMatchups: rows.find((w) => w.week === currentWeek)?.matchups ?? [],
+          }),
+      )
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
     };
   }, [currentWeek]);
 
-  return { tally, finishedWeeks, error };
+  return {
+    tally: season?.tally ?? null,
+    finishedWeeks: season?.finishedWeeks ?? null,
+    liveMatchups: season?.liveMatchups ?? null,
+    error,
+  };
 }

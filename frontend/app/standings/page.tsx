@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo } from "react";
 
+import { DrillLink } from "@/components/views/drill-link";
 import { StandingsIcon, WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
@@ -59,12 +60,14 @@ export default function StandingsPage() {
                         </span>
                       </td>
                       <td className="max-w-0">
-                        <TeamName
-                          name={teamFor(s.rosterId).name}
-                          iced={owed(s.rosterId) > 0}
-                          ices={owed(s.rosterId)}
-                          isMine={s.rosterId === myRosterId}
-                        />
+                        <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
+                          <TeamName
+                            name={teamFor(s.rosterId).name}
+                            iced={owed(s.rosterId) > 0}
+                            ices={owed(s.rosterId)}
+                            isMine={s.rosterId === myRosterId}
+                          />
+                        </DrillLink>
                       </td>
                       <td className="tabular-nums">
                         {s.wins}-{s.losses}
