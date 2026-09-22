@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { DrillContext } from "@/components/views/drill-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
@@ -16,7 +18,21 @@ const ICONS: { kind: WindowKind; label: string }[] = [
 ];
 
 export function Desktop() {
-  const { windows, open } = useDesktop();
+  const { windows, open, active, dispatch } = useDesktop();
+  const activeId = active?.id;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!activeId || !e.altKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      // Option+Arrow moves by word in a text field on macOS.
+      if (e.target instanceof Element && e.target.closest("input, textarea, [contenteditable]")) return;
+      // Otherwise the browser takes Alt+Left as its own Back and leaves the site.
+      e.preventDefault();
+      dispatch({ type: e.key === "ArrowLeft" ? "back" : "forward", id: activeId });
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [activeId, dispatch]);
 
   return (
     <DrillContext.Provider value={({ kind, ...params }) => open(kind, params)}>

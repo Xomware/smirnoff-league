@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { activeWindow, defaultLayout, desktopReducer, type WindowState } from "./windows";
+import { windowTitle } from "./registry";
+import { activeWindow, defaultLayout, desktopReducer, historyOf, type WindowState } from "./windows";
 
 const size = { w: 400, h: 300 };
 
@@ -76,6 +77,70 @@ describe("desktopReducer", () => {
 
     state = desktopReducer(state, { type: "toggleMaximize", id: "scores" });
     expect(byKind(state, "scores").maximized).toBe(false);
+  });
+});
+
+describe("window history", () => {
+  const standings = () => openAll("standings");
+  const nav = (state: WindowState[], kind: "team" | "player" | "week", params: Record<string, number | string>) =>
+    desktopReducer(state, { type: "navigate", id: "standings", kind, params });
+
+  it("navigates in place, pushing history and retitling the window", () => {
+    const state = nav(nav(standings(), "team", { rosterId: 6 }), "week", { week: 3 });
+
+    expect(state).toHaveLength(1);
+    expect(state[0]).toMatchObject({ id: "standings", kind: "week", params: { week: 3 } });
+    expect(windowTitle(state[0])).toBe("Week 3");
+    expect(historyOf(state[0])).toEqual({
+      views: [
+        { kind: "standings", params: {} },
+        { kind: "team", params: { rosterId: 6 } },
+        { kind: "week", params: { week: 3 } },
+      ],
+      at: 2,
+    });
+  });
+
+  it("goes back and forward, and stops at the ends", () => {
+    let state = nav(standings(), "team", { rosterId: 6 });
+
+    state = desktopReducer(state, { type: "back", id: "standings" });
+    expect(state[0]).toMatchObject({ kind: "standings", params: {} });
+    expect(windowTitle(state[0])).toBe("League Standings");
+    expect(desktopReducer(state, { type: "back", id: "standings" })).toBe(state);
+
+    state = desktopReducer(state, { type: "forward", id: "standings" });
+    expect(state[0]).toMatchObject({ kind: "team", params: { rosterId: 6 } });
+    expect(desktopReducer(state, { type: "forward", id: "standings" })).toBe(state);
+  });
+
+  it("drops forward entries when navigating from the middle", () => {
+    let state = nav(nav(standings(), "team", { rosterId: 6 }), "player", { playerId: "8121" });
+    state = desktopReducer(desktopReducer(state, { type: "back", id: "standings" }), { type: "back", id: "standings" });
+
+    state = nav(state, "week", { week: 1 });
+
+    expect(historyOf(state[0]).views.map((v) => v.kind)).toEqual(["standings", "week"]);
+    expect(desktopReducer(state, { type: "forward", id: "standings" })).toBe(state);
+  });
+
+  it("navigates in place even when another window already shows the target", () => {
+    let state = desktopReducer(standings(), { type: "open", kind: "team", params: { rosterId: 6 }, size });
+    state = nav(state, "team", { rosterId: 6 });
+
+    expect(state.map((w) => [w.id, w.kind])).toEqual([
+      ["standings", "team"],
+      ["team:6", "team"],
+    ]);
+  });
+
+  it("opens a fresh window when the one with that id has navigated elsewhere", () => {
+    let state = nav(standings(), "team", { rosterId: 6 });
+    state = desktopReducer(state, { type: "open", kind: "standings", params: {}, size });
+
+    expect(state).toHaveLength(2);
+    expect(new Set(state.map((w) => w.id)).size).toBe(2);
+    expect(activeWindow(state)?.kind).toBe("standings");
   });
 });
 
