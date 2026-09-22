@@ -16,7 +16,9 @@ const ICONS: { kind: WindowKind; label: string }[] = [
   { kind: "standings", label: "Standings" },
   { kind: "brackets", label: "Brackets" },
   { kind: "ices", label: "Ice Ledger" },
+  { kind: "watch", label: "Ice Watch" },
   { kind: "stats", label: "Ice Stats" },
+  { kind: "ice-standings", label: "Ice Standings" },
   { kind: "recap", label: "Draft Recap" },
 ];
 

@@ -35,6 +35,16 @@ export function IceCubeIcon(props: IconProps) {
   );
 }
 
+export function StopwatchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="6.5" y="0.5" width="3" height="1.5" className="fill-(--ice-deep)" />
+      <circle cx="8" cy="9" r="6" className="fill-(--ice-tint) stroke-(--ice-deep)" />
+      <path d="M8 9V5.5M8 9l2.5 1.5" className="fill-none stroke-(--xp-red) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
 export function HomeIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -72,6 +82,17 @@ export function StandingsIcon(props: IconProps) {
       <rect x="5.5" y="4.5" width="5" height="10" className="fill-(--xp-gold) stroke-(--xp-text)" />
       <rect x="10.5" y="10.5" width="4" height="4" className="fill-(--xp-bronze) stroke-(--xp-text)" />
       <path d="M8 1l.9 1.7 1.8.3-1.3 1.2.3 1.8" className="fill-none stroke-(--xp-gold)" />
+    </Icon>
+  );
+}
+
+export function IceStandingsIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="9.5" width="4" height="5" className="fill-(--ice-tint) stroke-(--ice-deep)" />
+      <rect x="5.5" y="5.5" width="5" height="9" className="fill-(--ice-frost) stroke-(--ice-deep)" />
+      <rect x="10.5" y="11.5" width="4" height="3" className="fill-(--ice-glass) stroke-(--ice-deep)" />
+      <path d="M8 .5l2.5 1.25v2.5L8 5.5 5.5 4.25v-2.5z" className="fill-(--ice-glass) stroke-(--ice-deep)" />
     </Icon>
   );
 }
