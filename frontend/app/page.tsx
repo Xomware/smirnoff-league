@@ -1,5 +1,5 @@
-import { Desktop } from "@/components/desktop/Desktop";
+import { AppShell } from "@/components/phone/AppShell";
 
 export default function Home() {
-  return <Desktop />;
+  return <AppShell />;
 }

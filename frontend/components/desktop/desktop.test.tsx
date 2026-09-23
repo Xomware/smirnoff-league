@@ -191,31 +191,3 @@ describe("Taskbar tabs", () => {
     expect(windowNamed("Smirnoff Fantasy Football League").hidden).toBe(false);
   });
 });
-
-describe("phone mode", () => {
-  it("shows only the focused window, maximized, and tabs switch between them", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(
-      (query) =>
-        ({
-          matches: query.includes("max-width"),
-          media: query,
-          addEventListener: () => {},
-          removeEventListener: () => {},
-        }) as unknown as MediaQueryList,
-    );
-    renderDesktop();
-
-    const home = windowNamed("Smirnoff Fantasy Football League");
-    const standings = windowNamed("League Standings");
-    expect(home.dataset.maximized).toBe("true");
-    expect(home.hidden).toBe(false);
-    expect(standings.hidden).toBe(true);
-
-    fireEvent.click(screen.getByRole("button", { name: "4 windows" }));
-    fireEvent.click(tab("League Standings"));
-
-    expect(standings.hidden).toBe(false);
-    expect(standings.dataset.maximized).toBe("true");
-    expect(home.hidden).toBe(true);
-  });
-});

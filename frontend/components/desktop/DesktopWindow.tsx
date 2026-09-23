@@ -35,7 +35,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), M
 
 // One window's render error must not take the whole desktop down with it.
 // Closing and reopening the window remounts it and tries again.
-class WindowBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+export class WindowBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
 
   static getDerivedStateFromError() {
@@ -53,13 +53,12 @@ interface DesktopWindowProps {
 }
 
 export function DesktopWindow({ win }: DesktopWindowProps) {
-  const { active, phone, dispatch } = useDesktop();
+  const { active, dispatch } = useDesktop();
   const { notify } = useAlerts();
   const { Icon, component: Body } = REGISTRY[win.kind];
   const title = useWindowTitle()(win);
   const { id } = win;
   const isActive = active?.id === id;
-  const maximized = win.maximized || phone;
   const ref = useRef<HTMLElement>(null);
   const drag = useRef<Drag | null>(null);
   const focusOnMount = useRef(isActive);
@@ -80,7 +79,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
   }, []);
 
   const start = (mode: Drag["mode"], e: PointerEvent<HTMLElement>) => {
-    if (e.button !== 0 || maximized || (e.target as Element).closest("button")) return;
+    if (e.button !== 0 || win.maximized || (e.target as Element).closest("button")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     drag.current = { mode, px: e.clientX, py: e.clientY, x: win.x, y: win.y, w: win.w, h: win.h };
   };
@@ -117,16 +116,16 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
       aria-label={title}
       className="xp-window xp-desktop-window"
       data-active={isActive || undefined}
-      data-maximized={maximized || undefined}
-      hidden={win.minimized || (phone && !isActive)}
-      style={maximized ? { zIndex: win.z } : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z }}
+      data-maximized={win.maximized || undefined}
+      hidden={win.minimized}
+      style={win.maximized ? { zIndex: win.z } : { left: win.x, top: win.y, width: win.w, height: win.h, zIndex: win.z }}
       onPointerDown={() => dispatch({ type: "focus", id })}
       onFocus={() => dispatch({ type: "focus", id })}
     >
       <header
         className="xp-titlebar"
         onPointerDown={(e) => start("move", e)}
-        onDoubleClick={() => !phone && dispatch({ type: "toggleMaximize", id })}
+        onDoubleClick={() => dispatch({ type: "toggleMaximize", id })}
         {...dragHandlers}
       >
         <Icon />
@@ -138,16 +137,14 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
           <button type="button" className="xp-control" aria-label="Minimize" onClick={() => dispatch({ type: "minimize", id })}>
             <MinimizeGlyph />
           </button>
-          {!phone && (
-            <button
-              type="button"
-              className="xp-control"
-              aria-label={win.maximized ? "Restore" : "Maximize"}
-              onClick={() => dispatch({ type: "toggleMaximize", id })}
-            >
-              {win.maximized ? <RestoreGlyph /> : <MaximizeGlyph />}
-            </button>
-          )}
+          <button
+            type="button"
+            className="xp-control"
+            aria-label={win.maximized ? "Restore" : "Maximize"}
+            onClick={() => dispatch({ type: "toggleMaximize", id })}
+          >
+            {win.maximized ? <RestoreGlyph /> : <MaximizeGlyph />}
+          </button>
           <button
             type="button"
             className="xp-control xp-control-close"
@@ -189,7 +186,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
           </NavigateContext>
         </WindowBoundary>
       </div>
-      {!maximized && <div className="xp-resize" aria-hidden onPointerDown={(e) => start("resize", e)} {...dragHandlers} />}
+      {!win.maximized && <div className="xp-resize" aria-hidden onPointerDown={(e) => start("resize", e)} {...dragHandlers} />}
     </section>
   );
 }

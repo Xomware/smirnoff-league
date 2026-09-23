@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
 import { AuthGate } from "@/components/auth/auth-gate";
-import { Taskbar } from "@/components/xp/Taskbar";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 
 import "./globals.css";
@@ -24,7 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full">
         <DesktopProvider>
-          <AuthGate shell={<Taskbar />}>{children}</AuthGate>
+          <AuthGate>{children}</AuthGate>
         </DesktopProvider>
       </body>
     </html>

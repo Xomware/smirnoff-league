@@ -58,8 +58,9 @@ afterEach(() => {
 const renderSignedIn = () =>
   render(
     <DesktopProvider>
-      <AuthGate shell={<Taskbar />}>
+      <AuthGate>
         <p>home</p>
+        <Taskbar />
       </AuthGate>
     </DesktopProvider>,
   );

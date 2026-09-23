@@ -12,8 +12,6 @@ import { ProfileProvider } from "@/lib/profile/use-profile";
 
 interface AuthGateProps {
   children: ReactNode;
-  // App chrome (the taskbar) shown only to signed-in users, never on the landing.
-  shell?: ReactNode;
 }
 
 /**
@@ -27,7 +25,7 @@ interface AuthGateProps {
  * visitor is the common cold load, and the prerendered HTML then never
  * contains a gated page.
  */
-export function AuthGate({ children, shell }: AuthGateProps) {
+export function AuthGate({ children }: AuthGateProps) {
   const pathname = usePathname();
   const { status, signInWithGoogle } = useAuth();
 
@@ -37,7 +35,7 @@ export function AuthGate({ children, shell }: AuthGateProps) {
     return (
       <ProfileProvider>
         <AlertsProvider>
-          <ProfileGate shell={shell}>{children}</ProfileGate>
+          <ProfileGate>{children}</ProfileGate>
         </AlertsProvider>
       </ProfileProvider>
     );

@@ -63,8 +63,9 @@ describe("first sign-in", () => {
 
     render(
       <DesktopProvider>
-        <AuthGate shell={<Taskbar />}>
+        <AuthGate>
           <StandingsWindow />
+          <Taskbar />
         </AuthGate>
       </DesktopProvider>,
     );
