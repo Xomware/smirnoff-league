@@ -141,7 +141,7 @@
   }
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   .chug-row-button {
     min-height: 2.75rem;
   }

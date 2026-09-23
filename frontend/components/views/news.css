@@ -5,7 +5,7 @@
   gap: 0.5rem;
 }
 
-@media (min-width: 768px) {
+@media not ((max-width: 767.98px) or ((max-height: 500px) and (pointer: coarse))) {
   .news {
     height: 100%;
   }
@@ -154,7 +154,7 @@
   color: var(--xp-title-dark);
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   .news-columns {
     display: none;
   }

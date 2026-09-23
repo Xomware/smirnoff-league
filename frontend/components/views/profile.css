@@ -91,7 +91,7 @@
   background: var(--ice-tint);
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   .profile-chip {
     font-size: 0.75rem;
   }

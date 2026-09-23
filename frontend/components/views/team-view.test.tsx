@@ -24,6 +24,7 @@ import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
+import { PHONE } from "@/lib/use-media-query";
 import { DrillContext } from "./drill-link";
 import { TeamView } from "./team-view";
 
@@ -33,7 +34,7 @@ function viewport(phone: boolean) {
   vi.spyOn(window, "matchMedia").mockImplementation(
     (query) =>
       ({
-        matches: phone && query === "(max-width: 767.98px)",
+        matches: phone && query === PHONE,
         media: query,
         addEventListener: () => {},
         removeEventListener: () => {},
