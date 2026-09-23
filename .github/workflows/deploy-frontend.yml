@@ -85,7 +85,10 @@ jobs:
           {
             echo "NEXT_PUBLIC_COGNITO_USER_POOL_ID=$(get /xomware/shared/cognito/user-pool-id)"
             echo "NEXT_PUBLIC_COGNITO_CLIENT_ID=$(get /xomware/shared/cognito/clients/smirnoff-id)"
-            echo "NEXT_PUBLIC_COGNITO_DOMAIN=$(get /xomware/shared/cognito/hosted-ui-domain)"
+            # The league's own Cognito domain (xomware-infrastructure
+            # cognito_smirnoff_domain.tf), so Google's consent screen names
+            # smirnoff-league.com instead of the shared amazoncognito.com host.
+            echo "NEXT_PUBLIC_COGNITO_DOMAIN=auth.smirnoff-league.com"
           } >> "$GITHUB_ENV"
 
       # Written by this repo's Terraform (ssm.tf), so it follows the API domain.
