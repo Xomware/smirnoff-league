@@ -210,7 +210,7 @@ export function IcesWindow() {
       })}
       {ledger &&
         uploadFor &&
-        createPortal(<UploadChug ices={ledger.ices} iceId={uploadFor} onClose={() => setUploadFor(null)} />, document.body)}
+        createPortal(<UploadChug ices={ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
     </div>
   );
 }

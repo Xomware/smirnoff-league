@@ -1,11 +1,12 @@
 """
-POST /videos/confirm - mark an uploaded video ready and settle its ice.
+POST /videos/confirm - mark an uploaded video ready and settle every ice it covers.
 
 Body: { "mediaId": "W{ww}#{uuid}" }
 
-Only the uploader or an admin may confirm. An owed ice becomes completed with
-source `upload`; an already-completed ice keeps its completedAt and source and
-only gains the videoId. A voided ice is left alone.
+Only the uploader or an admin may confirm. Each owed ice becomes completed with
+source `upload` and completedBySub the uploader, other rosters' ices chugged in
+the same video included; an already-completed ice keeps its completedAt and
+source and only gains the videoId. A voided or deleted ice is left alone.
 """
 
 from __future__ import annotations
@@ -50,19 +51,15 @@ def handler(event, context):
 
     media.mark_ready(media_id, head["ContentLength"])
 
-    ice = ices.get_ice(video["iceId"])
-    if ice["status"] == "owed":
-        ices.update_ice(
-            ice["iceId"],
-            {
-                "status": "completed",
-                "completedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                "completedBySub": sub,
-                "source": "upload",
-                "videoId": media_id,
-            },
-        )
-    elif ice["status"] == "completed":
-        ices.update_ice(ice["iceId"], {"videoId": media_id})
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    settled = []
+    for ice_id in media.covered(video)[0]:
+        ice = ices.get_ice(ice_id)
+        if ice is None or ice["status"] == "voided":
+            continue
+        fields = {"videoId": media_id}
+        if ice["status"] == "owed":
+            fields |= {"status": "completed", "completedAt": now, "completedBySub": sub, "source": "upload"}
+        settled.append(ices.update_ice(ice_id, fields))
 
-    return ok({"video": media.get_video(media_id), "ice": ices.get_ice(ice["iceId"])})
+    return ok({"video": media.get_video(media_id), "ices": settled})

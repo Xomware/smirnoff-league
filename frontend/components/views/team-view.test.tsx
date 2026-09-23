@@ -45,9 +45,9 @@ function viewport(phone: boolean) {
 const R6_ZERO = SCENARIO_LEDGER.ices.find((i) => i.rosterId === 6 && i.reason === "zero")!;
 const R6_VIDEO: Video = {
   mediaId: "W01#r6",
-  iceId: R6_ZERO.iceId,
+  iceIds: [R6_ZERO.iceId],
   week: 1,
-  rosterId: 6,
+  rosterIds: [6],
   createdAt: "2026-09-20T12:00:00+00:00",
   bytes: 5_000_000,
   url: "https://media.test/r6.mp4",
@@ -204,8 +204,10 @@ describe("Manager profile", () => {
     expect(within(ices).getAllByRole("row").slice(1).every((r) => cells(r)[5]?.startsWith("None"))).toBe(true);
 
     fireEvent.click(within(ices).getAllByRole("button", { name: "Upload chug" })[0]);
-    const picker = within(screen.getByRole("dialog", { name: "Upload chug" })).getByLabelText("Ice") as HTMLSelectElement;
-    expect(picker.selectedOptions[0].textContent).toMatch(/lowest score/i);
+    const ticked = within(screen.getByRole("group", { name: "Your ices" }))
+      .getAllByRole("checkbox")
+      .filter((c) => (c as HTMLInputElement).checked);
+    expect(ticked.map((c) => c.closest("label")!.textContent)).toEqual([expect.stringMatching(/lowest score/i)]);
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     rerender(
