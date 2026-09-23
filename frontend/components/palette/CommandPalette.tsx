@@ -181,7 +181,7 @@ function PaletteBox({ phone, onPick, onClose }: PaletteBoxProps) {
 
   return (
     // A click outside the box closes it, like clicking off a menu.
-    <div className="xp-backdrop palette-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="xp-backdrop palette-backdrop" data-no-snowball onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={box} role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} className="xp-dialog palette palette-run" onKeyDown={onBoxKey}>
         <div className="xp-dialog-title palette-title">
           <h2 id={`${id}-title`}>Search</h2>
