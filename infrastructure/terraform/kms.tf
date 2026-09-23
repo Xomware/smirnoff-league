@@ -1,4 +1,4 @@
-# CMK for the DynamoDB tables. The site bucket stays on SSE-S3 (web_hosting.tf),
+# CMK for the DynamoDB tables and the media bucket (s3_media.tf). The site bucket stays on SSE-S3 (web_hosting.tf),
 # so unlike reeses this key needs no CloudFront grant.
 data "aws_iam_policy_document" "app_key" {
   # The standard root statement: it lets IAM policies grant use of the key.
