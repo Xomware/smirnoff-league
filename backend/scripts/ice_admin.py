@@ -3,7 +3,6 @@
 Ledger admin from a laptop, against the real tables with the default AWS credentials.
 
     cd backend
-    python scripts/ice_admin.py seed-test-weeks
     python scripts/ice_admin.py complete 'W04#R02#S5' --at 2026-10-10T18:00:00-04:00
     python scripts/ice_admin.py adjust --week 4 --roster 2 --note "reason"
 
@@ -24,7 +23,6 @@ from lambdas.common import ices_dynamo as db
 from lambdas.common.finalize import finalize_week
 from lambdas.common.late import week_deadlines
 
-TEST_WEEKS = (1, 2)
 TABLES = {"ICES_TABLE": "smirnoff-ices", "SETTINGS_TABLE": "smirnoff-settings"}
 
 
@@ -37,29 +35,6 @@ def aware(value: str) -> datetime:
 
 def stamp(at: datetime | None = None) -> str:
     return (at or datetime.now(timezone.utc)).isoformat(timespec="seconds")
-
-
-def seed_test_weeks() -> None:
-    done = db.finalized_weeks()
-    for week in TEST_WEEKS:
-        if week not in done:
-            print(f"W{week:02d} finalized: {finalize_week(week)['written']} ices written")
-
-    deadlines = week_deadlines()
-    for week in TEST_WEEKS:
-        if week not in deadlines:
-            raise SystemExit(f"W{week:02d} has no deadline: ESPN lists no games for it")
-
-    now = stamp()
-    for ice in db.season_ices():
-        if ice["week"] not in TEST_WEEKS or ice["reason"] == "late" or ice["status"] == "voided":
-            continue
-        at = deadlines[ice["week"]].isoformat()
-        db.update_ice(
-            ice["iceId"],
-            {"status": "completed", "completedAt": at, "source": "seed", "updatedAt": now},
-        )
-        print(f"{ice['iceId']} completed at {at}")
 
 
 def complete(ice_id: str, at: datetime | None) -> None:
@@ -87,7 +62,6 @@ def main(argv: list[str] | None = None) -> None:
 
     parser = argparse.ArgumentParser(prog="ice_admin")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("seed-test-weeks", help="finalize W1/W2 and complete every ice on time")
     done = sub.add_parser("complete", help="mark one ice completed")
     done.add_argument("ice_id")
     done.add_argument("--at", type=aware, help="ISO time with offset; default now")
@@ -97,9 +71,7 @@ def main(argv: list[str] | None = None) -> None:
     extra.add_argument("--note", required=True)
     args = parser.parse_args(argv)
 
-    if args.command == "seed-test-weeks":
-        seed_test_weeks()
-    elif args.command == "complete":
+    if args.command == "complete":
         complete(args.ice_id, args.at)
     else:
         note = args.note.strip()

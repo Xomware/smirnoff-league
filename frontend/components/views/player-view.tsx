@@ -44,49 +44,53 @@ export function PlayerView({ playerId }: PlayerViewProps) {
       {ices.length === 0 ? (
         <p>No ices caused.</p>
       ) : (
-        <table className="xp-table">
-          <caption className="mb-2 text-left font-bold">Ices caused</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="w-20">Week</th>
-              <th scope="col">Started by</th>
-              <th scope="col" className="w-18 text-right">Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ices.map((w) => (
-              <tr key={w.week} className="ice">
-                <td>{weekLink(w.week)}</td>
-                <td className="max-w-0">{teamLink(w.rosterId)}</td>
-                <td className="text-right tabular-nums">{w.points.toFixed(2)}</td>
+        <div className="xp-table-scroll">
+          <table className="xp-table">
+            <caption className="mb-2 text-left font-bold">Ices caused</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="w-20">Week</th>
+                <th scope="col">Started by</th>
+                <th scope="col" className="w-18 text-right">Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {ices.map((w) => (
+                <tr key={w.week} className="ice">
+                  <td>{weekLink(w.week)}</td>
+                  <td className="md:max-w-0">{teamLink(w.rosterId)}</td>
+                  <td className="text-right tabular-nums">{w.points.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {log.length > 0 && (
-        <table className="xp-table">
-          <caption className="mb-2 text-left font-bold">Weekly points</caption>
-          <thead>
-            <tr>
-              <th scope="col" className="w-20">Week</th>
-              <th scope="col">Roster</th>
-              <th scope="col" className="w-18">Role</th>
-              <th scope="col" className="w-18 text-right">Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {log.map((w) => (
-              <tr key={w.week}>
-                <td>{weekLink(w.week)}</td>
-                <td className="max-w-0">{teamLink(w.rosterId)}</td>
-                <td>{w.started ? "Starter" : "Bench"}</td>
-                <td className="text-right tabular-nums">{w.points.toFixed(2)}</td>
+        <div className="xp-table-scroll">
+          <table className="xp-table">
+            <caption className="mb-2 text-left font-bold">Weekly points</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="w-20">Week</th>
+                <th scope="col">Roster</th>
+                <th scope="col" className="w-18">Role</th>
+                <th scope="col" className="w-18 text-right">Points</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {log.map((w) => (
+                <tr key={w.week}>
+                  <td>{weekLink(w.week)}</td>
+                  <td className="md:max-w-0">{teamLink(w.rosterId)}</td>
+                  <td>{w.started ? "Starter" : "Bench"}</td>
+                  <td className="text-right tabular-nums">{w.points.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

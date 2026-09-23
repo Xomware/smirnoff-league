@@ -19,7 +19,7 @@ export function ProfileGate({ children, shell }: ProfileGateProps) {
 
   if (error) {
     return (
-      <main className="xp-page min-h-screen justify-center">
+      <main className="xp-page min-h-dvh justify-center">
         <Window title="Smirnoff League">
           <p role="alert" className="mb-3">
             Could not load your profile ({error}).
@@ -33,7 +33,7 @@ export function ProfileGate({ children, shell }: ProfileGateProps) {
   }
   if (!me) {
     return (
-      <main className="xp-page min-h-screen justify-center">
+      <main className="xp-page min-h-dvh justify-center">
         <p role="status" className="xp-note">
           Loading your profile...
         </p>

@@ -64,6 +64,11 @@ def week_deadlines() -> dict[int, datetime]:
     return deadlines
 
 
+# Weeks 1-2 were chugged before the site existed (Dom, 2026-09-22), so their
+# ices count as paid at the deadline and never go late.
+PAID_BEFORE_LAUNCH = (1, 2)
+
+
 def reconcile(now: datetime) -> dict:
     deadlines = week_deadlines()
     ices = db.season_ices()
@@ -77,6 +82,10 @@ def reconcile(now: datetime) -> dict:
         # added weeks later, and would otherwise arrive already late.
         if parent["reason"] not in db.COMPUTED_REASONS or deadline is None:
             continue
+        if parent["week"] in PAID_BEFORE_LAUNCH and parent["status"] == "owed":
+            paid_at = deadline.isoformat()
+            db.update_ice(parent["iceId"], {"status": "completed", "completedAt": paid_at, "updatedAt": stamp})
+            parent = {**parent, "status": "completed", "completedAt": paid_at}
         paid = parent.get("completedAt") if parent["status"] == "completed" else None
         due = 0
         if parent["status"] != "voided":

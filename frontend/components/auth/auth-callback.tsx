@@ -43,7 +43,7 @@ export function AuthCallback() {
   }, [status, router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-100 p-8 text-center text-stone-900">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-stone-100 p-8 text-center text-stone-900">
       {failed && status !== "signedIn" ? (
         <>
           <h1 className="text-xl font-semibold">That sign-in did not finish</h1>

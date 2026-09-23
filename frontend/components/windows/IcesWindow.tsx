@@ -33,7 +33,7 @@ function ProvisionalBoard({ owed, teamFor }: BoardProps) {
         {owed.map((t, i) => (
           <tr key={t.rosterId}>
             <td>{i + 1}</td>
-            <td className="max-w-0">
+            <td className="md:max-w-0">
               <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
                 <TeamName name={teamFor(t.rosterId).name} iced={t.total > 0} ices={0} />
               </DrillLink>
@@ -81,7 +81,7 @@ function SeasonSummary({ rows, teamFor }: SummaryProps) {
         {sorted.map((s, i) => (
           <tr key={s.rosterId}>
             <td>{i + 1}</td>
-            <td className="max-w-0">
+            <td className="md:max-w-0">
               <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
                 <TeamName name={teamFor(s.rosterId).name} iced={outstanding(s) > 0} ices={0} />
               </DrillLink>
@@ -148,7 +148,9 @@ export function IcesWindow() {
       {summary ? (
         <>
           <div>
-            <SeasonSummary rows={summary} teamFor={teamFor} />
+            <div className="xp-table-scroll">
+              <SeasonSummary rows={summary} teamFor={teamFor} />
+            </div>
             <p className="xp-note mt-2">
               Owed and completed count weekly ices. Late counts late ices; overdue is owed past its week&apos;s deadline.
             </p>
@@ -157,7 +159,9 @@ export function IcesWindow() {
         </>
       ) : (
         <div>
-          <ProvisionalBoard owed={tally.owed} teamFor={teamFor} />
+          <div className="xp-table-scroll">
+            <ProvisionalBoard owed={tally.owed} teamFor={teamFor} />
+          </div>
           <p role="note" className="xp-note mt-2 flex items-center gap-1">
             <WarningIcon className="shrink-0" />
             Ledger unavailable ({ledgerState.status === "error" && ledgerState.message}). Showing owed ices from Sleeper scores.

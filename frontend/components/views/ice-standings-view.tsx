@@ -93,7 +93,7 @@ export function IceStandingsView() {
             {rows.map((r) => (
               <tr key={r.rosterId} className={mine(r.rosterId)}>
                 <td className="tabular-nums">{r.rank}</td>
-                <td className="max-w-0">
+                <td className="md:max-w-0">
                   <DrillLink to={{ kind: "team", rosterId: r.rosterId }}>
                     <TeamName name={teamFor(r.rosterId).name} iced={r.total > 0} ices={0} isMine={r.rosterId === myRosterId} />
                   </DrillLink>

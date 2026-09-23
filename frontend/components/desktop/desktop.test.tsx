@@ -211,6 +211,7 @@ describe("phone mode", () => {
     expect(home.hidden).toBe(false);
     expect(standings.hidden).toBe(true);
 
+    fireEvent.click(screen.getByRole("button", { name: "4 windows" }));
     fireEvent.click(tab("League Standings"));
 
     expect(standings.hidden).toBe(false);
