@@ -12,12 +12,11 @@ import { parseOpen } from "@/lib/desktop/deep-link";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import { windowId, type WindowView } from "@/lib/desktop/windows";
 import { Effects } from "./Effects";
-import { Crystal, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
+import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
 
 import "./glacier.css";
-
-const FONTS = "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;600;700;800&display=swap";
+import "./glacier-skin.css";
 
 const NAV: { label: string; kind: WindowKind }[] = [
   { label: "Home", kind: "home" },
@@ -47,6 +46,14 @@ export function GlacierShell({ onSwitchTheme }: GlacierShellProps) {
   const page = useRef<HTMLElement>(null);
   const id = windowId(view.kind, view.params);
   const { component: Body } = REGISTRY[view.kind];
+
+  // Dialogs portal to <body>, outside this tree, so the theme has to sit on <html> too.
+  useEffect(() => {
+    document.documentElement.dataset.theme = "glacier";
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, []);
 
   useEffect(() => {
     const onPop = () => setView(fromUrl());

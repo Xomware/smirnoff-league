@@ -1,3 +1,6 @@
+export const FONTS =
+  "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;600;700;800&display=swap";
+
 export function Icicles({ className, d }: { className: string; d: string }) {
   return (
     <svg className={className} aria-hidden="true" viewBox="0 0 400 22" preserveAspectRatio="none">
