@@ -20,6 +20,7 @@ const ICONS: { kind: WindowKind; label: string }[] = [
   { kind: "stats", label: "Ice Stats" },
   { kind: "ice-standings", label: "Ice Standings" },
   { kind: "recap", label: "Draft Recap" },
+  { kind: "writeup", label: "News Drop" },
 ];
 
 export function Desktop() {

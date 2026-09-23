@@ -21,7 +21,11 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
   team: (v) => (POSITIVE.test(v) ? { rosterId: Number(v) } : null),
   player: (v) => (/^[A-Za-z0-9]+$/.test(v) ? { playerId: v } : null),
   week: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
+  writeup: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
 };
+
+// Kinds whose value may be left off: a bare `writeup` is the latest edition.
+const OPTIONAL = new Set<WindowKind>(["writeup"]);
 
 const isKind = (kind: string): kind is WindowKind => Object.hasOwn(REGISTRY, kind);
 
@@ -33,7 +37,8 @@ export function parseOpen(search: string): WindowLink[] {
     if (!isKind(kind) || rest.length > 0) return [];
     const read = PARAMS[kind];
     if (!read) return value === undefined ? [{ kind, params: {} }] : [];
-    const params = value === undefined ? null : read(value);
+    if (value === undefined) return OPTIONAL.has(kind) ? [{ kind, params: {} }] : [];
+    const params = read(value);
     return params ? [{ kind, params }] : [];
   });
 }
