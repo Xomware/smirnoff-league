@@ -15,8 +15,6 @@
   --xp-sky-bottom: #8ec1f2;
   --xp-hill: #4f9a2f;
   --xp-hill-dark: #3a7a1f;
-  --xp-hill-light: #7cc242;
-  --xp-cloud: rgb(244 248 251 / 0.7);
   --xp-title-inactive: #7a96df;
   --xp-title-inactive-light: #9db9eb;
 
@@ -52,10 +50,6 @@
   --ice-deep: #1d6fa8;
   --ice-label: #1d4f91;
   --ice-glow: rgb(150 215 255 / 0.9);
-  --smirnoff-red: #d4202c;
-  --bottle-glass: #eef3f8;
-  --bottle-edge: #7d8794;
-  --bottle-cap: #c9ced6;
   --ice-heat-1: #eef8ff;
   --ice-heat-2: #d2ebfc;
   --ice-heat-3: #acd9f7;
@@ -812,18 +806,11 @@
     box-shadow: 0 0 4px var(--ice-glow);
   }
 
-  /* Bliss, in gradients: a few soft clouds over a blue sky and one green hill. */
   .xp-desktop {
     position: fixed;
     inset: 0 0 var(--taskbar-top) 0;
     overflow: hidden;
-    background:
-      radial-gradient(ellipse 26% 8% at 20% 16%, var(--xp-cloud), transparent 70%),
-      radial-gradient(ellipse 20% 6% at 64% 10%, var(--xp-cloud), transparent 70%),
-      radial-gradient(ellipse 16% 5% at 86% 28%, var(--xp-cloud), transparent 70%),
-      radial-gradient(ellipse 110% 48% at 30% 108%, var(--xp-hill-light), var(--xp-hill) 70%, transparent 70.5%),
-      radial-gradient(ellipse 80% 40% at 100% 112%, var(--xp-hill), var(--xp-hill-dark) 70%, transparent 70.5%),
-      linear-gradient(var(--xp-sky-top), var(--xp-sky-bottom) 75%);
+    background: var(--xp-sky-bottom) url("/brand/wallpaper.jpg") center / cover no-repeat;
   }
 
   .xp-desktop-icons {
