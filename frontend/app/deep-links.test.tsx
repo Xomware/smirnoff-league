@@ -121,7 +121,7 @@ describe("?open=", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Team 6" })).toBeTruthy();
     const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    expect(tabs.getByRole("button", { name: "League" }).getAttribute("aria-current")).toBe("page");
+    expect(tabs.getByRole("button", { name: "Menu" }).getAttribute("aria-current")).toBe("page");
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "League Standings" })).toBeTruthy();
     expect(document.querySelector(".xp-desktop")).toBeNull();

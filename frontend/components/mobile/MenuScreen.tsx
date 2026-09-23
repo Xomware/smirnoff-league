@@ -33,8 +33,8 @@ const ROWS: Row[] = [
   { kind: "standings", label: "Standings", blurb: "Records, points and the playoff cut", Icon: StandingsIcon },
   { kind: "brackets", label: "Brackets", blurb: "The playoffs and the toilet bowl", Icon: BracketIcon },
   { kind: "news", label: "League News", blurb: "Moves, trades and ice events", Icon: NewsFeedIcon },
-  { kind: "stats", label: "Ice Stats", blurb: "The race, heat check and Hall of Shame", Icon: ChartIcon },
   { kind: "writeup", label: "News Drop", blurb: "The commish's weekly edition", Icon: NewspaperIcon },
+  { kind: "stats", label: "Ice Stats", blurb: "The race, heat check and Hall of Shame", Icon: ChartIcon },
   { kind: "teams", label: "Teams", blurb: "Every team's profile", Icon: ProfileIcon },
   { kind: "my-team", label: "My Team", blurb: "Your results, ices and moves", Icon: StarIcon },
 ];
@@ -42,7 +42,7 @@ const ADMIN: Row = { kind: "admin", label: "Control Panel", blurb: "Ices, week r
 
 const serverMuted = () => false;
 
-export function LeagueScreen() {
+export function MenuScreen() {
   const push = usePush();
   const { me, setEditing } = useProfile();
   const { signOut } = useAuth();
@@ -51,7 +51,7 @@ export function LeagueScreen() {
 
   return (
     <div className="m-page">
-      <ul aria-label="League" className="m-card m-rows">
+      <ul aria-label="Menu" className="m-card m-rows">
         {rows.map(({ kind, label, blurb, Icon }) => (
           <li key={kind}>
             <button type="button" className="m-nav-row" onClick={() => push({ kind, params: {} })}>

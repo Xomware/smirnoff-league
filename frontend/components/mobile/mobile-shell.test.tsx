@@ -131,7 +131,7 @@ describe("shell choice", () => {
 
   it("keeps the screen when the phone rotates", async () => {
     renderShell();
-    fireEvent.click(tab("League"));
+    fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: /Standings/ }));
     await waitFor(() => expect(title()).toBe("League Standings"));
 
@@ -142,19 +142,19 @@ describe("shell choice", () => {
 
     expect(title()).toBe("League Standings");
     fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("League"));
+    await waitFor(() => expect(title()).toBe("Menu"));
   });
 });
 
 describe("tabs", () => {
-  it("has exactly four: Home, Games, Ices and League", () => {
+  it("has exactly four: Home, Games, Ices and Menu", () => {
     renderShell();
-    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "League"]);
+    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
     expect(tab("Home").getAttribute("aria-current")).toBe("page");
     expect(title()).toBe("Smirnoff League");
   });
 
-  it.each(["Home", "Games", "League"])("%s has no tab strip of its own", async (name) => {
+  it.each(["Home", "Games", "Menu"])("%s has no tab strip of its own", async (name) => {
     withWeek3();
     renderShell();
     fireEvent.click(tab(name));
@@ -165,18 +165,18 @@ describe("tabs", () => {
   it("tracks each tab and each pushed screen as an open", async () => {
     vi.mocked(track).mockClear();
     renderShell();
-    fireEvent.click(tab("League"));
+    fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: /Brackets/ }));
     await waitFor(() => expect(title()).toBe("Brackets"));
     expect(vi.mocked(track).mock.calls).toEqual([
-      ["open", "tab:league"],
+      ["open", "tab:menu"],
       ["open", "brackets"],
     ]);
   });
 
   it("lists the Control Panel only for an admin", async () => {
     renderShell();
-    fireEvent.click(tab("League"));
+    fireEvent.click(tab("Menu"));
     await top().findByRole("heading", { name: "Thirteen" });
     expect(top().queryByRole("button", { name: /Control Panel/ })).toBeNull();
   });

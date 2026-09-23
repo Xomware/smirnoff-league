@@ -340,6 +340,14 @@ export function CloseGlyph(props: IconProps) {
   );
 }
 
+export function MenuIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M2 3.5h12v2H2zM2 7h12v2H2zM2 10.5h12v2H2z" className="fill-(--xp-cream) stroke-(--xp-frame) stroke-[0.5]" />
+    </Icon>
+  );
+}
+
 export function LinkGlyph(props: IconProps) {
   return (
     <Icon {...props}>

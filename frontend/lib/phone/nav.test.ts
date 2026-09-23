@@ -22,9 +22,9 @@ describe("deep links", () => {
     ["?open=ice-standings", "ices", [root("ices")]],
     ["?open=videos", "ices", [root("ices")]],
     ["?open=folder:ices,stats", "ices", [root("ices"), root("stats")]],
-    ["?open=standings", "league", [root("league"), root("standings")]],
-    ["?open=team:3", "league", [root("league"), team]],
-    ["?open=admin:users", "league", [root("league"), { kind: "admin", params: { panel: "users" } }]],
+    ["?open=standings", "menu", [root("menu"), root("standings")]],
+    ["?open=team:3", "menu", [root("menu"), team]],
+    ["?open=admin:users", "menu", [root("menu"), { kind: "admin", params: { panel: "users" } }]],
     ["?open=notifications", "home", [root("home"), root("notifications")]],
     ["?open=scores,team:3,player:4046", "games", [root("games"), team, player]],
   ])("%s opens the %s tab", (search, tab, stack) => {
@@ -53,13 +53,13 @@ describe("navReducer", () => {
   });
 
   it("keeps each tab's stack when switching tabs", () => {
-    let nav = navReducer(start, { type: "tab", tab: "league" });
+    let nav = navReducer(start, { type: "tab", tab: "menu" });
     nav = navReducer(nav, { type: "push", screen: team });
     nav = navReducer(nav, { type: "tab", tab: "games" });
     expect(stackOf(nav)).toEqual([root("games")]);
 
-    nav = navReducer(nav, { type: "tab", tab: "league" });
-    expect(stackOf(nav)).toEqual([root("league"), team]);
+    nav = navReducer(nav, { type: "tab", tab: "menu" });
+    expect(stackOf(nav)).toEqual([root("menu"), team]);
   });
 
   it("resets to the root when the current tab is tapped again", () => {

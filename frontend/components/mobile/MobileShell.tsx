@@ -5,7 +5,7 @@ import { type ComponentType, useEffect, useRef } from "react";
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { IcesWindow } from "@/components/windows/IcesWindow";
-import { BackArrowIcon, HomeIcon, IceBottleIcon, ScoresIcon, StandingsIcon } from "@/components/xp/icons";
+import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import type { WindowParams } from "@/lib/desktop/windows";
@@ -15,14 +15,14 @@ import { usePhoneNav } from "@/lib/phone/use-phone-nav";
 import { GameScreen } from "./GameScreen";
 import { GamesScreen } from "./GamesScreen";
 import { HomeScreen } from "./HomeScreen";
-import { LeagueScreen, TeamsScreen } from "./LeagueScreen";
+import { MenuScreen, TeamsScreen } from "./MenuScreen";
 import { PushContext } from "./push";
 
 import "./mobile.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 
-const PHONE_SCREENS = { games: GamesScreen, league: LeagueScreen, teams: TeamsScreen, game: GameScreen } satisfies Record<
+const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen, game: GameScreen } satisfies Record<
   Exclude<ScreenKind, WindowKind>,
   Body
 >;
@@ -35,7 +35,7 @@ const TAB_BAR: Record<Tab, { label: string; Icon: typeof HomeIcon }> = {
   home: { label: "Home", Icon: HomeIcon },
   games: { label: "Games", Icon: ScoresIcon },
   ices: { label: "Ices", Icon: IceBottleIcon },
-  league: { label: "League", Icon: StandingsIcon },
+  menu: { label: "Menu", Icon: MenuIcon },
 };
 
 function useScreenTitle(): (screen: Screen) => string {
@@ -46,7 +46,7 @@ function useScreenTitle(): (screen: Screen) => string {
       case "home":
         return "Smirnoff League";
       case "games":
-      case "league":
+      case "menu":
       case "teams":
       case "ices":
         return kind.charAt(0).toUpperCase() + kind.slice(1);

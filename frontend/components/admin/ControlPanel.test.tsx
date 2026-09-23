@@ -10,7 +10,7 @@ const { fetchAuthSession } = vi.hoisted(() => {
 vi.mock("aws-amplify/auth", () => ({ fetchAuthSession }));
 
 import { Desktop } from "@/components/desktop/Desktop";
-import { LeagueScreen } from "@/components/mobile/LeagueScreen";
+import { MenuScreen } from "@/components/mobile/MenuScreen";
 import { IcesWindow } from "@/components/windows/IcesWindow";
 import { Taskbar } from "@/components/xp/Taskbar";
 import { AlertsProvider } from "@/lib/alerts/alerts";
@@ -83,7 +83,7 @@ const dialog = () => screen.findByRole("alertdialog");
 const choose = async (button: string) => fireEvent.click(within(await dialog()).getByRole("button", { name: button }));
 
 describe("Control Panel visibility", () => {
-  it("has no desktop icon, Start entry or phone League row for a non-admin", async () => {
+  it("has no desktop icon, Start entry or phone Menu row for a non-admin", async () => {
     isAdmin = false;
     render(
       <ProfileProvider>
@@ -91,7 +91,7 @@ describe("Control Panel visibility", () => {
           <Desktop />
           <Taskbar />
         </DesktopProvider>
-        <LeagueScreen />
+        <MenuScreen />
       </ProfileProvider>,
     );
     await act(() => new Promise((done) => setTimeout(done, 0)));
@@ -107,7 +107,7 @@ describe("Control Panel visibility", () => {
           <Desktop />
           <Taskbar />
         </DesktopProvider>
-        <LeagueScreen />
+        <MenuScreen />
       </ProfileProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /start/i, expanded: false }));

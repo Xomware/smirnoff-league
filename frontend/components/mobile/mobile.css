@@ -318,6 +318,11 @@
   align-items: center;
 }
 
+/* Desktop views pushed as screens keep their layout; their small print grows. */
+.m-screen :is(.xp-player-pos, .xp-tag, .xp-seed, .xp-slot-from, .xp-watch-tag, .xp-game-chip, .xp-note, .xp-dialog-title, .text-xs) {
+  font-size: 0.875rem;
+}
+
 /* Buttons: XP's bevel, sized for a thumb. */
 .m-button {
   display: inline-flex;
@@ -756,7 +761,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* League. */
+/* Menu. */
 .m-nav-row {
   display: flex;
   align-items: center;
