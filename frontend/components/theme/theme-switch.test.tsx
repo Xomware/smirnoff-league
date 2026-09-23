@@ -132,7 +132,7 @@ describe("switching themes in the app", () => {
     expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
   });
 
-  it("on a phone opens Glacier, and switches to the XP phone from the Home toggle and back from Menu", async () => {
+  it("on a phone opens Glacier, and switches to the XP phone from the drawer and back from Menu", async () => {
     media({ phone: true });
     vi.mocked(updateMe).mockImplementation(async (input) => profile("theme" in input ? input.theme : null));
     const { container } = renderApp(null);
@@ -141,7 +141,9 @@ describe("switching themes in the app", () => {
     expect(container.querySelector(".m-app")!.getAttribute("data-theme")).toBe("glacier");
 
     const home = within(screen.getByRole("region", { name: "Smirnoff League" }));
-    fireEvent.click(home.getByRole("button", { name: "Classic XP" }));
+    expect(home.queryByRole("button", { name: "Classic XP" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: "Classic XP" }));
     expect(container.querySelector(".m-app")!.hasAttribute("data-theme")).toBe(false);
     expect(updateMe).toHaveBeenCalledWith({ theme: "xp" });
 

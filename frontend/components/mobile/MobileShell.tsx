@@ -217,7 +217,8 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       aria-label={title(screen)}
                       hidden={tab !== nav.tab || i !== all.length - 1}
                     >
-                      {screen.kind === "home" && (
+                      {/* Glacier keeps the toggle in the drawer, not on its dashboard Home. */}
+                      {screen.kind === "home" && !glacier && (
                         <div className="m-theme-row">
                           <ThemeToggle />
                         </div>
