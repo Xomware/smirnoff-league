@@ -2,6 +2,7 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
 import { clearLeagueCache } from "@/lib/league/cache";
+import { clearSharedResources } from "@/lib/shared-resource";
 
 // CI runners render the full desktop slower than a laptop; the 1s default
 // failed "Season owed" at 1.18s on PR #96 while passing locally.
@@ -12,6 +13,7 @@ configure({ asyncUtilTimeout: 5000 });
 afterEach(cleanup);
 // The cache lives for the session, and each test stubs its own Sleeper.
 afterEach(clearLeagueCache);
+afterEach(clearSharedResources);
 
 // jsdom implements neither. Defaults are "no preference" and an observer that
 // never fires; tests that care stub their own.

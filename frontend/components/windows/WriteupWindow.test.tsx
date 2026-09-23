@@ -149,7 +149,7 @@ describe("Write-up window", () => {
 });
 
 describe("scenario: the week's edition", () => {
-  it("opens the latest from Home, shows 3 pages, then an older week from the archive", async () => {
+  it("shows the latest beside Home, 3 pages, then an older week from the archive", async () => {
     vi.mocked(getMe).mockResolvedValue(me(false));
     render(
       <ProfileProvider>
@@ -158,12 +158,10 @@ describe("scenario: the week's edition", () => {
         </DesktopProvider>
       </ProfileProvider>,
     );
-    const home = document.querySelector<HTMLElement>('section[aria-label="Smirnoff Fantasy Football League"]')!;
-    fireEvent.click(await within(home).findByRole("button", { name: /this week's edition/i }));
-
-    const win = document.querySelector<HTMLElement>('section[aria-label="Smirnoff League - Week 3 Edition"]')!;
+    const win = document.querySelector<HTMLElement>('section[aria-label="Smirnoff League - Latest Edition"]')!;
     expect(await within(win).findByRole("heading", { name: "Iced Out" })).toBeTruthy();
     expect(pageSrcs(win)).toEqual(pages("c", 3));
+    expect(screen.queryByRole("region", { name: "This Week's Edition" })).toBeNull();
 
     fireEvent.click(within(within(win).getByRole("navigation", { name: "Archive" })).getByRole("button", { name: /week 2/i }));
 
