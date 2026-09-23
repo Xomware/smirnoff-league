@@ -249,6 +249,26 @@ describe("tabs", () => {
     ]);
   });
 
+  it("reaches the draft recap, my profile and settings from Menu", async () => {
+    renderShell();
+    fireEvent.click(tab("Menu"));
+    fireEvent.click(top().getByRole("button", { name: /Draft Recap/ }));
+    await waitFor(() => expect(title()).toBe("Now Playing - Draft Recap"));
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Menu"));
+
+    fireEvent.click(top().getByRole("button", { name: "My Profile" }));
+    await waitFor(() => expect(title()).toBe("My Profile"));
+    expect(await top().findByRole("textbox", { name: "Full name" })).toBeTruthy();
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Menu"));
+
+    fireEvent.click(top().getByRole("button", { name: "Settings" }));
+    await waitFor(() => expect(title()).toBe("Settings"));
+    expect(await top().findByRole("checkbox", { name: /Email me alerts/ })).toBeTruthy();
+    expect(window.location.search).toBe("?open=menu,settings");
+  });
+
   it("lists the Control Panel only for an admin", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));

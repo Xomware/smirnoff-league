@@ -9,6 +9,7 @@ import {
   ChartIcon,
   ChugRankIcon,
   ControlPanelIcon,
+  MediaPlayerIcon,
   NewsFeedIcon,
   NewspaperIcon,
   ProfileIcon,
@@ -36,6 +37,7 @@ const ROWS: Row[] = [
   { kind: "brackets", label: "Brackets", blurb: "The playoffs and the toilet bowl", Icon: BracketIcon },
   { kind: "news", label: "League News", blurb: "Moves, trades and ice events", Icon: NewsFeedIcon },
   { kind: "writeup", label: "News Drop", blurb: "The commish's weekly edition", Icon: NewspaperIcon },
+  { kind: "recap", label: "Draft Recap", blurb: "The draft, replayed", Icon: MediaPlayerIcon },
   { kind: "stats", label: "Ice Stats", blurb: "The race, heat check and Hall of Shame", Icon: ChartIcon },
   { kind: "chug-rankings", label: "Ice Rankings", blurb: "Chug times ranked by personal best", Icon: ChugRankIcon },
   { kind: "teams", label: "Teams", blurb: "Every team's profile", Icon: ProfileIcon },
@@ -47,7 +49,7 @@ const serverMuted = () => false;
 
 export function MenuScreen() {
   const push = usePush();
-  const { me, setEditing } = useProfile();
+  const { me } = useProfile();
   const { signOut } = useAuth();
   const muted = useSyncExternalStore(subscribeMuted, isMuted, serverMuted);
   const rows = me?.isAdmin ? [...ROWS, ADMIN] : ROWS;
@@ -74,9 +76,17 @@ export function MenuScreen() {
         </h2>
         <ul className="m-card m-rows">
           <li>
-            <button type="button" className="m-nav-row" onClick={() => setEditing(true)}>
+            <button type="button" className="m-nav-row" onClick={() => push({ kind: "profile", params: {} })}>
               <ProfileIcon width={28} height={28} className="shrink-0" />
-              <span className="m-nav-label">Edit my profile</span>
+              <span className="m-nav-label">My Profile</span>
+              <span className="m-chevron" aria-hidden />
+            </button>
+          </li>
+          <li>
+            <button type="button" className="m-nav-row" onClick={() => push({ kind: "settings", params: {} })}>
+              <ControlPanelIcon width={28} height={28} className="shrink-0" />
+              <span className="m-nav-label">Settings</span>
+              <span className="m-chevron" aria-hidden />
             </button>
           </li>
           <li>

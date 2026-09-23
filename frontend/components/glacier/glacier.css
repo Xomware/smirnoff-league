@@ -166,6 +166,115 @@
   font: 800 12px/20px var(--g-body);
 }
 
+.glacier-account {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.glacier-account-button {
+  gap: 8px;
+  padding: 0 12px 0 5px;
+}
+
+.glacier-account-button[aria-expanded="true"] {
+  background: rgb(255 255 255 / 0.22);
+}
+
+.glacier-avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--g-snow);
+  color: var(--g-red);
+  font-size: 14px;
+}
+
+.glacier-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.glacier-account-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glacier-account-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 3;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 18px;
+  background: var(--g-night-top);
+  box-shadow: 0 18px 40px rgb(2 12 24 / 0.5);
+  color: var(--g-text);
+}
+
+.glacier-account-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 12px 12px;
+  border-bottom: 1px solid var(--g-frost-edge);
+  font-size: 14px;
+}
+
+.glacier-account-head strong {
+  color: var(--g-text-strong);
+  font-size: 16px;
+}
+
+.glacier-account-menu ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.glacier-account-menu :is(a, button) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: 700 15px var(--g-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.glacier-account-menu :is(a, button):hover {
+  background: rgb(170 225 255 / 0.14);
+  text-decoration: none;
+}
+
+.glacier-account-menu :is(a, button):active {
+  background: rgb(170 225 255 / 0.22);
+}
+
+.glacier-account-menu li:last-child {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--g-frost-edge);
+}
+
+.glacier-header .glacier-account-menu :focus-visible {
+  outline-color: var(--g-focus);
+  outline-offset: -3px;
+}
+
 /* The header's Search button replaces the palette's floating one. */
 .glacier .palette-fab {
   display: none;
@@ -236,6 +345,10 @@
   }
 
   .glacier-brand span {
+    display: none;
+  }
+
+  .glacier-account-name {
     display: none;
   }
 }

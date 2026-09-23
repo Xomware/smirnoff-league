@@ -9,6 +9,8 @@ import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
 import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { Settings } from "@/components/settings/Settings";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
@@ -36,7 +38,13 @@ import "@/components/glacier/glacier-phone.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 
-const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen } satisfies Record<
+const PHONE_SCREENS = {
+  games: GamesScreen,
+  menu: MenuScreen,
+  teams: TeamsScreen,
+  profile: ProfileSettings,
+  settings: Settings,
+} satisfies Record<
   Exclude<ScreenKind, WindowKind>,
   Body
 >;
@@ -73,7 +81,10 @@ function useScreenTitle(): (screen: Screen) => string {
       case "menu":
       case "teams":
       case "ices":
+      case "settings":
         return kind.charAt(0).toUpperCase() + kind.slice(1);
+      case "profile":
+        return "My Profile";
       case "game":
       case "week":
         return `Week ${params.week}`;

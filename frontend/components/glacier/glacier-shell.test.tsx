@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/api/users", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/users")>()),
   getMe: vi.fn(),
+  updateMe: vi.fn(),
 }));
 vi.mock("@/lib/api/ledger", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/ledger")>()),
@@ -12,7 +13,7 @@ vi.mock("@/lib/api/ledger", async (importOriginal) => ({
 
 import { AlertsProvider } from "@/lib/alerts/alerts";
 import { getLedger } from "@/lib/api/ledger";
-import { getMe } from "@/lib/api/users";
+import { getMe, updateMe } from "@/lib/api/users";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
@@ -33,6 +34,15 @@ function renderShell() {
 
 const heading = () => screen.getByRole("heading", { level: 1 }).textContent;
 const nav = () => within(screen.getByRole("navigation", { name: "Main" }));
+const account = () => screen.getByRole("button", { name: /account menu/ });
+const menu = () => within(screen.getByRole("navigation", { name: "Account" }));
+const asAdmin = () =>
+  vi.mocked(getMe).mockResolvedValue({
+    sub: "s",
+    email: "e",
+    isAdmin: true,
+    profile: { name: "Me", username: "me", rosterId: 13, createdAt: "", updatedAt: "" },
+  });
 const box = () => screen.getByRole("combobox", { name: "Search" });
 
 beforeEach(() => {
@@ -43,7 +53,7 @@ beforeEach(() => {
     sub: "s",
     email: "e",
     isAdmin: false,
-    profile: { name: "Me", username: "m", rosterId: 13, createdAt: "", updatedAt: "" },
+    profile: { name: "Me", username: "me", rosterId: 13, createdAt: "", updatedAt: "" },
   });
 });
 afterEach(() => {
@@ -97,5 +107,73 @@ describe("GlacierShell", () => {
     expect(heading()).toBe("Notifications");
 
     expect(within(screen.getByRole("group", { name: "Theme" })).getByRole("button", { name: "Classic XP" })).toBeTruthy();
+  });
+
+  it("puts the signed-in manager top right, with their pages and Sign out", async () => {
+    renderShell();
+    fireEvent.click(await screen.findByRole("button", { name: "Me, account menu" }));
+
+    expect(account().getAttribute("aria-expanded")).toBe("true");
+    expect(menu().getAllByRole("link").map((a) => a.textContent)).toEqual(["My Profile", "My Team", "Settings"]);
+    expect(menu().getByRole("button", { name: "Sign out" })).toBeTruthy();
+
+    fireEvent.click(menu().getByRole("link", { name: "My Team" }));
+    expect(heading()).toMatch(/^My Team/);
+    expect(window.location.search).toBe("?open=my-team");
+    expect(screen.queryByRole("navigation", { name: "Account" })).toBeNull();
+  });
+
+  it("closes the account menu on Escape and hands focus back", async () => {
+    renderShell();
+    fireEvent.click(await screen.findByRole("button", { name: "Me, account menu" }));
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("navigation", { name: "Account" })).toBeNull();
+    expect(document.activeElement).toBe(account());
+  });
+
+  it("offers the Control Panel only to an admin", async () => {
+    asAdmin();
+    renderShell();
+    fireEvent.click(await screen.findByRole("button", { name: "Me, account menu" }));
+    fireEvent.click(menu().getByRole("link", { name: "Admin" }));
+    expect(heading()).toBe("Control Panel");
+    expect(window.location.search).toBe("?open=admin");
+  });
+
+  it("renders Settings from a deep link: email alerts, theme and sound", async () => {
+    window.history.replaceState(null, "", "/?open=settings");
+    renderShell();
+    expect(heading()).toBe("Settings");
+    expect(await screen.findByRole("checkbox", { name: /Email me alerts/ })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Send an email" })).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Appearance" })).getByRole("group", { name: "Theme" })).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: "Play sounds" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "League admin" })).toBeNull();
+  });
+
+  it("links an admin from Settings to the Control Panel", async () => {
+    asAdmin();
+    window.history.replaceState(null, "", "/?open=settings");
+    renderShell();
+    fireEvent.click(await screen.findByRole("button", { name: "Open the Control Panel" }));
+    expect(heading()).toBe("Control Panel");
+  });
+
+  it("edits the profile in place and saves it", async () => {
+    vi.mocked(updateMe).mockResolvedValue({ name: "Me Too", username: "me", rosterId: 13, createdAt: "", updatedAt: "" });
+    window.history.replaceState(null, "", "/?open=profile");
+    renderShell();
+    expect(heading()).toBe("My Profile");
+
+    const name = await screen.findByRole("textbox", { name: "Full name" });
+    fireEvent.change(name, { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(screen.getByText("Enter your name.")).toBeTruthy();
+    expect(updateMe).not.toHaveBeenCalled();
+
+    fireEvent.change(name, { target: { value: " Me Too " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    expect(await screen.findByText("Saved.")).toBeTruthy();
+    expect(updateMe).toHaveBeenCalledWith({ name: "Me Too", username: "me", rosterId: 13 });
   });
 });

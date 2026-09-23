@@ -5,9 +5,12 @@ import { windowId, type WindowParams } from "@/lib/desktop/windows";
 export const TABS = ["home", "games", "ices", "menu"] as const;
 export type Tab = (typeof TABS)[number];
 
+const PHONE_KINDS = ["games", "menu", "teams", "profile", "settings"] as const;
+const isPhoneKind = (token: string): token is (typeof PHONE_KINDS)[number] => (PHONE_KINDS as readonly string[]).includes(token);
+
 // The registry's kinds plus the phone's own screens. The registry's `home`
 // and `ices` kinds name the Home and Ices tabs.
-export type ScreenKind = WindowKind | "games" | "menu" | "teams";
+export type ScreenKind = WindowKind | (typeof PHONE_KINDS)[number];
 
 export interface Screen {
   kind: ScreenKind;
@@ -49,7 +52,7 @@ export function parseScreens(search: string): Screen[] {
   const list = new URLSearchParams(search).get("open");
   if (!list) return [];
   return list.split(",").flatMap((token): Screen[] => {
-    if (token === "games" || token === "menu" || token === "teams") return [{ kind: token, params: {} }];
+    if (isPhoneKind(token)) return [{ kind: token, params: {} }];
     return parseOpen(`?open=${encodeURIComponent(token)}`);
   });
 }
