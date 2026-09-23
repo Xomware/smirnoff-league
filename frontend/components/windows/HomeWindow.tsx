@@ -34,7 +34,7 @@ export function HomeWindow() {
   const watch = [...byRoster].sort(([, a], [, b]) => b - a);
 
   return (
-    <div className="flex h-full gap-3">
+    <div className="flex gap-3 md:h-full">
       <div className="xp-inset hidden shrink-0 place-items-center p-3 sm:grid">
         <IceBottleIcon width={80} height={80} />
       </div>

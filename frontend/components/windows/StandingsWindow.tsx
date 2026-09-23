@@ -26,7 +26,7 @@ export function StandingsWindow() {
   return (
     <>
       <div className="xp-table-scroll">
-        <table className="xp-table">
+        <table className="xp-table xp-standings">
           <caption className="sr-only">
             League standings. The top {playoffTeams} make the playoffs.
           </caption>
