@@ -16,7 +16,7 @@ Operational steps live in [`runbook.md`](runbook.md).
 | Shared code | One Lambda layer, `smirnoff-shared-packages`: `backend/lambdas/common/` plus `backend/requirements.txt` | `infrastructure/terraform/lambda_layers.tf`, `.github/workflows/deploy-backend.yml` |
 | Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
 | Media bucket | Private `smirnoff-media-<account id>`, SSE-KMS, public access blocked. `videos/` holds chug videos, `writeups/` holds write-up PDFs and their rendered page WebPs | `infrastructure/terraform/s3_media.tf` |
-| Cron | EventBridge rule, `rate(15 minutes)`, invoking `smirnoff-cron-tick` | `infrastructure/terraform/lambdas_cron.tf`, `backend/lambdas/cron_tick/handler.py` |
+| Cron | EventBridge rule, `rate(15 minutes)`, invoking `smirnoff-cron-tick`: finalize, reconcile late ices, then alert emails | `infrastructure/terraform/lambdas_cron.tf`, `backend/lambdas/cron_tick/handler.py` |
 | Write-up renderer | `smirnoff-writeup-render`, invoked by S3 `ObjectCreated` on `writeups/*source.pdf`; rasterizes pages with pypdfium2 and Pillow | `infrastructure/terraform/lambda_writeup_render.tf`, `backend/lambdas/writeup_render/handler.py` |
 | Config | SSM `/smirnoff/admin-emails` (StringList), `/smirnoff/api-url`, and `/smirnoff/email-unsubscribe-secret` (SecureString, random, never rewritten by Terraform) | `infrastructure/terraform/ssm.tf` |
 | Sleeper | Public API, no auth. The browser reads scores, rosters, matchups, brackets and transactions directly; the backend reads `/state/nfl` and matchups for finalization. The build trims `/players/nfl` into `public/data/players.json` | `frontend/lib/sleeper/client.ts`, `backend/lambdas/common/sleeper.py`, `frontend/scripts/build-players.mjs` |
@@ -49,7 +49,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 |---|---|---|---|
 | `smirnoff-users` | `sub` | name, username, rosterId, emailAddress (from the ID token), email (`optIn` + per-type toggles), notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
-| `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes` | `common/ices_dynamo.py`, `ledger_get/handler.py` |
+| `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`, `MAIL#<sub>#<eventId>`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes`; the alert-email sent log (`status` `sent`/`failed`, `at`) | `common/ices_dynamo.py`, `ledger_get/handler.py`, `common/mailer.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |
 
 The season is hard-coded as `SEASON = "2026"` in `common/ices_dynamo.py`.
@@ -220,8 +220,9 @@ A write-up ("edition") is a PDF an admin uploads, shown to everyone as page imag
    role, `smirnoff-writeup-render-exec`, which can only query and update
    `kind = writeup` media rows, read `writeups/*/source.pdf` and write `writeups/*`
    (`writeup_render/handler.py`, `iam_writeup_render.tf`).
-3. `POST /admin/writeup-publish` with `published: true` stamps `publishedAt`; only a
-   `rendered` row can be published (409 otherwise). `published: false` unpublishes.
+3. `POST /admin/writeup-publish` with `published: true` stamps `publishedAt` and
+   mails the edition (Alert emails, below); only a `rendered` row can be published
+   (409 otherwise). `published: false` unpublishes.
 4. `GET /writeups/list` returns published write-ups only, newest week first, with
    1-hour presigned page GETs.
 
@@ -250,6 +251,34 @@ flowchart TD
   A -->|"published true, rendered rows only"| PUB
   L["GET /writeups/list"] -->|"published rows, 1-hour page GETs"| V["WriteupWindow"]
 ```
+
+## Alert emails
+
+`common/mailer.py` sends opted-in users (`email.optIn`, with a profile
+`emailAddress`) one email per event, skipping types they toggled off. `cron_tick`
+runs it after reconcile; `/admin/writeup-publish` sends the edition at once.
+
+| Type | Event id | When |
+|---|---|---|
+| `iced` | `iced#Www` | computed ices on my roster created in the last 2 days, one mail per week |
+| `due48h`, `due6h` | `due48h#Www`, `due6h#Www` | 48h or 6h (absolute, UTC) before the week's `deadlineUtc` while a computed ice is owed; inside 6h only `due6h` goes |
+| `lateAdded` | `lateAdded#<iceId>` | an owed late row on my roster created in the last 2 days |
+| `edition` | `edition#<mediaId>` | a write-up published in the last 2 days |
+| `videoOfMine` | `videoOfMine#<mediaId>` | a ready video from the last 2 days covering one of my ices, posted by someone else |
+
+The 2-day window keeps a first run from mailing the season's history. Each send is
+claimed first with a conditional put of `MAIL#<sub>#<eventId>` in `smirnoff-settings`,
+so overlapping runs cannot double-send. An SES error is logged per recipient and flips
+the row to `failed`, which the next tick claims again; neither the cron nor the
+publish fails on mail.
+
+Mail goes through SES v2 as raw MIME (HTML plus plain text) from
+`/smirnoff/email-sender` with the `/smirnoff/email-config-set` set. `List-Unsubscribe`
+carries an `all` token for `/email/unsubscribe` with `List-Unsubscribe-Post` one-click;
+the footer links a per-type token and the same `all` URL. Templates are
+`common/email_templates.py`: tables and inline styles only, the crest from
+`<site>/brand/crest.png`, and a CTA to `/?open=ices`, `videos` or `writeup:<week>`.
+Listing users is the one `Scan`, on `smirnoff-users` only (`iam_lambda.tf`).
 
 ## Frontend structure
 
@@ -432,10 +461,11 @@ the same component in either shell.
   SigV4 because S3 rejects SigV2 for SSE-KMS objects (`common/media_dynamo.py`).
 - **Least-privilege Lambda roles.** Every API and cron Lambda shares
   `smirnoff-lambda-exec`. On DynamoDB it gets only `GetItem`, `PutItem`,
-  `UpdateItem` and `Query` on `smirnoff-*` tables; no handler deletes, scans,
-  batches or transacts. On the media bucket it may put and get `videos/*`, put
-  `writeups/*/source.pdf` (to sign the upload), get `writeups/*`, and list the bucket
-  so a HEAD on a missing key is a 404, not a 403 (`iam_lambda.tf`).
+  `UpdateItem` and `Query` on `smirnoff-*` tables, plus `Scan` on `smirnoff-users`
+  for the mailer; no handler deletes, batches or transacts. SES `SendEmail` and
+  `SendRawEmail` on the domain identity and config set only. On the media bucket it
+  may put and get `videos/*`, put `writeups/*/source.pdf` (to sign the upload), get
+  `writeups/*`, and list the bucket so a HEAD on a missing key is a 404, not a 403 (`iam_lambda.tf`).
   `smirnoff-writeup-render` runs PDFium over uploaded bytes, so it has its own role,
   `smirnoff-writeup-render-exec`: `Query` and `UpdateItem` on the media table only
   where the partition key is `writeup`, get `writeups/*/source.pdf`, put
@@ -518,6 +548,7 @@ Recheck a section when a file matching its globs changes.
 | The ice rule | `backend/lambdas/common/ices.py`, `frontend/lib/ices/compute.ts`, `fixtures/ices-golden.json` |
 | Ledger lifecycle, upload sequence | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo,media_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**`, `frontend/components/videos/UploadChug.tsx`, `frontend/lib/api/{videos,upload}.ts` |
 | Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `backend/lambdas/common/media_dynamo.py`, `infrastructure/terraform/{lambda,iam}_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
+| Alert emails | `backend/lambdas/common/{mailer,email_templates,email_prefs,unsubscribe}.py`, `backend/lambdas/{cron_tick,admin_writeup_publish}/**`, `infrastructure/terraform/{ses,iam_lambda}.tf`, `frontend/lib/desktop/deep-link.ts` |
 | Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news,videos,writeups,profile}/**`, `frontend/lib/ices/{stats,analysis,chug-board,use-*}.ts`, `frontend/lib/shared-resource.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
 | Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `backend/lambdas/ledger_get/handler.py`, `backend/lambdas/writeup_render/handler.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals,iam_lambda,iam_writeup_render}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
 | File index | any new top-level folder under `frontend/`, `backend/` or `infrastructure/` |
