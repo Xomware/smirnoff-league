@@ -37,8 +37,15 @@ export const league = () => cached("league", getLeague);
 export const users = () => cached("users", getUsers);
 export const rosters = () => cached("rosters", getRosters);
 export const players = () => cached("players", getPlayers);
-export const nflState = () => cached("nfl", getNflState, NFL_TTL);
-export const scoreboard = (week: number) => cached(`scoreboard/${week}`, () => getScoreboard(week), NFL_TTL);
+export function nflState(fresh = false) {
+  if (fresh) entries.delete("nfl");
+  return cached("nfl", getNflState, NFL_TTL);
+}
+
+export function scoreboard(week: number, fresh = false) {
+  if (fresh) entries.delete(`scoreboard/${week}`);
+  return cached(`scoreboard/${week}`, () => getScoreboard(week), NFL_TTL);
+}
 
 export function leagueMatchups(week: number, live: boolean, fresh = false): Promise<SleeperMatchup[]> {
   const key = `matchups/${week}`;

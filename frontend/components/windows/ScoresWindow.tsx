@@ -123,11 +123,16 @@ function StepIcon({ d }: { d: string }) {
 
 export function ScoresWindow() {
   const [week, setWeek] = useState<number>();
+  const [picked, setPicked] = useState(false);
   const picker = useId();
   const { data, matchups, error, teamFor } = useLeague(week);
   const current = data ? Math.max(1, data.nfl.week) : undefined;
   const initial = useDefaultWeek(data?.nfl);
-  if (week === undefined && initial !== undefined) setWeek(initial);
+  if (!picked && initial !== undefined && week !== initial) setWeek(initial);
+  const pick = (w: number) => {
+    setPicked(true);
+    setWeek(w);
+  };
 
   const ices = useMemo<IceIndex>(() => {
     const index: IceIndex = { byRoster: new Map(), slots: new Set() };
@@ -176,7 +181,7 @@ export function ScoresWindow() {
           className="xp-button xp-step"
           aria-label="Previous week"
           disabled={week <= 1}
-          onClick={() => setWeek(week - 1)}
+          onClick={() => pick(week - 1)}
         >
           <StepIcon d="M10 3L5 8l5 5z" />
         </button>
@@ -184,7 +189,7 @@ export function ScoresWindow() {
           id={picker}
           className="xp-select"
           value={week}
-          onChange={(e) => setWeek(Number(e.target.value))}
+          onChange={(e) => pick(Number(e.target.value))}
         >
           {Array.from({ length: current }, (_, i) => current - i).map((w) => (
             <option key={w} value={w}>
@@ -197,7 +202,7 @@ export function ScoresWindow() {
           className="xp-button xp-step"
           aria-label="Next week"
           disabled={week >= current}
-          onClick={() => setWeek(week + 1)}
+          onClick={() => pick(week + 1)}
         >
           <StepIcon d="M6 3l5 5-5 5z" />
         </button>

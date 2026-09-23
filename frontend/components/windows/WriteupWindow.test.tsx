@@ -130,10 +130,15 @@ describe("Write-up window", () => {
     await waitFor(() => expect(listWriteups).toHaveBeenCalledTimes(2));
   });
 
-  it("says so clearly when the render fails", async () => {
+  it.each([
+    ["too many pages", /more than 40 pages/i],
+    ["bad page size", /a page in that PDF has a broken size/i],
+    ["render error", /couldn't be rendered\. Try exporting it again/i],
+    [undefined, /could not be rendered\. Export it again/i],
+  ])("says why the render failed (%s)", async (failReason, copy) => {
     vi.stubGlobal("XMLHttpRequest", FakeXhr);
     vi.mocked(presignWriteup).mockResolvedValue({ mediaId: "W04#d", url: "https://bucket.test", fields: {} });
-    vi.mocked(publishWriteup).mockResolvedValue({ mediaId: "W04#d", status: "failed" });
+    vi.mocked(publishWriteup).mockResolvedValue({ mediaId: "W04#d", status: "failed", failReason });
     renderWindow({}, true);
     fireEvent.click(await screen.findByRole("button", { name: "Upload edition" }));
     const dialog = screen.getByRole("dialog", { name: "Upload edition" });
@@ -143,7 +148,7 @@ describe("Write-up window", () => {
     await waitFor(() => expect(FakeXhr.last?.body.get("file")).toBeTruthy());
     act(() => FakeXhr.last.finish(204));
 
-    expect((await within(dialog).findByRole("alert")).textContent).toMatch(/could not be rendered/i);
+    expect((await within(dialog).findByRole("alert")).textContent).toMatch(copy);
     expect(within(dialog).queryByRole("button", { name: "Publish" })).toBeNull();
   });
 });
