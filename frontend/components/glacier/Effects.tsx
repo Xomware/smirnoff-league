@@ -2,21 +2,19 @@
 
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { useMediaQuery } from "@/lib/use-media-query";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 import "./effects.css";
 
 const IGNORE = "a, button, input, textarea, select, label, [role=button], [data-no-snowball]";
 const SPLAT_MS = 1300;
+// Display text only: body copy and table numbers have to stay readable.
+const WOBBLE = "h1, h2, h3, nav a, nav button, .glacier-brand, .gl-brand, .gh-link";
 
-interface Point {
+interface Ball {
+  id: number;
   x: number;
   y: number;
-}
-
-interface Ball extends Point {
-  id: number;
   from: number;
 }
 
@@ -41,9 +39,9 @@ const FLAKES = (() => {
   });
 })();
 
-// Hoisted so a pointer move re-renders the trail without diffing 70 flakes.
+// Hoisted so a thrown snowball re-renders without diffing 70 flakes.
 const SNOW = (
-  <div className="glacier-snow">
+  <div className="glacier-snow" aria-hidden="true">
     {FLAKES.map((style, i) => (
       <span key={i} className="glacier-flake" style={style} />
     ))}
@@ -52,8 +50,6 @@ const SNOW = (
 
 export function Effects() {
   const reduced = useReducedMotion();
-  const fine = useMediaQuery("(pointer: fine)");
-  const [cursor, setCursor] = useState<Point | null>(null);
   const [balls, setBalls] = useState<Ball[]>([]);
   const nextId = useRef(1);
 
@@ -71,36 +67,45 @@ export function Effects() {
     return () => window.removeEventListener("click", onClick);
   }, [reduced]);
 
+  // On body, like XpCursor, so dialogs portaled out of the Glacier root get it too.
   useEffect(() => {
-    if (reduced || !fine) return;
-    const onMove = (e: PointerEvent) => setCursor({ x: e.clientX, y: e.clientY });
-    window.addEventListener("pointermove", onMove);
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [reduced, fine]);
+    document.body.classList.add("glacier-cursor");
+    return () => document.body.classList.remove("glacier-cursor");
+  }, []);
+
+  // A data attribute rather than a class: React rewrites className on re-render,
+  // but leaves attributes it never set alone.
+  useEffect(() => {
+    if (reduced) return;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType === "touch" || !(e.target instanceof Element)) return;
+      const el = e.target.closest<HTMLElement>(WOBBLE);
+      if (!el || el.dataset.wobble) return;
+      el.dataset.wobble = e.movementX < 0 ? "left" : "right";
+    };
+    const onEnd = (e: AnimationEvent) => {
+      if (e.animationName === "glacier-wobble" && e.target instanceof HTMLElement) delete e.target.dataset.wobble;
+    };
+    document.addEventListener("pointerover", onOver);
+    document.addEventListener("animationend", onEnd);
+    return () => {
+      document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("animationend", onEnd);
+    };
+  }, [reduced]);
 
   if (reduced) return null;
   return (
-    <div className="glacier-effects" aria-hidden="true">
+    <>
       {SNOW}
-      {fine &&
-        cursor &&
-        [0, 1, 2, 3, 4].map((i) => (
-          <span
-            key={i}
-            className="glacier-trail"
-            style={{
-              transform: `translate(${cursor.x + i * 3}px, ${cursor.y + i * 4}px)`,
-              opacity: 1 - i * 0.18,
-              transitionDuration: `${0.12 + i * 0.1}s`,
-            }}
-          />
+      <div className="glacier-effects" aria-hidden="true">
+        {balls.map((b) => (
+          <Fragment key={b.id}>
+            <span className="glacier-ball" style={{ left: b.x, top: b.y, "--from": `${b.from}px` } as CSSProperties} />
+            <span className="glacier-splat" style={{ left: b.x, top: b.y }} />
+          </Fragment>
         ))}
-      {balls.map((b) => (
-        <Fragment key={b.id}>
-          <span className="glacier-ball" style={{ left: b.x, top: b.y, "--from": `${b.from}px` } as CSSProperties} />
-          <span className="glacier-splat" style={{ left: b.x, top: b.y }} />
-        </Fragment>
-      ))}
-    </div>
+      </div>
+    </>
   );
 }
