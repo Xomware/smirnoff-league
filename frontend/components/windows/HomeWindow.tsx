@@ -5,6 +5,7 @@ import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import { useIceWatch } from "@/lib/ices/use-ice-watch";
+import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { watchStates } from "@/lib/ices/watch";
 import { useLeague } from "@/lib/league/use-league";
@@ -13,6 +14,7 @@ export function HomeWindow() {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, error: icesError } = useSeasonIces(currentWeek);
+  const ledger = useLedger();
   const error = leagueError ?? icesError;
   const live = useIceWatch(currentWeek);
   const onWatch =
@@ -34,15 +36,24 @@ export function HomeWindow() {
       <div aria-live="polite" className="xp-inset min-w-0 flex-1 p-2">
         {error ? (
           <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>
-        ) : !data || !tally ? (
+        ) : !data || !tally || ledger.status === "loading" ? (
           <p role="status">Tallying the ices...</p>
         ) : (
           <>
             <dl className="xp-summary">
               <dt>Season</dt>
               <dd>{data.league.season}</dd>
-              <dt>Season owed (provisional)</dt>
-              <dd>{tally.owed.reduce((n, t) => n + t.total, 0)}</dd>
+              {ledger.status === "ok" ? (
+                <>
+                  <dt>Season ices owed</dt>
+                  <dd>{ledger.ledger.summary.reduce((n, s) => n + s.owed + s.lateOwed, 0)}</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Season owed (provisional)</dt>
+                  <dd>{tally.owed.reduce((n, t) => n + t.total, 0)}</dd>
+                </>
+              )}
               <dt>Week</dt>
               <dd>{currentWeek}</dd>
               <dt>Ice Watch this week (live)</dt>

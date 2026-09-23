@@ -67,8 +67,8 @@ export function playerWeeks(weeks: WeekMatchups[], playerId: string): PlayerWeek
   });
 }
 
-export function byRoster(ices: Ice[]): [number, Ice[]][] {
-  const groups = new Map<number, Ice[]>();
+export function byRoster<T extends Pick<Ice, "rosterId">>(ices: T[]): [number, T[]][] {
+  const groups = new Map<number, T[]>();
   for (const ice of ices) groups.set(ice.rosterId, [...(groups.get(ice.rosterId) ?? []), ice]);
   return [...groups].sort(([a], [b]) => a - b);
 }

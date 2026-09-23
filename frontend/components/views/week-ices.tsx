@@ -2,6 +2,7 @@
 
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
+import type { LedgerIce } from "@/lib/api/ledger";
 import type { Ice } from "@/lib/ices/compute";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
@@ -15,13 +16,14 @@ export function useSeason() {
 }
 
 interface IceCauseProps {
-  ice: Ice;
+  ice: { reason: Exclude<LedgerIce["reason"], "late">; playerId?: string | null };
   players: Record<string, Player>;
 }
 
 export function IceCause({ ice, players }: IceCauseProps) {
   if (ice.reason === "lowest") return "Lowest score";
   if (ice.reason === "empty") return "Empty slot";
+  if (ice.reason === "admin") return "Admin ice";
   const id = ice.playerId!;
   return <DrillLink to={{ kind: "player", playerId: id }}>{players[id]?.name ?? id}</DrillLink>;
 }

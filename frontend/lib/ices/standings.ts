@@ -1,3 +1,4 @@
+import type { LedgerSummary } from "@/lib/api/ledger";
 import type { Ice } from "./compute";
 import { iceStreaks, type StatsMatchup } from "./stats";
 import type { SeasonTally } from "./tally";
@@ -9,9 +10,12 @@ export interface IceStanding {
   reasons: Record<Ice["reason"], number>;
   streak: number;
   worst: { week: number; count: number } | null;
+  /** Null without the ledger. */
+  completed: number | null;
+  late: number | null;
 }
 
-export type SortKey = "rank" | "team" | "total" | "zero" | "empty" | "lowest" | "streak" | "worst";
+export type SortKey = "rank" | "team" | "total" | "completed" | "late" | "zero" | "empty" | "lowest" | "streak" | "worst";
 export interface Sort {
   key: SortKey;
   dir: "asc" | "desc";
@@ -24,6 +28,7 @@ export function iceStandings(
   tally: SeasonTally,
   finishedWeeks: { week: number; matchups: StatsMatchup[] }[],
   pf: Record<number, number>,
+  summary: LedgerSummary[] | null,
 ): IceStanding[] {
   const streaks = new Map(iceStreaks(finishedWeeks).map((s) => [s.rosterId, s.current]));
   return [...tally.owed]
@@ -40,6 +45,8 @@ export function iceStandings(
         reasons: t.reasons,
         streak: streaks.get(t.rosterId) ?? 0,
         worst: worst ?? null,
+        completed: summary && (summary.find((s) => s.rosterId === t.rosterId)?.completed ?? 0),
+        late: summary && (summary.find((s) => s.rosterId === t.rosterId)?.late ?? 0),
       };
     });
 }
@@ -60,6 +67,9 @@ export function sortRows(rows: IceStanding[], sort: Sort, nameOf: (rosterId: num
         return r.reasons[sort.key];
       case "worst":
         return r.worst?.count ?? 0;
+      case "completed":
+      case "late":
+        return r[sort.key] ?? 0;
       default:
         return r[sort.key];
     }

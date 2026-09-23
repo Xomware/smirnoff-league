@@ -11,9 +11,14 @@ locals {
     { name = "finalize", description = "Finalize or re-finalize a week's ices", path_part = "finalize", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
+  ledger_lambdas = [
+    { name = "get", description = "Season ice ledger and summary", path_part = "get", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+  ]
+
   all_api_lambdas = merge(
     { for l in local.users_lambdas : "users_${l.name}" => l },
     { for l in local.admin_lambdas : "admin_${l.name}" => l },
+    { for l in local.ledger_lambdas : "ledger_${l.name}" => l },
   )
 }
 
