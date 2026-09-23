@@ -1,5 +1,5 @@
-import { getLeague, getMatchups, getNflState, getRosters, getUsers } from "@/lib/sleeper/client";
-import type { SleeperMatchup } from "@/lib/sleeper/types";
+import { getLeague, getMatchups, getNflState, getRosters, getTransactions, getUsers } from "@/lib/sleeper/client";
+import type { SleeperMatchup, SleeperTransaction } from "@/lib/sleeper/types";
 import type { Player } from "./use-league";
 
 // Every window reads the same league, so one promise per endpoint serves the
@@ -42,6 +42,11 @@ export function leagueMatchups(week: number, live: boolean, fresh = false): Prom
   const key = `matchups/${week}`;
   if (fresh) entries.delete(key);
   return cached(key, () => getMatchups(week), live ? LIVE_TTL : Infinity);
+}
+
+// A past week's transactions are settled; the current week's keep arriving.
+export function leagueTransactions(week: number, live: boolean): Promise<SleeperTransaction[]> {
+  return cached(`transactions/${week}`, () => getTransactions(week), live ? LIVE_TTL : Infinity);
 }
 
 export function clearLeagueCache() {

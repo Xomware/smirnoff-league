@@ -4,6 +4,7 @@ import type {
   SleeperMatchup,
   SleeperNflState,
   SleeperRoster,
+  SleeperTransaction,
   SleeperUser,
 } from "./types";
 
@@ -25,3 +26,4 @@ export const getMatchups = (week: number) => get<SleeperMatchup[]>(`${league}/ma
 export const getWinnersBracket = () => get<SleeperBracketMatch[]>(`${league}/winners_bracket`);
 export const getLosersBracket = () => get<SleeperBracketMatch[]>(`${league}/losers_bracket`);
 export const getNflState = () => get<SleeperNflState>("/state/nfl");
+export const getTransactions = (week: number) => get<SleeperTransaction[]>(`${league}/transactions/${week}`);

@@ -7,6 +7,7 @@ import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
 import { isMuted, play, setMuted, subscribeMuted } from "@/lib/sound/sound";
 
 const VIEWS: { kind: WindowKind; label: string }[] = [
+  { kind: "news", label: "League News" },
   { kind: "brackets", label: "Brackets" },
   { kind: "stats", label: "Ice Stats" },
   { kind: "watch", label: "Ice Watch" },

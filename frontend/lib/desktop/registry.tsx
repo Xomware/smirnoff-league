@@ -18,15 +18,15 @@ import {
   ChartIcon,
   IceBottleIcon,
   IceStandingsIcon,
-  InfoIcon,
   MediaPlayerIcon,
+  NewspaperIcon,
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
   StopwatchIcon,
 } from "@/components/xp/icons";
 import { useLeague } from "@/lib/league/use-league";
-import type { WindowParams, WindowView } from "./windows";
+import { HOME_H, type WindowParams, type WindowView } from "./windows";
 
 export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
 
@@ -55,9 +55,9 @@ function WeekWindow({ params }: ParamsProps) {
 
 // One entry per window kind.
 const SPECS = {
-  home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: 240 } },
+  home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: HOME_H } },
   recap: { title: "Now Playing - Draft Recap", Icon: MediaPlayerIcon, component: RecapWindow, defaultSize: { w: 640, h: 420 } },
-  news: { title: "League News", Icon: InfoIcon, component: NewsWindow, defaultSize: { w: 380, h: 180 } },
+  news: { title: "League News", Icon: NewspaperIcon, component: NewsWindow, defaultSize: { w: 600, h: 600 } },
   scores: { title: "Scores", Icon: ScoresIcon, component: ScoresWindow, defaultSize: { w: 560, h: 560 } },
   standings: { title: "League Standings", Icon: StandingsIcon, component: StandingsWindow, defaultSize: { w: 520, h: 520 } },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },

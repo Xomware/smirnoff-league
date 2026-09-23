@@ -159,6 +159,38 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
+export function NewspaperIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 2.5h11v11a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-8h2z" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 5.5v8" className="stroke-(--xp-text)" />
+      <rect x="5" y="4" width="8" height="2" className="fill-(--xp-title-dark)" />
+      <rect x="5" y="7.5" width="3.5" height="3" className="fill-(--smirnoff-red)" />
+      <path d="M9.5 8h3.5M9.5 10h3.5M5 12.5h8" className="stroke-(--xp-face-shadow)" />
+    </Icon>
+  );
+}
+
+// Waiver or free-agent move: a player in, a player out.
+export function RosterMoveIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-cream) stroke-(--xp-face-shadow)" />
+      <path d="M5 1.5v5M2.5 4h5" className="stroke-(--xp-start-dark) stroke-2" />
+      <path d="M8.5 12h5" className="stroke-(--xp-red) stroke-2" />
+    </Icon>
+  );
+}
+
+export function TradeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M1.5 5.5h10.5V3l3 3.5-3 3.5V7.5H1.5z" className="fill-(--xp-title-light) stroke-(--xp-frame)" strokeWidth="0.75" />
+      <path d="M14.5 10.5H4V8l-3 3.5L4 15v-2.5h10.5z" className="fill-(--xp-gold) stroke-(--xp-wood)" strokeWidth="0.75" />
+    </Icon>
+  );
+}
+
 export function ErrorIcon(props: IconProps) {
   return (
     <Icon {...props}>
