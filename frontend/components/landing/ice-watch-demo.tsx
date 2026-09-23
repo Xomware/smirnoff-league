@@ -15,7 +15,7 @@ interface IceWatchDemoProps {
   animate: boolean;
 }
 
-export function IceWatchDemo({ animate }: IceWatchDemoProps) {
+export function useIceDrop(animate: boolean) {
   // Starts on the final frame: that is the prerendered and reduced-motion view.
   const [ices, setIces] = useState(WEEKS.length);
   const row = useRef<HTMLLIElement>(null);
@@ -69,6 +69,11 @@ export function IceWatchDemo({ animate }: IceWatchDemoProps) {
     };
   }, [animate]);
 
+  return { ices, row, pts, week, weeks: WEEKS.length };
+}
+
+export function IceWatchDemo({ animate }: IceWatchDemoProps) {
+  const { ices, row, pts, week, weeks } = useIceDrop(animate);
   return (
     <Window title="Ice Watch - Live (demo)" icon={<IceBottleIcon />}>
       <p className="mb-2 flex items-center gap-2 text-xs font-bold">
@@ -79,7 +84,7 @@ export function IceWatchDemo({ animate }: IceWatchDemoProps) {
         <li ref={row} data-testid="ice-watch-row" className="xp-player-row ice">
           <span className="xp-player-pos">WR</span>
           <span className="xp-player-name">
-            Demo Receiver <span ref={week} className="text-xs">Week {WEEKS.length}</span>
+            Demo Receiver <span ref={week} className="text-xs">Week {weeks}</span>
           </span>
           <IceBadge count={ices} />
           <span ref={pts} className="xp-player-pts">0.00</span>

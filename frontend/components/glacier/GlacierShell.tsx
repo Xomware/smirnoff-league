@@ -12,13 +12,11 @@ import { parseOpen } from "@/lib/desktop/deep-link";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import { windowId, type WindowView } from "@/lib/desktop/windows";
 import { Effects } from "./Effects";
-import { Crystal, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
+import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
 
 import "./glacier.css";
 import "./glacier-skin.css";
-
-const FONTS = "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;600;700;800&display=swap";
 
 const NAV: { label: string; kind: WindowKind }[] = [
   { label: "Home", kind: "home" },

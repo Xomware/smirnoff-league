@@ -146,3 +146,51 @@ describe("Landing league status", () => {
     expect(onSignIn).toHaveBeenCalledOnce();
   });
 });
+
+describe("Landing themes", () => {
+  it("defaults to XP", () => {
+    const { container } = render(<Landing onSignIn={() => {}} />);
+    expect(container.querySelector("[data-theme='glacier']")).toBeNull();
+    expect(screen.getByRole("region", { name: /critical error: zero means ice/i })).toBeTruthy();
+  });
+
+  it.each(["xp", "glacier"] as const)("renders the header action top-right in %s", (theme) => {
+    render(<Landing theme={theme} onSignIn={() => {}} headerAction={<button type="button">Switch theme</button>} />);
+    expect(screen.getByRole("button", { name: "Switch theme" })).toBeTruthy();
+  });
+
+  it("calls the same onSignIn from every Glacier sign-in button", () => {
+    const onSignIn = vi.fn();
+    const { container } = render(<Landing theme="glacier" onSignIn={onSignIn} />);
+    expect(container.querySelector("[data-theme='glacier']")).not.toBeNull();
+
+    const buttons = screen.getAllByRole("button", { name: /sign in with google/i });
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    for (const b of buttons) fireEvent.click(b);
+    expect(onSignIn).toHaveBeenCalledTimes(buttons.length);
+  });
+
+  it("disables the Glacier sign-in when there is no handler", () => {
+    render(<Landing theme="glacier" />);
+    for (const b of screen.getAllByRole("button", { name: /sign in with google/i })) {
+      expect((b as HTMLButtonElement).disabled).toBe(true);
+    }
+  });
+
+  it("gives Glacier the same rules, mascot and privacy link, still under reduced motion", () => {
+    reduceMotion(true);
+    const { container } = render(<Landing theme="glacier" onSignIn={() => {}} />);
+    expect(container.querySelector("[data-theme='glacier']")).not.toBeNull();
+
+    for (const text of RULE_TEXT) expect(screen.getByText(text)).toBeTruthy();
+    for (const name of [/zero means ice/i, /lowest score/i, /deadline/i, /toilet bowl/i]) {
+      expect(screen.getByRole("region", { name })).toBeTruthy();
+    }
+    expect(screen.getAllByRole("img", { name: /robot chugging a smirnoff ice/i })[0].getAttribute("src")).toContain("mascot.png");
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByRole("link", { name: /privacy/i }).getAttribute("href")).toBe("/privacy/");
+
+    expect(screen.getByTestId("ice-watch-row").textContent).toContain("0.00");
+    expect(container.querySelector(".glacier-effects")).toBeNull();
+  });
+});

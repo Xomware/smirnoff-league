@@ -7,16 +7,26 @@ import { Window } from "@/components/xp/Window";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 import { EnvelopeIcon, ErrorIcon, WarningIcon } from "./dialog-icons";
+import { GlacierLanding } from "./glacier-landing";
 import { IceWatchDemo } from "./ice-watch-demo";
 import { LeagueStatus } from "./league-status";
 import "./landing.css";
 
-interface LandingProps {
+interface ThemedLandingProps {
   // Absent when this build has no Cognito config, which leaves the button disabled.
   onSignIn?: () => void;
+  headerAction?: ReactNode;
 }
 
-export function Landing({ onSignIn }: LandingProps) {
+interface LandingProps extends ThemedLandingProps {
+  theme?: "xp" | "glacier";
+}
+
+export function Landing({ theme = "xp", ...props }: LandingProps) {
+  return theme === "glacier" ? <GlacierLanding {...props} /> : <XpLanding {...props} />;
+}
+
+function XpLanding({ onSignIn, headerAction }: ThemedLandingProps) {
   const reduced = useReducedMotion();
   const root = useRef<HTMLElement>(null);
 
@@ -41,6 +51,7 @@ export function Landing({ onSignIn }: LandingProps) {
 
   return (
     <main ref={root} className="landing overflow-x-hidden" data-motion={reduced ? "off" : "on"}>
+      {headerAction && <div className="landing-header-action">{headerAction}</div>}
       <section aria-label="Welcome" className="landing-hero">
         <div className="landing-hero-body">
           <Image
@@ -137,7 +148,7 @@ export function Landing({ onSignIn }: LandingProps) {
 
 const MASCOT_ALT = "The league mascot, a robot chugging a Smirnoff Ice";
 
-function SignInButton({ onSignIn }: LandingProps) {
+function SignInButton({ onSignIn }: { onSignIn?: () => void }) {
   return (
     <div className="flex flex-col items-center">
       <button type="button" onClick={onSignIn} disabled={!onSignIn} className="landing-signin">

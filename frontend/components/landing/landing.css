@@ -15,6 +15,7 @@
   --xp-balloon-edge: #6e6a55;
   --login-rule-bottom: #f29a3c;
 
+  position: relative;
   color: var(--brand-ink);
   background: var(--brand-white);
 }
@@ -430,4 +431,12 @@
   .landing-signin {
     transition: none;
   }
+}
+
+/* #162 puts the theme toggle here. */
+.landing-header-action {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
 }
