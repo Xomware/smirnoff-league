@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
+import { DueWarning } from "@/components/home/DueWarning";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, RobotHeadIcon, ScoresIcon, StandingsIcon, StarIcon } from "@/components/xp/icons";
 import { useAuth } from "@/lib/auth/use-auth";
@@ -72,6 +73,7 @@ export function PhoneShell() {
         <h1 ref={heading} tabIndex={-1} className="phone-title">
           {windowTitle(view)}
         </h1>
+        <DueWarning />
         <NotificationBell onOpen={() => view.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
       <DrillContext.Provider value={drill}>

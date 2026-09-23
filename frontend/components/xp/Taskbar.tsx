@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
+import { DueWarning } from "@/components/home/DueWarning";
 import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
@@ -111,6 +112,7 @@ export function Taskbar() {
           })}
         </ul>
         <div className="xp-tray">
+          <DueWarning />
           <NotificationBell
             onOpen={() => {
               // Open would only focus a window already showing, and marking seen happens on mount.

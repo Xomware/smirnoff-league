@@ -3,9 +3,12 @@
 import Image from "next/image";
 import { useContext } from "react";
 
+import { ChugBoard } from "@/components/home/ChugBoard";
+import { ChugReel } from "@/components/home/ChugReel";
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { TeamName } from "@/components/xp/TeamName";
+import { currentWeek as ledgerWeek } from "@/lib/ices/chug-board";
 import { type IceStanding, iceStandings } from "@/lib/ices/standings";
 import { useIceWatch } from "@/lib/ices/use-ice-watch";
 import { useLedger } from "@/lib/ices/use-ledger";
@@ -15,6 +18,7 @@ import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { type Team, useLeague } from "@/lib/league/use-league";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
+import { useVideos } from "@/lib/videos/use-videos";
 import { useWriteups } from "@/lib/writeups/use-writeups";
 
 import "./home.css";
@@ -120,6 +124,7 @@ export function HomeWindow() {
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, finishedWeeks, error: icesError } = useSeasonIces(currentWeek);
   const ledger = useLedger();
+  const { state: videos, onVideoError } = useVideos();
   const phone = useMediaQuery(PHONE);
   const error = leagueError ?? icesError;
   const live = useIceWatch(currentWeek);
@@ -155,6 +160,14 @@ export function HomeWindow() {
 
   return (
     <div className="grid gap-3">
+      {ledger.status === "ok" && (
+        <div className="home-chugs">
+          <div className="home-chugs-grid">
+            <ChugBoard ledger={ledger.ledger} videos={videos.status === "ok" ? videos.videos : []} onVideoError={onVideoError} />
+            <ChugReel week={ledgerWeek(ledger.ledger)} videos={videos} onVideoError={onVideoError} />
+          </div>
+        </div>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="home-mascot xp-inset hidden shrink-0 place-items-center p-2 sm:grid">
           <Image src="/brand/mascot.png" alt="The league mascot, a robot chugging a Smirnoff Ice" width={110} height={121} />
