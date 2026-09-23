@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, type ReactNode } from "react";
 
-import { IceBottleIcon } from "@/components/xp/icons";
 import { Window } from "@/components/xp/Window";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
@@ -41,102 +41,114 @@ export function Landing({ onSignIn }: LandingProps) {
 
   return (
     <main ref={root} className="landing overflow-x-hidden" data-motion={reduced ? "off" : "on"}>
-      <section className="landing-login flex min-h-svh flex-col">
-        <div className="landing-band-top h-16 shrink-0" />
-        <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-10 lg:flex-row lg:gap-0">
-          <div className="flex flex-col items-center text-center lg:w-1/2 lg:items-end lg:pr-12 lg:text-right">
-            <IceBottleIcon width={72} height={72} />
-            <h1 className="landing-logo mt-3">
-              Smirnoff League <span className="block text-[0.55em]">&rsquo;26-&rsquo;27</span>
-            </h1>
-            <div className="landing-boot-bar mt-5" aria-hidden>
-              <span />
-              <span />
-              <span />
-            </div>
-            <p className="mt-4 max-w-xs text-sm">
-              14 managers. One closet. Please do not turn off your computer.
-            </p>
-          </div>
-          <div className="landing-divider hidden self-stretch lg:block" aria-hidden />
-          <div className="flex flex-col items-center lg:w-1/2 lg:items-start lg:pl-12">
-            <p className="mb-3 text-sm">To begin, click your user name</p>
-            <SignInTile onSignIn={onSignIn} />
-          </div>
+      <section aria-label="Welcome" className="landing-hero">
+        <div className="landing-hero-body">
+          <Image
+            src="/brand/crest.png"
+            alt="Smirnoff Ice Fantasy Football League crest"
+            width={640}
+            height={776}
+            priority
+            className="landing-crest"
+          />
+          <h1 className="landing-title">
+            Smirnoff League <span className="landing-season">&rsquo;26-&rsquo;27 season</span>
+          </h1>
+          <p className="landing-tagline">14 managers. One closet. Every zero is an ice.</p>
+          <SignInButton onSignIn={onSignIn} />
         </div>
-        <div className="landing-band-bottom flex shrink-0 flex-col gap-1 px-6 py-5 text-sm sm:flex-row sm:justify-between">
-          <span>After you log on, you can blame the waiver wire.</span>
-          <a href="#how-ice-works" className="landing-link font-bold">
-            Explain the ice thing
-          </a>
+        <a href="#the-league" className="landing-cue">
+          Scroll for the rules
+          <ChevronIcon />
+        </a>
+      </section>
+
+      <section id="the-league" className="landing-band landing-band-mist">
+        <SectionHeading kicker="The league, live" title="This week in the closet" />
+        <p className="landing-lede">Scores, standings, brackets and the ice ledger for all 14 teams. Sign in to see yours.</p>
+        <LeagueStatus />
+      </section>
+
+      <section id="how-ice-works" className="landing-band landing-band-white">
+        <SectionHeading kicker="The rule book" title="How ice works" />
+        <div className="landing-rules">
+          <Image src="/brand/mascot.png" alt={MASCOT_ALT} width={365} height={400} className="landing-mascot" />
+          <div className="flex w-full max-w-md flex-col gap-6">
+            <RuleDialog title="Critical Error: zero means ice" icon={<ErrorIcon />} buttons={["OK", "Cry"]}>
+              <p>Any starter who scores 0.0 or less is an ice.</p>
+              <p>An empty slot or a player on bye counts. You set the lineup.</p>
+            </RuleDialog>
+            <RuleDialog title="Critical Error: lowest score" icon={<WarningIcon />} buttons={["Retry", "Abort"]}>
+              <p>The lowest scoring team of the week owes one more. Ties all owe.</p>
+            </RuleDialog>
+            <section data-reveal aria-label="You've got ice: the deadline" className="landing-balloon">
+              <p className="flex items-center gap-2 font-bold">
+                <EnvelopeIcon width={24} height={24} /> You&rsquo;ve got ice!
+              </p>
+              <p className="mt-2">Ices are due by the next Sunday at 1:00 PM.</p>
+              <p className="mt-2">
+                Each late week adds another ice for every ice still owed. Late ices don&rsquo;t earn late ices.
+              </p>
+            </section>
+          </div>
         </div>
       </section>
 
-      <LeagueStatus />
-
-      <section id="how-ice-works" className="flex flex-col items-center gap-6 px-4 py-16 sm:px-8">
-        <SectionHeading kicker="Rule book, sort of" title="How ice works" />
-        <RuleDialog title="Critical Error: zero means ice" icon={<ErrorIcon />} buttons={["OK", "Cry"]}>
-          <p>Any starter who scores 0.0 or less means an ice.</p>
-          <p>That includes an empty slot and a player on bye. You set the lineup. You own it.</p>
-        </RuleDialog>
-        <RuleDialog title="Critical Error: lowest score" icon={<WarningIcon />} buttons={["Retry", "Abort"]} className="sm:ml-24">
-          <p>The lowest scoring team of the week owes an extra ice.</p>
-          <p>Stacks with the zeroes above. Ties all owe.</p>
-        </RuleDialog>
-        <section data-reveal aria-label="You've got ice: the deadline" className="landing-balloon sm:mr-24">
-          <p className="flex items-center gap-2 font-bold">
-            <EnvelopeIcon width={24} height={24} /> You&rsquo;ve got ice!
-          </p>
-          <p className="mt-2">Ices are due by the next Sunday at 1:00 PM.</p>
-          <p className="mt-2">
-            Every week late adds another ice for every ice still owed. Two owed and a week late is
-            four to chug. Late ices don&rsquo;t earn late ices. We&rsquo;re not monsters.
-          </p>
-        </section>
-      </section>
-
-      <section className="flex flex-col items-center gap-6 px-4 py-16 sm:px-8">
+      <section className="landing-band landing-band-navy">
         <SectionHeading kicker="Sundays, 1 PM onward" title="Ice Watch" />
-        <div data-reveal className="w-full max-w-md">
-          <IceWatchDemo animate={!reduced} />
+        <div className="landing-watch">
+          <div data-reveal className="w-full max-w-md">
+            <IceWatchDemo animate={!reduced} />
+          </div>
+          <Image src="/brand/mascot.png" alt="" width={365} height={400} className="landing-mascot landing-mascot-flip" />
         </div>
       </section>
 
-      <section className="flex flex-col items-center gap-6 px-4 py-16 sm:px-8">
+      <section className="landing-band landing-band-mist">
         <SectionHeading kicker="Weeks 15-17" title="The Toilet Bowl" />
         <RuleDialog title="The Toilet Bowl.exe" icon={<ErrorIcon />} buttons={["Send Error Report", "Don't Send"]}>
           <p className="font-bold">Smirnoff League has encountered a problem and needs to close you in a closet.</p>
-          <p>
-            Lose every toilet bowl game and you get the punishment: a dark closet, just a head lamp,
-            and a 300-piece puzzle.
-          </p>
+          <p>Lose every toilet bowl game and you spend a night in a dark closet with a head lamp and a 300-piece puzzle.</p>
           <p>We are sorry for the inconvenience. We are not sorry.</p>
         </RuleDialog>
       </section>
 
-      <footer className="landing-footer flex flex-col items-center gap-4 px-4 pt-16 pb-24 text-center">
-        <h2 className="landing-logo text-2xl">Ready to log on?</h2>
-        <SignInTile onSignIn={onSignIn} />
-        <p className="max-w-sm text-xs">
-          A private league for friends. Not affiliated with any vodka, beverage or puzzle company.
-        </p>
+      <footer className="landing-footer">
+        <div className="flex flex-col items-center gap-5 px-4 py-16 text-center">
+          <h2 className="landing-title text-3xl">Ready to log on?</h2>
+          <SignInButton onSignIn={onSignIn} />
+        </div>
+        <div className="landing-taskbar">
+          <span className="landing-taskbar-task">
+            <Image src="/brand/robot-head.png" alt="" width={20} height={19} />
+            Smirnoff League
+          </span>
+          <span className="landing-taskbar-tray">A private league for friends. Not affiliated with any vodka, beverage or puzzle company.</span>
+        </div>
       </footer>
     </main>
   );
 }
 
-function SignInTile({ onSignIn }: LandingProps) {
+const MASCOT_ALT = "The league mascot, a robot chugging a Smirnoff Ice";
+
+function SignInButton({ onSignIn }: LandingProps) {
   return (
-    <>
-      <button type="button" onClick={onSignIn} disabled={!onSignIn} className="landing-tile">
-        <span className="landing-tile-avatar">
-          <IceBottleIcon width={40} height={40} />
-        </span>
-        <span className="landing-tile-name">Sign in with Google</span>
+    <div className="flex flex-col items-center">
+      <button type="button" onClick={onSignIn} disabled={!onSignIn} className="landing-signin">
+        <Image src="/brand/robot-head.png" alt="" width={40} height={39} />
+        Sign in with Google
       </button>
       {!onSignIn && <p className="mt-2 text-xs">Sign-in is switched off on this build.</p>}
-    </>
+    </div>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={28} height={28} aria-hidden focusable="false" className="landing-cue-chevron">
+      <path d="M5 8l7 7 7-7" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -147,9 +159,9 @@ interface SectionHeadingProps {
 
 function SectionHeading({ kicker, title }: SectionHeadingProps) {
   return (
-    <div className="landing-heading text-center">
-      <p className="text-xs font-bold tracking-widest uppercase">{kicker}</p>
-      <h2 className="landing-logo text-3xl">{title}</h2>
+    <div className="landing-heading">
+      <p className="landing-kicker">{kicker}</p>
+      <h2 className="landing-title text-3xl sm:text-4xl">{title}</h2>
     </div>
   );
 }
@@ -158,13 +170,12 @@ interface RuleDialogProps {
   title: string;
   icon: ReactNode;
   buttons: string[];
-  className?: string;
   children: ReactNode;
 }
 
-function RuleDialog({ title, icon, buttons, className = "", children }: RuleDialogProps) {
+function RuleDialog({ title, icon, buttons, children }: RuleDialogProps) {
   return (
-    <div data-reveal className={`w-full max-w-md ${className}`}>
+    <div data-reveal className="w-full max-w-md">
       <Window title={title}>
         <div className="flex gap-3 text-sm leading-relaxed">
           <span className="shrink-0">{icon}</span>

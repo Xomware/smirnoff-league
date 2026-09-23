@@ -1,146 +1,274 @@
-/* The XP "Welcome" log-on screen plus the landing's reveal and dialog chrome. */
+/* The landing wears the crest's colours: navy, Smirnoff red and white lead,
+   with XP chrome kept for the dialogs and the taskbar footer. */
 .landing {
-  --login-band: #00309c;
-  --login-face: #5a7edc;
-  --login-glow: #7a9ce6;
-  --login-rule-top: #b9ccf2;
-  --login-rule-bottom: #f29a3c;
-  --login-tile-hover: rgb(0 48 156 / 0.45);
+  --brand-navy: #14224a;
+  --brand-navy-deep: #0b1532;
+  --brand-navy-glow: #24397a;
+  --brand-red: var(--smirnoff-red);
+  --brand-red-dark: #a3141f;
+  --brand-red-shadow: #6e0c14;
+  --brand-white: #f7f8fc;
+  --brand-mist: #e6ecf6;
+  --brand-ice: #8fd6f7;
+  --brand-ink: #101a3a;
   --xp-balloon: #ffffe1;
   --xp-balloon-edge: #6e6a55;
+  --login-rule-bottom: #f29a3c;
+
+  color: var(--brand-ink);
+  background: var(--brand-white);
 }
 
-.landing-login {
-  color: var(--xp-text-inverse);
-  background: radial-gradient(ellipse 60% 70% at 25% 45%, var(--login-glow), var(--login-face) 70%);
+.landing-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  /* Short of a full screen on purpose: the next band's heading peeks above the fold. */
+  min-height: calc(100svh - 5.5rem);
+  padding: 2rem 1.5rem 1rem;
+  color: var(--brand-white);
+  text-align: center;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 38%, var(--brand-navy-glow), transparent 70%),
+    linear-gradient(var(--brand-navy), var(--brand-navy-deep));
+  border-bottom: 6px solid var(--brand-red);
 }
 
-.landing-band-top {
-  background: var(--login-band);
-  border-bottom: 2px solid var(--login-rule-top);
+.landing-hero-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.landing-band-bottom,
-.landing-footer {
-  color: var(--xp-text-inverse);
-  background: var(--login-band);
-  border-top: 2px solid var(--login-rule-bottom);
+.landing-crest {
+  width: auto;
+  height: min(42svh, 27rem);
+  filter: drop-shadow(0 10px 18px rgb(0 0 0 / 0.45));
 }
 
-.landing-divider {
-  width: 1px;
-  margin: 2rem 0;
-  background: linear-gradient(transparent, var(--login-rule-top), transparent);
+.landing-title {
+  font: 800 2.25rem/1.1 var(--xp-title-font);
+  letter-spacing: 0.01em;
 }
 
-.landing-logo {
-  font: italic bold 2.5rem/1.1 var(--xp-title-font);
-  text-shadow: 2px 2px 0 var(--login-band);
+.landing-season {
+  display: block;
+  margin-top: 0.375rem;
+  color: var(--brand-ice);
+  font-size: 0.45em;
+  font-weight: bold;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-.landing-heading {
-  color: var(--xp-text-inverse);
-  text-shadow: 1px 1px 0 var(--xp-frame), 0 0 8px var(--xp-frame);
+.landing-tagline {
+  max-width: 22rem;
+  line-height: 1.5;
+  color: var(--brand-mist);
 }
 
-.landing-link {
-  text-decoration: underline;
+.landing-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 3.5rem;
+  padding: 0.375rem 1.5rem 0.375rem 0.375rem;
+  border: 2px solid var(--brand-white);
+  border-radius: 8px;
+  color: var(--brand-white);
+  font: bold 1.125rem var(--xp-title-font);
+  background: linear-gradient(#e2323d, var(--brand-red) 45%, var(--brand-red-dark));
+  box-shadow: 0 4px 0 var(--brand-red-shadow), 0 8px 18px rgb(0 0 0 / 0.3);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s, filter 0.1s;
 }
 
-@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
-  .landing-link {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-  }
+.landing-signin img {
+  border-radius: 6px;
 }
 
-.landing-link:hover {
-  color: var(--login-rule-bottom);
+.landing-signin:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
-.landing-link:focus-visible,
-.landing-tile:focus-visible {
-  outline: 2px dotted var(--xp-text-inverse);
+.landing-signin:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--brand-red-shadow), 0 4px 10px rgb(0 0 0 / 0.3);
+}
+
+.landing-signin:focus-visible,
+.landing-cue:focus-visible {
+  outline: 3px solid var(--brand-ice);
   outline-offset: 4px;
 }
 
-.landing-tile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-height: 4.5rem;
-  padding: 0.5rem 1.5rem 0.5rem 0.5rem;
-  border-radius: 8px;
-  color: var(--xp-text-inverse);
-  cursor: pointer;
-}
-
-.landing-tile-avatar {
-  display: grid;
-  place-items: center;
-  width: 4rem;
-  height: 4rem;
-  border: 3px solid var(--xp-text-inverse);
-  border-radius: 6px;
-  background: var(--ice-tint);
-}
-
-.landing-tile-name {
-  font: 1.375rem var(--xp-title-font);
-}
-
-.landing-tile:hover:not(:disabled),
-.landing-tile:focus-visible {
-  background: var(--login-tile-hover);
-}
-
-.landing-tile:hover:not(:disabled) .landing-tile-avatar,
-.landing-tile:focus-visible .landing-tile-avatar {
-  border-color: var(--xp-gold);
-}
-
-.landing-tile:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.landing-tile:disabled {
+.landing-signin:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
 
-.landing-boot-bar {
-  position: relative;
-  width: 8rem;
-  height: 1rem;
-  padding: 2px;
-  overflow: hidden;
-  border: 2px solid var(--login-rule-top);
-  border-radius: 4px;
-  background: var(--login-band);
+.landing-cue {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.25rem 1rem;
+  color: var(--brand-ice);
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-.landing-boot-bar span {
-  position: absolute;
-  top: 2px;
-  bottom: 2px;
-  width: 0.5rem;
-  background: linear-gradient(var(--xp-title-light), var(--xp-title-dark));
-  animation: landing-boot 1.8s linear infinite;
+.landing-cue:hover {
+  color: var(--brand-white);
 }
 
-.landing-boot-bar span:nth-child(2) {
-  animation-delay: 0.12s;
+.landing-cue-chevron {
+  animation: landing-cue-bob 1.4s ease-in-out infinite;
 }
 
-.landing-boot-bar span:nth-child(3) {
-  animation-delay: 0.24s;
+@keyframes landing-cue-bob {
+  50% { transform: translateY(6px); }
 }
 
-@keyframes landing-boot {
-  from { left: -1.5rem; }
-  to { left: 8.5rem; }
+.landing-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.5rem 1rem 4.5rem;
+}
+
+@media (min-width: 40rem) {
+  .landing-band {
+    padding-inline: 2rem;
+  }
+}
+
+.landing-band-mist {
+  background: var(--brand-mist);
+}
+
+.landing-band-white {
+  background: var(--brand-white);
+}
+
+.landing-band-navy {
+  background: linear-gradient(var(--brand-navy), var(--brand-navy-deep));
+  border-block: 6px solid var(--brand-red);
+}
+
+.landing-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.landing-kicker {
+  padding: 0.125rem 0.625rem;
+  color: var(--brand-white);
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: var(--brand-red);
+}
+
+.landing-heading .landing-title {
+  color: var(--brand-navy);
+}
+
+.landing-band-navy .landing-heading .landing-title {
+  color: var(--brand-white);
+}
+
+.landing-lede {
+  max-width: 32rem;
+  margin-top: -1rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.landing-rules,
+.landing-watch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.landing-mascot {
+  width: 9rem;
+  height: auto;
+  filter: drop-shadow(0 8px 12px rgb(16 26 58 / 0.3));
+}
+
+.landing-mascot-flip {
+  display: none;
+  transform: scaleX(-1);
+  filter: drop-shadow(0 8px 14px rgb(0 0 0 / 0.5));
+}
+
+@media (min-width: 56rem) {
+  .landing-rules,
+  .landing-watch {
+    flex-direction: row;
+    justify-content: center;
+    gap: 3rem;
+  }
+
+  .landing-mascot {
+    width: 17rem;
+  }
+
+  .landing-mascot-flip {
+    display: block;
+  }
+}
+
+.landing-footer {
+  color: var(--brand-white);
+  background: linear-gradient(var(--brand-navy), var(--brand-navy-deep));
+}
+
+/* The XP taskbar, as the page's last line. */
+.landing-taskbar {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--taskbar-height);
+  font-size: 0.75rem;
+  background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar) 12%, var(--xp-taskbar-dark));
+  border-top: 1px solid var(--xp-taskbar-light);
+}
+
+.landing-taskbar-task {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  border-radius: 0 12px 12px 0;
+  font: italic bold 0.9375rem var(--xp-title-font);
+  background: linear-gradient(var(--xp-start-light), var(--xp-start) 30%, var(--xp-start-dark));
+}
+
+.landing-taskbar-tray {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0.375rem 1rem;
+  border-left: 1px solid var(--xp-tray-dark);
+  text-align: right;
+  background: linear-gradient(var(--xp-tray), var(--xp-tray-dark));
 }
 
 .landing-faux-button {
@@ -238,18 +366,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-boot-bar span,
+  .landing-cue-chevron,
   .landing-live-dot,
   .landing-skeleton span {
     animation: none;
   }
 
-  .landing-boot-bar span { left: 2.75rem; }
-  .landing-boot-bar span:nth-child(2) { left: 3.5rem; }
-  .landing-boot-bar span:nth-child(3) { left: 4.25rem; }
-
   .landing [data-reveal],
-  .landing-tile {
+  .landing-signin {
     transition: none;
   }
 }
