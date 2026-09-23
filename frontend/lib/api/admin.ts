@@ -1,7 +1,6 @@
+import type { WeekSettings } from "@/lib/ices/compute";
 import type { LedgerIce } from "./ledger";
 import { request } from "./users";
-
-export type LowestScope = "all" | "played";
 
 const post = <T>(path: string, body: object) => request<T>(path, { method: "POST", body: JSON.stringify(body) });
 
@@ -16,7 +15,7 @@ export const setIceCompleted = (iceId: string, completed: boolean, at?: string) 
 
 export const setChugTime = (iceId: string, seconds: number) => post<LedgerIce>("/admin/chug-time", { iceId, seconds });
 
-export const setWeekRules = (week: number, rules: { iceRulesActive?: boolean; lowestScope?: LowestScope }) =>
+export const setWeekRules = (week: number, rules: Partial<WeekSettings>) =>
   post<unknown>("/admin/settings", { week, ...rules });
 
 export const setToiletByes = (byes: [number, number]) => post<unknown>("/admin/settings", { toiletByes: byes });

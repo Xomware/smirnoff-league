@@ -64,8 +64,8 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-function renderPanel(panel?: string) {
-  return render(
+async function renderPanel(panel?: string) {
+  render(
     <ProfileProvider>
       <AlertsProvider>
         <ControlPanelWindow params={panel ? { panel } : {}} />
@@ -73,6 +73,8 @@ function renderPanel(panel?: string) {
       </AlertsProvider>
     </ProfileProvider>,
   );
+  // The panel renders once /users/me says admin.
+  if (isAdmin) await screen.findByRole("navigation", { name: "Control Panel categories" });
 }
 
 const panel = () => within(document.querySelector<HTMLElement>(".cp")!);
@@ -115,13 +117,13 @@ describe("Control Panel visibility", () => {
 
   it("refuses a non-admin who deep-links to it", async () => {
     isAdmin = false;
-    renderPanel("ices");
+    await renderPanel("ices");
     expect(await screen.findByText(/only for league admins/i)).toBeTruthy();
     expect(adminCalls).toEqual([]);
   });
 
   it("opens each category from the category view", async () => {
-    renderPanel();
+    await renderPanel();
     for (const name of ["Ices", "Week Rules", "Toilet Bowl"]) {
       expect(await panel().findByRole("button", { name: new RegExp(`^${name}`) })).toBeTruthy();
     }
@@ -134,7 +136,7 @@ describe("Ices panel", () => {
       ledger.ices = ledger.ices.map((i) => (i.iceId === body.iceId ? { ...i, status: "completed", completedAt: String(body.at) } : i));
       return envelope({});
     };
-    renderPanel("ices");
+    await renderPanel("ices");
 
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
     const row = await iceRow(/W3 Team 6/);
@@ -153,7 +155,7 @@ describe("Ices panel", () => {
   });
 
   it("completes now when no time is picked", async () => {
-    renderPanel("ices");
+    await renderPanel("ices");
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
     fireEvent.click(within(await iceRow(/W3 Team 6/)).getByRole("button", { name: "Complete" }));
 
@@ -161,7 +163,7 @@ describe("Ices panel", () => {
   });
 
   it("undoes a completion only after the confirm dialog", async () => {
-    renderPanel("ices");
+    await renderPanel("ices");
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "1" } });
     fireEvent.change(panel().getByLabelText("Filter by team"), { target: { value: "2" } });
     const row = await iceRow(/W1 Team 2/);
@@ -176,7 +178,7 @@ describe("Ices panel", () => {
   });
 
   it("sets a chug time in seconds and shows it as m:ss", async () => {
-    renderPanel("ices");
+    await renderPanel("ices");
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
     const row = await iceRow(/W3 Team 6/);
     fireEvent.change(within(row).getByLabelText("Chug seconds"), { target: { value: "67.5" } });
@@ -189,7 +191,7 @@ describe("Ices panel", () => {
 
   it("voids with a note only after the confirm dialog, and drops the row at once", async () => {
     adminReply = () => new Promise<Response>(() => {});
-    renderPanel("ices");
+    await renderPanel("ices");
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
     const row = await iceRow(/W3 Team 6/);
 
@@ -208,7 +210,7 @@ describe("Ices panel", () => {
   });
 
   it("adds an admin ice for a week and team", async () => {
-    renderPanel("ices");
+    await renderPanel("ices");
     const form = within(await panel().findByRole("form", { name: "Add ice" }));
     fireEvent.change(await form.findByLabelText("Week"), { target: { value: "2" } });
     fireEvent.change(form.getByLabelText("Team"), { target: { value: "8" } });
@@ -228,7 +230,7 @@ describe("Ices panel", () => {
       new Response(JSON.stringify({ data: null, error: { handler: "admin_ice_complete", message: "W03#R06#ADMIN1 is voided" }, meta: null }), {
         status: 409,
       });
-    renderPanel("ices");
+    await renderPanel("ices");
     fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
     fireEvent.click(within(await iceRow(/W3 Team 6/)).getByRole("button", { name: "Complete" }));
 
@@ -239,7 +241,7 @@ describe("Ices panel", () => {
 
 describe("Week Rules panel", () => {
   it("saves a rule change on a finalized week, then re-finalizes when asked", async () => {
-    renderPanel("rules");
+    await renderPanel("rules");
     fireEvent.click(await panel().findByLabelText("Week 2 ice rules active"));
 
     await choose("Re-finalize");
@@ -251,7 +253,7 @@ describe("Week Rules panel", () => {
   });
 
   it("does not re-finalize when the prompt is declined", async () => {
-    renderPanel("rules");
+    await renderPanel("rules");
     fireEvent.change(await panel().findByLabelText("Week 1 lowest score scope"), { target: { value: "played" } });
 
     await choose("Later");
@@ -259,7 +261,7 @@ describe("Week Rules panel", () => {
   });
 
   it("changes an open week without a prompt and finalizes it on demand", async () => {
-    renderPanel("rules");
+    await renderPanel("rules");
     fireEvent.change(await panel().findByLabelText("Week 5 lowest score scope"), { target: { value: "played" } });
     fireEvent.click(panel().getByRole("button", { name: "Finalize week 5" }));
 
@@ -269,7 +271,7 @@ describe("Week Rules panel", () => {
   });
 
   it("re-finalizes only after the confirm dialog", async () => {
-    renderPanel("rules");
+    await renderPanel("rules");
     fireEvent.click(await panel().findByRole("button", { name: "Re-finalize week 1" }));
     await choose("Cancel");
     expect(adminCalls).toEqual([]);
@@ -281,7 +283,7 @@ describe("Week Rules panel", () => {
 
   it("shows the ledger's stored rules rather than the defaults", async () => {
     ledger.weeks[1] = { ...ledger.weeks[1], iceRulesActive: false, lowestScope: "played" };
-    renderPanel("rules");
+    await renderPanel("rules");
     const active = (await panel().findByLabelText("Week 2 ice rules active")) as HTMLInputElement;
     expect(active.checked).toBe(false);
     expect((panel().getByLabelText("Week 2 lowest score scope") as HTMLSelectElement).value).toBe("played");
@@ -291,7 +293,7 @@ describe("Week Rules panel", () => {
 
 describe("Toilet Bowl panel", () => {
   it("defaults to byes for seeds 13 and 14 and saves a new pair", async () => {
-    renderPanel("toilet");
+    await renderPanel("toilet");
     const first = (await panel().findByLabelText("First bye")) as HTMLSelectElement;
     const second = panel().getByLabelText("Second bye") as HTMLSelectElement;
     expect([first.value, second.value]).toEqual(["13", "14"]);
@@ -305,7 +307,7 @@ describe("Toilet Bowl panel", () => {
   });
 
   it("will not save the same seed twice", async () => {
-    renderPanel("toilet");
+    await renderPanel("toilet");
     fireEvent.change(await panel().findByLabelText("First bye"), { target: { value: "14" } });
     expect((panel().getByRole("button", { name: "Save byes" }) as HTMLButtonElement).disabled).toBe(true);
   });

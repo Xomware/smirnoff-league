@@ -29,6 +29,13 @@ describe("parseOpen", () => {
     expect(parseOpen(`?open=${bad},ices`)).toEqual([{ kind: "ices", params: {} }]);
   });
 
+  it("opens the Control Panel home or one of its panels", () => {
+    expect(parseOpen("?open=admin,admin:rules,admin:users")).toEqual([
+      { kind: "admin", params: {} },
+      { kind: "admin", params: { panel: "rules" } },
+    ]);
+  });
+
   it("returns nothing without an open param", () => {
     expect(parseOpen("")).toEqual([]);
     expect(parseOpen("?other=1")).toEqual([]);

@@ -1,5 +1,4 @@
-import type { Ice } from "@/lib/ices/compute";
-import type { LowestScope } from "./admin";
+import type { Ice, WeekSettings } from "@/lib/ices/compute";
 import { ApiError, request } from "./users";
 
 export interface LedgerIce {
@@ -26,7 +25,7 @@ export interface LedgerWeek {
   deadlineUtc: string | null;
   // Optional until the backend that sends them is deployed.
   iceRulesActive?: boolean;
-  lowestScope?: LowestScope;
+  lowestScope?: WeekSettings["lowestScope"];
 }
 
 /** owed, completed and overdue count original ices; late and lateOwed count late ices. */
