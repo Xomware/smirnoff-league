@@ -9,16 +9,27 @@ locals {
 
   admin_lambdas = [
     { name = "finalize", description = "Finalize or re-finalize a week's ices", path_part = "finalize", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "ice_adjust", description = "Add an admin ice or void one", path_part = "ice-adjust", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "ice_complete", description = "Mark an ice completed or undo it", path_part = "ice-complete", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "chug_time", description = "Set an ice's chug time", path_part = "chug-time", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "settings", description = "Week ice settings and toilet bracket byes", path_part = "settings", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
   ledger_lambdas = [
     { name = "get", description = "Season ice ledger and summary", path_part = "get", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
   ]
 
+  videos_lambdas = [
+    { name = "presign", description = "Presigned POST for an ice video", path_part = "presign", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "confirm", description = "Confirm an ice video upload", path_part = "confirm", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "list", description = "Ready ice videos with presigned GETs", path_part = "list", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+  ]
+
   all_api_lambdas = merge(
     { for l in local.users_lambdas : "users_${l.name}" => l },
     { for l in local.admin_lambdas : "admin_${l.name}" => l },
     { for l in local.ledger_lambdas : "ledger_${l.name}" => l },
+    { for l in local.videos_lambdas : "videos_${l.name}" => l },
   )
 }
 

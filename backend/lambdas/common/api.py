@@ -171,3 +171,20 @@ def require(source: dict, *fields: str) -> list[str]:
             raise ValidationError(f"{field} is required", field=field)
         out.append(value.strip() if isinstance(value, str) else value)
     return out
+
+
+def whole(source: dict, field: str, lo: int, hi: int) -> int:
+    value = source.get(field)
+    # bool is an int subclass, so True would otherwise pass as 1.
+    if type(value) is not int or not lo <= value <= hi:
+        raise ValidationError(f"{field} must be a whole number from {lo} to {hi}", field=field)
+    return value
+
+
+def text(source: dict, field: str, required: bool = True) -> str | None:
+    value = source.get(field)
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError(f"{field} must be non-blank text", field=field)
+    return value.strip()

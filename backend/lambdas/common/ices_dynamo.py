@@ -11,13 +11,13 @@ SEASON = "2026"
 COMPUTED_REASONS = ("zero", "empty", "lowest")
 
 
-def _week_key(week: int) -> str:
+def week_key(week: int) -> str:
     return f"WEEK#{week:02d}"
 
 
 def get_week(week: int) -> dict:
     item = (
-        table("SETTINGS_TABLE").get_item(Key={"season": SEASON, "key": _week_key(week)}).get("Item")
+        table("SETTINGS_TABLE").get_item(Key={"season": SEASON, "key": week_key(week)}).get("Item")
     )
     return from_dynamo(item or {})
 
@@ -36,7 +36,7 @@ def finalized_weeks() -> set[int]:
 
 def set_deadline(week: int, deadline: str) -> None:
     table("SETTINGS_TABLE").update_item(
-        Key={"season": SEASON, "key": _week_key(week)},
+        Key={"season": SEASON, "key": week_key(week)},
         UpdateExpression="SET deadlineUtc = :d",
         ExpressionAttributeValues={":d": deadline},
     )
@@ -45,7 +45,7 @@ def set_deadline(week: int, deadline: str) -> None:
 def mark_finalized(week: int, now: str, overwrite: bool) -> None:
     value = ":now" if overwrite else "if_not_exists(finalizedAt, :now)"
     table("SETTINGS_TABLE").update_item(
-        Key={"season": SEASON, "key": _week_key(week)},
+        Key={"season": SEASON, "key": week_key(week)},
         UpdateExpression=f"SET finalizedAt = {value}",
         ExpressionAttributeValues={":now": now},
     )
@@ -93,13 +93,26 @@ def season_ices() -> list[dict]:
     return [from_dynamo(i) for i in items]
 
 
-def update_ice(ice_id: str, fields: dict) -> None:
+def _update(tbl, key: dict, fields: dict, remove: tuple[str, ...] = ()) -> dict:
     names = {f"#f{n}": k for n, k in enumerate(fields)}
-    table("ICES_TABLE").update_item(
-        Key={"season": SEASON, "iceId": ice_id},
-        UpdateExpression="SET " + ", ".join(f"{n} = :{n[1:]}" for n in names),
+    expression = "SET " + ", ".join(f"{n} = :{n[1:]}" for n in names)
+    if remove:
+        expression += " REMOVE " + ", ".join(remove)
+    res = tbl.update_item(
+        Key=key,
+        UpdateExpression=expression,
         ExpressionAttributeNames=names,
         ExpressionAttributeValues={
             f":{n[1:]}": to_dynamo(v) for n, v in zip(names, fields.values())
         },
+        ReturnValues="ALL_NEW",
     )
+    return from_dynamo(res["Attributes"])
+
+
+def update_ice(ice_id: str, fields: dict, remove: tuple[str, ...] = ()) -> dict:
+    return _update(table("ICES_TABLE"), {"season": SEASON, "iceId": ice_id}, fields, remove)
+
+
+def update_setting(key: str, fields: dict) -> dict:
+    return _update(table("SETTINGS_TABLE"), {"season": SEASON, "key": key}, fields)
