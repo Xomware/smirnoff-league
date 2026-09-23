@@ -20,9 +20,10 @@ export function WeekView({ week }: WeekViewProps) {
   const { pairs, icesByRoster, lowest } = weekSummary(week, matchups, isLive);
   if (pairs.length === 0) return <p className="xp-note">No matchups for week {week} yet.</p>;
 
-  const team = (rosterId: number) => (
+  const icesOf = (rosterId: number) => icesByRoster.find(([id]) => id === rosterId)?.[1].length ?? 0;
+  const team = (rosterId: number, ices = 0) => (
     <DrillLink to={{ kind: "team", rosterId }}>
-      <TeamName name={teamFor(rosterId).name} iced={false} ices={0} />
+      <TeamName name={teamFor(rosterId).name} iced={ices > 0} ices={ices} />
     </DrillLink>
   );
 
@@ -43,7 +44,7 @@ export function WeekView({ week }: WeekViewProps) {
           <li key={sides[0].matchup_id} className="xp-bracket-match">
             {sides.map((s) => (
               <span key={s.roster_id} className="xp-matchup-side">
-                {team(s.roster_id)}
+                {team(s.roster_id, icesOf(s.roster_id))}
                 <span className="xp-score">{s.points.toFixed(2)}</span>
               </span>
             ))}

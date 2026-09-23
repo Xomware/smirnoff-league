@@ -1,3 +1,4 @@
+import { getScoreboard } from "@/lib/espn";
 import { getLeague, getMatchups, getNflState, getRosters, getUsers } from "@/lib/sleeper/client";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 import type { Player } from "./use-league";
@@ -37,6 +38,7 @@ export const users = () => cached("users", getUsers);
 export const rosters = () => cached("rosters", getRosters);
 export const players = () => cached("players", getPlayers);
 export const nflState = () => cached("nfl", getNflState, NFL_TTL);
+export const scoreboard = (week: number) => cached(`scoreboard/${week}`, () => getScoreboard(week), NFL_TTL);
 
 export function leagueMatchups(week: number, live: boolean, fresh = false): Promise<SleeperMatchup[]> {
   const key = `matchups/${week}`;

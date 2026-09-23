@@ -19,4 +19,12 @@ describe("Standings", () => {
     expect(badgeOf("Team 2")?.textContent).toContain("x1");
     expect(badgeOf("Team 1")).toBeFalsy();
   });
+
+  it("labels the badges as season totals", async () => {
+    render(<StandingsWindow />);
+
+    await waitFor(() => expect(badgeOf("Team 13")?.textContent).toContain("season"));
+    expect(badgeOf("Team 13")?.textContent).toContain("2 ices this season");
+    expect(badgeOf("Team 2")?.textContent).toContain("1 ice this season");
+  });
 });

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { useAlerts } from "@/lib/alerts/alerts";
 import type { Ice } from "@/lib/ices/compute";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { playWhenAllowed } from "@/lib/sound/sound";
@@ -16,6 +17,7 @@ export function SignInGreeting() {
   const { myRosterId } = useProfile();
   const { data, teamFor } = useLeague();
   const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
+  const shown = useDefaultWeek(data?.nfl);
   const reported = useRef(false);
 
   useEffect(() => {
@@ -23,11 +25,11 @@ export function SignInGreeting() {
   }, []);
 
   useEffect(() => {
-    if (!tally || !data || reported.current) return;
+    if (!tally || !data || shown === undefined || reported.current) return;
     reported.current = true;
 
-    // The live week once it has ices, otherwise the last finished week.
-    const live = tally.live?.ices.length ? tally.live : null;
+    // The live week once it has kicked off and has ices, otherwise the last finished week.
+    const live = tally.live?.week === shown && tally.live.ices.length ? tally.live : null;
     const last = tally.weeks.at(-1);
     const week = live ?? last;
     const ices: Ice[] = week?.ices ?? [];
@@ -58,7 +60,7 @@ export function SignInGreeting() {
         "We are sorry for the inconvenience. Please chug to continue.",
       buttons: ["Send Error Report", "Don't Send"],
     });
-  }, [tally, data, teamFor, myRosterId, notify, alert]);
+  }, [tally, data, shown, teamFor, myRosterId, notify, alert]);
 
   return null;
 }

@@ -8,6 +8,7 @@ import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 import { EnvelopeIcon, ErrorIcon, WarningIcon } from "./dialog-icons";
 import { IceWatchDemo } from "./ice-watch-demo";
+import { LeagueStatus } from "./league-status";
 import "./landing.css";
 
 interface LandingProps {
@@ -70,6 +71,8 @@ export function Landing({ onSignIn }: LandingProps) {
           </a>
         </div>
       </section>
+
+      <LeagueStatus />
 
       <section id="how-ice-works" className="flex flex-col items-center gap-6 px-4 py-16 sm:px-8">
         <SectionHeading kicker="Rule book, sort of" title="How ice works" />
