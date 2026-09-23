@@ -1,4 +1,5 @@
 import type { Ice } from "@/lib/ices/compute";
+import type { LowestScope } from "./admin";
 import { ApiError, request } from "./users";
 
 export interface LedgerIce {
@@ -22,6 +23,9 @@ export interface LedgerWeek {
   week: number;
   finalizedAt: string | null;
   deadlineUtc: string | null;
+  // Optional until the backend that sends them is deployed.
+  iceRulesActive?: boolean;
+  lowestScope?: LowestScope;
 }
 
 /** owed, completed and overdue count original ices; late and lateOwed count late ices. */
@@ -38,6 +42,7 @@ export interface Ledger {
   ices: LedgerIce[];
   weeks: LedgerWeek[];
   summary: LedgerSummary[];
+  toiletByes?: number[];
 }
 
 export async function getLedger(): Promise<Ledger> {
