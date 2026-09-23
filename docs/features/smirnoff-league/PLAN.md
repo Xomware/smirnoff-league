@@ -1,3 +1,8 @@
+> **Moved.** On 2026-09-23 the repo moved from the `Xomware` org to
+> `domgiordano/smirnoff-league`, and the site moved to `smirnoff-league.com`. This
+> plan is history and is not updated for either; `docs/architecture.md` and
+> `docs/runbook.md` describe the current state.
+
 # Plan: Smirnoff League '26-'27 (Epic)
 
 **Status**: Ready

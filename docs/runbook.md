@@ -73,7 +73,7 @@ Actions tab, then **Run workflow** on `main`:
 Or with the CLI:
 
 ```bash
-gh workflow run deploy-backend.yml -R Xomware/smirnoff-league \
+gh workflow run deploy-backend.yml -R domgiordano/smirnoff-league \
   -f deploy_mode=specific -f specific_lambdas=cron_tick -f deploy_common_layer=false
 ```
 
@@ -114,6 +114,22 @@ aws lambda invoke --region us-east-1 \
 - A forced run skips late reconciliation. The next scheduled tick fetches the week's
   deadline from ESPN and reconciles.
 
+## Publish an edition
+
+Admins only. The flow is in `components/windows/UploadEdition.tsx`.
+
+1. Open **News Drop** on the desktop (the write-up window), then **Upload edition**.
+2. Pick the week (defaults to the week after the latest edition), a title (120
+   chars max) and the PDF (30 MB max), and upload.
+3. Wait for the render. It takes about a minute: `smirnoff-writeup-render` turns
+   each page into a WebP, and the dialog polls every 3 s. After 60 polls it gives up
+   and sends you back to the form.
+4. **Publish.** Until then nobody sees it, since `/writeups/list` returns published
+   editions only. **Unpublish** in the same dialog hides it again.
+
+If the dialog says the PDF could not be rendered, PDFium could not open it: export
+it again and re-upload. Render logs are in `/aws/lambda/smirnoff-writeup-render`.
+
 ## `ice_admin.py`
 
 Ledger edits from a laptop, through the same code as the admin endpoints
@@ -145,8 +161,9 @@ commit finishes. If a deploy fails in its `wait-for-terraform` job, the Terrafor
 failed; read that run.
 
 **Backend tests fail locally on `fromisoformat` (`Invalid isoformat string: '...Z'`).**
-Python before 3.11 cannot parse a trailing `Z`, and ESPN dates and some test fixtures
-use it. macOS's system `python3` is 3.9. Run the suite on 3.12, as CI does:
+Local tests need Python 3.11 or newer. Python before 3.11 cannot parse a trailing
+`Z`, and ESPN dates and some test fixtures use it. macOS's system `python3` is 3.9.
+Run the suite on 3.12, as CI does (`test-backend.yml`):
 
 ```bash
 cd backend
@@ -165,35 +182,68 @@ implementations now treat that roster as missing data: no ices, and out of the
 lowest pool. If it happens at finalize time, that roster's ices for the week are
 missing; re-finalize the week once Sleeper returns the lineup.
 
+**Headless screenshots of ESPN-driven screens fail.** ESPN returns 403 to a
+HeadlessChrome user agent, so a headless Chromium screenshot of anything that reads
+the scoreboard (Ice Watch, the landing's live section, the default week) fails
+there. Real browsers are fine. Check those screens in a real browser, not headless.
+
+**The disk fills up.** Every agent worktree under `.claude/worktrees/` (gitignored)
+carries its own `frontend/node_modules`. Clear them:
+
+```bash
+rm -rf .claude/worktrees/*/frontend/node_modules
+```
+
 **A new function runs the stub.** Terraform creates functions from
 `templates/lambda_stub.zip`. If a Terraform-only push adds a function, no backend
 deploy runs; dispatch `deploy-backend.yml` for that folder.
 
-## Move to a standalone domain
+## Domain
 
-The domain is `var.domain_name` (default `smirnoff-league.com`) in
-`infrastructure/terraform/variables.tf`.
+The site is `smirnoff-league.com` (`var.domain_name`), a Route53-registered domain
+whose hosted zone the registrar created (`var.route53_zone_name`, read as a data
+source in `route53.tf`). `www.smirnoff-league.com` is on the same distribution and
+301s to the bare domain (`web_hosting.tf`). The API is `api.smirnoff-league.com`.
+The frontend workflow hard-codes the site bucket as `S3_BUCKET: smirnoff-league.com`.
+
+`smirnoff.xomware.com` is gone from this repo. The shared Cognito client still lists
+its callback and logout URLs in `Xomware/xomware-infrastructure`
+(`terraform/cognito.tf`, `aws_cognito_user_pool_client.smirnoff`); drop them there.
+
+To change the domain again:
 
 1. **Cognito first.** In `xomware-infrastructure`, add
    `https://<new-domain>/auth/callback` to `callback_urls` and `https://<new-domain>`
-   to `logout_urls` on `aws_cognito_user_pool_client.smirnoff`
-   (`terraform/cognito.tf`), and apply there. Sign-in fails on the new domain until
-   this lands.
-2. **Hosted zone.** `var.route53_zone_name` (default `xomware.com`) is read as a
-   data source, so the zone for the new domain must already exist in Route 53.
-3. **This repo, one PR:**
-   - Set `domain_name` and `route53_zone_name` in `variables.tf`.
-   - Set `S3_BUCKET` in `.github/workflows/deploy-frontend.yml` to the new domain; the
-     site bucket is named after the domain.
+   to `logout_urls` on `aws_cognito_user_pool_client.smirnoff` (`terraform/cognito.tf`)
+   and apply there. Sign-in fails on the new domain until this lands.
+2. **Hosted zone.** The zone must already exist in Route53.
+3. **This repo, one PR:** set `domain_name` and `route53_zone_name` in
+   `variables.tf`, and `S3_BUCKET` in `.github/workflows/deploy-frontend.yml`.
 4. Merge. Terraform issues new certificates, creates the new site bucket,
    distribution and `api.<new-domain>`, and rewrites `/smirnoff/api-url`, CORS
-   origins and the media bucket CORS. The frontend deploy waits for the apply, then
-   builds against the new API URL.
-5. Remove the old callback and logout URLs in `xomware-infrastructure` once the new
-   domain works.
+   origins and the media bucket CORS. The frontend deploy waits for the apply.
+5. Remove the old callback and logout URLs in `xomware-infrastructure`.
 
-What happens to the old hostname (redirect or teardown) is **unknown**: nothing in
-this repo configures a redirect.
+## Move the repo
+
+The repo is `domgiordano/smirnoff-league`; it moved from the `Xomware` org
+on 2026-09-23 and GitHub redirects the old URL. Use `gh -R domgiordano/smirnoff-league`.
+
+If it moves again:
+
+1. **Trust the new owner first.** Add the new plain and immutable subjects
+   (`repo:<owner>/smirnoff-league` and `repo:<owner>@<owner id>/smirnoff-league@1382285884`)
+   to `deploy_subjects` in `infrastructure/terraform/oidc_deploy.tf` here, and to
+   `smirnoff_terraform_subjects` in `Xomware/xomware-infrastructure`,
+   `terraform/oidc_smirnoff_terraform.tf`. Apply both before the move.
+2. **Recreate the secrets.** Secrets do not transfer with the repo. Set
+   `AWS_TERRAFORM_PLAN_ROLE_ARN`, `AWS_TERRAFORM_APPLY_ROLE_ARN`, `AWS_ROLE_ARN` and
+   `ADMIN_EMAILS` on the new repo. Until `AWS_ROLE_ARN` is set, the frontend deploy
+   skips with a notice.
+3. Drop the old owner's subjects from both files once CI runs green on the new repo.
+
+Both files still list the pre-move `Xomware` pair alongside the `domgiordano` pair,
+each with a comment saying it goes after the move.
 
 ## Logs
 

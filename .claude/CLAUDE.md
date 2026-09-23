@@ -8,6 +8,8 @@ Active work: @GOALS.md
 ## What This Is
 A site for the Smirnoff League, a 14-team Sleeper fantasy league (`league_id 1394061072742227968`). It shows scores, standings, playoff and toilet-bowl brackets, and the Smirnoff Ice ledger, and it watches games live for ices. The whole app is behind Google sign-in; signed-out visitors see only the landing page. The epic plan is `docs/features/smirnoff-league/PLAN.md`.
 
+The repo is `domgiordano/smirnoff-league`, a public personal repo (moved from the `Xomware` org on 2026-09-23). Use `gh -R domgiordano/smirnoff-league`. Architecture and operations are in `docs/architecture.md` and `docs/runbook.md`.
+
 ## Stack
 A derby-style monorepo, copying `/Users/dom/Code/reeses-playoff-challenge`:
 - `frontend/`: Next.js static export + Tailwind, XP-era Windows look

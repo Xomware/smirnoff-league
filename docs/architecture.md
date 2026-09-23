@@ -8,8 +8,10 @@ Operational steps live in [`runbook.md`](runbook.md).
 
 | Piece | What it is | Defined in |
 |---|---|---|
+| Repo | `domgiordano/smirnoff-league`, a public personal repo. It moved from the `Xomware` org on 2026-09-23 and GitHub redirects the old URL | `infrastructure/terraform/oidc_deploy.tf` |
+| Domain | `smirnoff-league.com` (`var.domain_name`) in the Route53 zone of the same name (`var.route53_zone_name`), read as a data source. `www` shares the distribution and 301s to the bare domain. The API is `api.smirnoff-league.com` | `infrastructure/terraform/variables.tf`, `route53.tf`, `web_hosting.tf`, `locals.tf` |
 | Site | Next.js static export (`output: "export"`, `trailingSlash: true`), synced to an S3 bucket named after `var.domain_name` and served by CloudFront with a subroute rewrite | `frontend/next.config.ts`, `infrastructure/terraform/web_hosting.tf` (module `web-hosting` v1.4.0) |
-| Auth | The shared Xomware Cognito pool, Google as the only identity provider. This stack creates no pool and no client; it reads the pool ARN from SSM `/xomware/shared/cognito/user-pool-arn` | `infrastructure/terraform/data_cognito.tf`, `frontend/lib/auth/amplify.ts` |
+| Auth | The shared Xomware Cognito pool, Google as the only identity provider. This stack creates no pool and no client: the pool and the `smirnoff-client` app client live in `Xomware/xomware-infrastructure` (`terraform/cognito.tf`). It reads the pool ARN from SSM `/xomware/shared/cognito/user-pool-arn` | `infrastructure/terraform/data_cognito.tf`, `frontend/lib/auth/amplify.ts` |
 | API | API Gateway (module `api-gateway-service` v2.8.0) at `api.<domain_name>`, one Python Lambda per endpoint, every route on the native `COGNITO_USER_POOLS` authorizer | `infrastructure/terraform/api_gateway.tf`, `lambda.tf`, `acm.tf`, `route53.tf` |
 | Shared code | One Lambda layer, `smirnoff-shared-packages`: `backend/lambdas/common/` plus `backend/requirements.txt` | `infrastructure/terraform/lambda_layers.tf`, `.github/workflows/deploy-backend.yml` |
 | Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
@@ -31,7 +33,7 @@ travel in the body or query string (`lambda.tf`).
 | Route | Lambda folder | Who |
 |---|---|---|
 | `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin` |
-| `POST /users/update` | `users_update` | signed in |
+| `POST /users/update` | `users_update` | signed in; saves the profile, or `notificationsSeenAt` alone to mark notifications read |
 | `GET /ledger/get` | `ledger_get` | signed in |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own the ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
@@ -43,7 +45,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 
 | Table | Key | Holds | Access code |
 |---|---|---|---|
-| `smirnoff-users` | `sub` | name, username, rosterId, createdAt, updatedAt | `common/users_dynamo.py` |
+| `smirnoff-users` | `sub` | name, username, rosterId, notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes` | `common/ices_dynamo.py`, `ledger_get/handler.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceId, rosterId, uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status, publishedAt | `common/media_dynamo.py` |
@@ -133,9 +135,13 @@ changes them.
      revives voided ones still due, and voids owed extras (for example after an
      admin backdates the parent's completion). A completed late row is never
      touched. Late ices do not accrue late ices, and admin ices never accrue.
-   - `PAID_BEFORE_LAUNCH = (1, 2)`: owed ices in weeks 1 and 2 are marked completed
-     at their deadline, so they never go late. Those weeks were chugged before the
-     site existed.
+   - `PAID_BEFORE_LAUNCH = (1,)`: owed computed ices in week 1 are marked completed
+     at their deadline, so they never go late. That week was chugged before the site
+     existed.
+   - Week 2 was in the list until 2026-09-23. For any week outside it, reconcile
+     reverts a computed ice to `owed` when it carries the auto-paid signature:
+     completed exactly at the deadline, no `updatedBy` and no `videoId`. Anything
+     else was really completed and is left alone (`_auto_paid`).
 4. **Completion.** Two paths:
    - **Upload.** `POST /videos/presign` returns a presigned POST (15 min, 1 byte
      to 200 MB, `video/*`) and writes a `pending` media row. The browser uploads to
@@ -154,6 +160,26 @@ Late rows catch up with any admin change on the next tick, within 15 minutes.
 (default `[13, 14]`) and a per-roster summary of owed, completed, overdue, late and
 late-owed counts.
 
+## Write-ups
+
+A write-up ("edition") is a PDF an admin uploads, shown to everyone as page images.
+
+1. `POST /admin/writeup-presign` (week 1-17, title up to 120 chars) writes a
+   `pending` media row and returns a presigned POST (15 min, PDF, up to 30 MB) for
+   `writeups/{uuid}/source.pdf` (`admin_writeup_presign/handler.py`).
+2. The S3 `ObjectCreated` event starts `smirnoff-writeup-render` (1536 MB, 120 s).
+   It rasterizes each page to a 1400px-wide WebP at `writeups/{uuid}/p{n}.webp`,
+   stores the keys in order and marks the row `rendered`. A PDF that PDFium cannot
+   open marks it `failed` (`writeup_render/handler.py`,
+   `lambda_writeup_render.tf`).
+3. `POST /admin/writeup-publish` with `published: true` stamps `publishedAt`; only a
+   `rendered` row can be published (409 otherwise). `published: false` unpublishes.
+4. `GET /writeups/list` returns published write-ups only, newest week first, with
+   1-hour presigned page GETs.
+
+The upload dialog (`components/windows/UploadEdition.tsx`) polls the publish route
+with `published: false` every 3 s until the row renders, and gives up after 60 polls.
+
 ## Frontend structure
 
 - **One real page.** `app/page.tsx` renders `AppShell`. The old routes
@@ -164,19 +190,39 @@ late-owed counts.
   Signed out, `AuthGate` renders the landing (also while auth settles). Signed in,
   it adds `ProfileProvider`, `AlertsProvider` and `ProfileGate`, which holds the app
   until `/users/me` returns a profile and hosts the onboarding wizard.
-- **Two shells.** `components/phone/AppShell.tsx` picks by media query
-  `(max-width: 767.98px)` (`lib/use-media-query.ts`):
+- **Landing.** `components/landing/landing.tsx` is the signed-out page: the crest
+  hero with the sign-in button, a live league section (`league-status.tsx`, public
+  Sleeper and ESPN data via `lib/league/overview.ts`, hidden on any failure), the
+  ice rules as XP dialogs, an animated Ice Watch demo, and the toilet bowl. Scroll
+  reveals are skipped under reduced motion.
+- **Two shells.** `components/phone/AppShell.tsx` picks by the `PHONE` query in
+  `lib/use-media-query.ts`: `(max-width: 767.98px), (max-height: 500px) and
+  (pointer: coarse)`. So a phone held sideways (short and touch-first) gets the
+  phone shell, while a short desktop window with a mouse keeps the desktop.
+  `AppShell` also mounts `NotificationsProvider` around both shells.
   - **Desktop:** an XP-style window manager. State is a reducer
     (`lib/desktop/windows.ts`) of windows with position, size, z-order, minimize,
     maximize and per-window back/forward history, held in context
     (`lib/desktop/desktop-context.tsx`). `components/desktop/Desktop.tsx` restores
     the layout from `localStorage` per user (`lib/desktop/persist.ts`, key
-    `smirnoff.desktop.v1:<sub>`), applies `?open=` deep links
+    `smirnoff.desktop.v2:<sub>`), applies `?open=` deep links
     (`lib/desktop/deep-link.ts`), and keeps the URL in sync.
+  - **Ice-first desktop.** The key moved to `v2` when the default layout changed, so
+    every saved layout reset to it once. `defaultLayout` opens Home, the latest
+    edition (`writeup`) and Ice Standings, with the draft recap minimized
+    (`windows.ts`). The desktop icons are Home (the crest), the Ices folder, My Team,
+    Scores, Standings, Brackets, League News and News Drop, plus Control Panel for
+    admins (`Desktop.tsx`).
+  - **Ices folder.** `lib/desktop/ice-apps.ts` lists the ice apps in one place: Ice
+    Ledger, Ice Standings, Ice Stats, Ice Watch, Chug Videos. The desktop folder
+    window (`components/windows/FolderWindow.tsx`, path `C:\Smirnoff\Ices`), the
+    Start menu's Ices submenu, the phone Start sheet and the phone Ices tab all read
+    it. In the folder an app opens in place; Ctrl/Cmd opens a new window.
   - **Phone:** `components/phone/PhoneShell.tsx` with bottom tabs `home`, `scores`,
-    `ices`, `standings`, `my-team`. Each tab keeps a stack of screens
-    (`lib/phone/nav.ts`), mirrored into browser history so hardware and swipe Back
-    pop a screen (`lib/phone/use-phone-nav.ts`).
+    `ices`, `standings`, `my-team`; the Ices tab opens on the Ices folder. Each tab
+    keeps a stack of screens (`lib/phone/nav.ts`), mirrored into browser history so
+    hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`). In
+    landscape the tab bar docks to the left as a rail (`components/phone/phone.css`).
 - **Registry.** `lib/desktop/registry.tsx` maps each window kind to its title,
   icon, component and default size. Both shells render bodies from it, so a new
   view is one registry entry.
@@ -195,6 +241,47 @@ late-owed counts.
   upload.
 - **Ice Watch.** `lib/ices/use-ice-watch.ts` polls Sleeper and ESPN every 45 s while
   a game is in progress, otherwise sleeps until the next kickoff.
+- **Notifications.** Derived in the browser, not stored:
+  `lib/notifications/derive.ts` builds items from the caller's ledger rows (iced,
+  ice due from the Friday before the deadline, late ice added), published editions,
+  chug videos and completed trades involving their roster. Unread means newer than
+  the user's `notificationsSeenAt`; opening the list sends a new mark through
+  `POST /users/update`. `use-notifications.tsx` re-derives every minute, shows one
+  balloon per session, and flags `partial` when a source failed. The bell sits in
+  the taskbar tray and the phone title bar (`components/xp/NotificationBell.tsx`).
+- **News.** `lib/news/feed.ts` merges Sleeper transactions (adds, drops, waivers,
+  trades, commish moves), ledger events (iced, paid) and published write-ups into
+  one feed, filterable by type and team (`components/windows/NewsWindow.tsx`).
+  Without the API the feed goes out with Sleeper items only and names what is
+  missing (`use-news.ts`).
+- **Control Panel.** Admin-only window (`components/admin/ControlPanel.tsx`) with
+  three panels: Ices (add, void, complete, chug times), Week Rules (rules, lowest
+  scope, finalize and re-finalize) and Toilet Bowl (the two round-one byes). Each
+  calls an `/admin/*` route through `lib/api/admin.ts`. The icon shows only when
+  `/users/me` says `isAdmin`; the server re-checks every call.
+- **Chug videos.** `components/videos/UploadChug.tsx` uploads through
+  `/videos/presign` and `/videos/confirm` (see Ledger lifecycle). A manager can
+  upload for their own team's owed ices; admins can backfill any ice. The upload
+  button appears in the Ice Ledger, Chug Videos and team Ices views;
+  `ChugPlayer.tsx` plays from the presigned GET.
+- **Write-ups.** `components/windows/WriteupWindow.tsx` ("News Drop") shows the
+  latest edition's pages, or a week's with `?open=writeup:<week>`, plus an archive.
+  Admins get **Upload edition** (`UploadEdition.tsx`).
+- **Manager profiles.** `components/views/team-view.tsx` (the `team` and `my-team`
+  windows) has tabs Results, Ices, Transactions, Head-to-head and Roster. Results
+  carry margin, bench points left and the league average per week
+  (`lib/league/profile.ts`).
+- **Stats.** Ice Stats (`components/views/stats-view.tsx`) has tabs Overview,
+  Race, Lineups and Positions, computed in `lib/ices/stats.ts` and
+  `lib/ices/analysis.ts` (ice race, ice rate per start, bench points, position risk,
+  weekly extremes, takeaways). Ice Standings (`ice-standings-view.tsx`) ranks teams
+  by ices with completed, late and per-reason columns.
+- **Brand assets.** `frontend/public/brand/`: `crest.png` (landing hero, desktop
+  Home icon), `mascot.png`, `robot-head.png`, `ice-bottle-256.png` (icon art used by
+  `components/xp/icons.tsx`) and `wallpaper-hill-1600.jpg` (desktop wallpaper,
+  CC BY-SA 3.0, credited on the desktop). `app/icon.png`, `app/apple-icon.png` and
+  `app/favicon.ico` are the site icons. Unprocessed images go in the gitignored
+  `assets-incoming/`.
 
 ## Auth and security
 
@@ -218,9 +305,20 @@ late-owed counts.
   (`ssm.tf`, `.github/workflows/terraform.yml`). `isAdmin` from `/users/me` only
   shows or hides admin UI; every admin route re-checks server-side.
 - **CI identity.** GitHub OIDC only. The deploy role `smirnoff-github-actions-deploy`
-  is owned by this stack and only `main` can assume it (`oidc_deploy.tf`). The
-  Terraform plan and apply roles come from the `AWS_TERRAFORM_PLAN_ROLE_ARN` and
-  `AWS_TERRAFORM_APPLY_ROLE_ARN` secrets; a pull request can only assume the plan role.
+  is owned by this stack and only `main` can assume it (`oidc_deploy.tf`). Its
+  trusted subjects are `repo:domgiordano/smirnoff-league` and the immutable
+  `repo:domgiordano@44783934/smirnoff-league@1382285884`. The file still also lists
+  the pre-move `Xomware` pair, commented as going after the move.
+- **Terraform roles live elsewhere.** `smirnoff-github-actions-terraform-plan` and
+  `-apply` are defined in `Xomware/xomware-infrastructure`,
+  `terraform/oidc_smirnoff_terraform.tf`, because a stack cannot create the roles its
+  own pipeline assumes. Plan trusts any ref; apply trusts `main` only. The workflow
+  reads their ARNs from the `AWS_TERRAFORM_PLAN_ROLE_ARN` and
+  `AWS_TERRAFORM_APPLY_ROLE_ARN` secrets, and a pull request can only assume the plan
+  role (`.github/workflows/terraform.yml`).
+- **Repo secrets.** `AWS_TERRAFORM_PLAN_ROLE_ARN`, `AWS_TERRAFORM_APPLY_ROLE_ARN`,
+  `AWS_ROLE_ARN` (the deploy role) and `ADMIN_EMAILS`. Secrets do not transfer when a
+  repo moves; see the runbook.
 - **CORS.** The API and the media bucket allow `https://<domain_name>` and
   `http://localhost:3000` (`locals.tf`, `s3_media.tf`).
 - **Public repo.** No manager names, emails, videos or PDFs in git. `.gitignore`
@@ -234,9 +332,14 @@ late-owed counts.
 | `frontend/components/phone/AppShell.tsx` | Desktop vs phone switch |
 | `frontend/components/desktop/` | Desktop, window chrome, legacy-route redirect |
 | `frontend/components/phone/` | Phone shell, start sheet |
+| `frontend/components/landing/` | Signed-out landing page |
 | `frontend/components/windows/`, `frontend/components/views/` | Window and view bodies |
 | `frontend/components/admin/` | Control Panel (ices, week rules and finalize, toilet bowl) |
-| `frontend/lib/desktop/` | Window reducer, registry, deep links, layout persistence |
+| `frontend/components/videos/` | Chug video upload and player |
+| `frontend/lib/desktop/` | Window reducer, registry, Ices folder apps, deep links, layout persistence |
+| `frontend/lib/notifications/` | Notification derivation and provider |
+| `frontend/lib/news/` | League News feed |
+| `frontend/public/brand/` | Crest, mascot, robot head, ice bottle, wallpaper |
 | `frontend/lib/phone/` | Phone tab stacks and history sync |
 | `frontend/lib/league/` | League cache, standings, brackets, drill-down data |
 | `frontend/lib/ices/` | Ice rule (TS), tally, stats, ledger and watch hooks |
@@ -262,6 +365,7 @@ Recheck a section when a file matching its globs changes.
 | Request flow | `infrastructure/terraform/*.tf`, `frontend/lib/api/**`, `backend/lambdas/common/api.py` |
 | The ice rule | `backend/lambdas/common/ices.py`, `frontend/lib/ices/compute.ts`, `fixtures/ices-golden.json` |
 | Ledger lifecycle | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**` |
-| Frontend structure | `frontend/app/**`, `frontend/components/{desktop,phone,auth,onboarding}/**`, `frontend/components/views/drill-link.tsx`, `frontend/lib/{desktop,phone,league}/**`, `frontend/lib/ices/use-*.ts` |
+| Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `infrastructure/terraform/lambda_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
+| Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news}/**`, `frontend/lib/ices/{stats,analysis,use-*}.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
 | Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
 | File index | any new top-level folder under `frontend/`, `backend/` or `infrastructure/` |
