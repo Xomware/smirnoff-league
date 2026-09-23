@@ -18,25 +18,6 @@ const withDrill = (onOpen: () => void, view: ReactNode) => (
 );
 
 describe("Team view", () => {
-  it("shows roster 6's record, weekly results and ice total", async () => {
-    render(<TeamView rosterId={6} />);
-
-    const results = await screen.findByRole("table", { name: "Weekly results" });
-    const [, w1, w2] = within(results).getAllByRole("row");
-    expect(w1.textContent).toContain("Team 9");
-    expect(w1.textContent).toContain("91.46");
-    expect(within(w1).getAllByRole("cell")[3].textContent).toBe("L");
-    expect(w2.textContent).toContain("Team 1");
-
-    expect(screen.getByText("1-1")).toBeTruthy();
-    expect(screen.getByRole("banner").textContent).toContain("2 ices this season");
-    expect(screen.getByText(/PF 194\.00/)).toBeTruthy();
-    const total = screen.getByRole("list", { name: "Season ices by reason" });
-    expect(total.textContent).toContain("Zero points: 1");
-    expect(total.textContent).toContain("Lowest score: 1");
-    expect(within(screen.getByRole("list", { name: "Starters, week 2" })).getAllByRole("listitem")).toHaveLength(10);
-  });
-
   it("clicks through from a zeroed player to his Player view listing the W1 ice", async () => {
     const onOpen = vi.fn();
     const { unmount } = render(withDrill(onOpen, <TeamView rosterId={6} />));

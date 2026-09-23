@@ -1,0 +1,98 @@
+/* Manager profile: an XP "properties" header over the tab strip. */
+.profile-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem;
+  border: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+  background: linear-gradient(var(--xp-cream), var(--xp-face));
+}
+
+.profile-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  border: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+  font-family: var(--xp-title-font);
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: var(--xp-cream);
+}
+
+.profile-name {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--xp-title-font);
+  font-size: 1.125rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.profile-stats {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.5rem;
+}
+
+.profile-stats dt {
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ice-label);
+}
+
+.profile-stats dd {
+  display: flex;
+  white-space: nowrap;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.3125rem;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.profile-chip[data-tone="in"] {
+  color: var(--xp-start-dark);
+  background: var(--xp-cream);
+}
+
+.profile-chip[data-tone="out"] {
+  color: var(--xp-text);
+  background: var(--xp-face);
+}
+
+.profile-chip[data-tone="danger"] {
+  color: var(--xp-text);
+  background: var(--xp-balloon);
+  box-shadow: inset 3px 0 var(--xp-gold);
+}
+
+.profile-owed td {
+  color: var(--ice-deep);
+  background: var(--ice-tint);
+}
+
+@media (max-width: 767.98px) {
+  .profile-chip {
+    font-size: 0.75rem;
+  }
+}

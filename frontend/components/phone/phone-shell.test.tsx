@@ -153,6 +153,7 @@ describe("at 390px", () => {
 
     const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
     expect(title()).toBe(`Team Profile - ${team}`);
+    fireEvent.click(await top().findByRole("tab", { name: "Roster" }));
     const starters = await top().findByRole("region", { name: "Starters" });
     fireEvent.click(within(starters).getAllByRole("button")[0]);
     await waitFor(() => expect(screen.getByRole("button", { name: "Back" })).toBeTruthy());

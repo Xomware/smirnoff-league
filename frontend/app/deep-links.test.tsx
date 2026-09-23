@@ -95,7 +95,7 @@ describe("?open=", () => {
     renderAt("/?open=team:6");
 
     const team = await screen.findByRole("region", { name: "Team Profile - Team 6" });
-    expect(await within(team).findByText(/PF 194\.00/)).toBeTruthy();
+    expect(await within(team).findByText("194.00 / 0.00")).toBeTruthy();
     expect(focusedTab()?.textContent).toBe("Team Profile - Team 6");
   });
 

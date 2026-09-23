@@ -150,9 +150,11 @@
   border: 1px solid var(--xp-taskbar-dark);
   border-radius: 3px;
   color: var(--xp-text-inverse);
-  font-size: 0.875rem;
+  /* Five tabs beside Start leave about 58px each at 390px. */
+  font-size: 0.75rem;
   line-height: 1.1;
   letter-spacing: -0.01em;
+  white-space: nowrap;
   background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar));
   cursor: pointer;
 }

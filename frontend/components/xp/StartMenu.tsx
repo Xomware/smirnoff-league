@@ -14,11 +14,13 @@ import {
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
+  StarIcon,
   StopwatchIcon,
 } from "./icons";
 
 const ITEMS = [
   { kind: "home", label: "Home", Icon: HomeIcon },
+  { kind: "my-team", label: "My Team", Icon: StarIcon },
   { kind: "scores", label: "Scores", Icon: ScoresIcon },
   { kind: "standings", label: "Standings", Icon: StandingsIcon },
   { kind: "brackets", label: "Brackets", Icon: BracketIcon },
