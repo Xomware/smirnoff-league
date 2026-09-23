@@ -60,6 +60,21 @@ def test_late_count(paid, now, expected):
     assert late_count(W1_DEADLINE, paid, now) == expected
 
 
+@pytest.mark.parametrize(
+    "now, expected",
+    [
+        # 12:30 EST on Nov 1 is exactly 7x24h after the 13:00 EDT deadline.
+        (datetime(2026, 11, 1, 17, 30, tzinfo=UTC), 1),
+        (datetime(2026, 11, 1, 18, tzinfo=UTC) - MIN, 1),
+        (datetime(2026, 11, 1, 18, tzinfo=UTC), 2),
+        (datetime(2026, 11, 8, 18, tzinfo=UTC), 3),
+    ],
+)
+def test_weekly_boundary_stays_at_13_et_across_dst(now, expected):
+    deadline = datetime(2026, 10, 25, 17, tzinfo=UTC)
+    assert late_count(deadline, None, now) == expected
+
+
 def finalize_both_weeks():
     """Cron at the fixture's frozen clock: W1 and W2 finalized, deadlines stored, nothing late."""
     cron_tick(SCHEDULED, None)

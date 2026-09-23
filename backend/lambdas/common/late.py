@@ -37,7 +37,13 @@ def late_count(deadline: datetime, completed_at: datetime | None, now: datetime)
     t = completed_at or now
     if t <= deadline:
         return 0
-    return 1 + (t - deadline) // WEEK
+    # Each +1 lands on a Sunday 13:00 ET, so step in wall-clock weeks: adding a
+    # timedelta to an ET datetime keeps 13:00 across DST, where 7x24h would not.
+    local = deadline.astimezone(ET)
+    weeks = 0
+    while local + (weeks + 1) * WEEK <= t:
+        weeks += 1
+    return 1 + weeks
 
 
 def week_deadlines() -> dict[int, datetime]:
