@@ -5,6 +5,7 @@ import { type ReactNode, useMemo, useState } from "react";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { TeamName } from "@/components/xp/TeamName";
 import { DEFAULT_SORT, iceStandings, seasonGrid, type Sort, type SortKey, sortRows, toggleSort } from "@/lib/ices/standings";
+import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
@@ -15,6 +16,8 @@ const COLUMNS: { key: SortKey; label: string; className: string }[] = [
   { key: "rank", label: "#", className: "w-10" },
   { key: "team", label: "Team", className: "w-48" },
   { key: "total", label: "Ices", className: "w-14 text-right" },
+  { key: "completed", label: "Completed", className: "w-24 text-right" },
+  { key: "late", label: "Late", className: "w-14 text-right" },
   { key: "zero", label: "Zero", className: "w-14 text-right" },
   { key: "empty", label: "Empty", className: "w-16 text-right" },
   { key: "lowest", label: "Lowest", className: "w-18 text-right" },
@@ -53,14 +56,15 @@ export function IceStandingsView() {
   const { myRosterId } = useProfile();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, finishedWeeks, error: icesError } = useSeasonIces(currentWeek);
+  const ledger = useLedger();
   const [sort, setSort] = useState<Sort>(DEFAULT_SORT);
   const error = leagueError ?? icesError;
 
   const standings = useMemo(() => {
-    if (!data || !tally || !finishedWeeks) return null;
+    if (!data || !tally || !finishedWeeks || ledger.status === "loading") return null;
     const pf = Object.fromEntries(sortStandings(data.rosters).map((s) => [s.rosterId, s.pf]));
-    return iceStandings(tally, finishedWeeks, pf);
-  }, [data, tally, finishedWeeks]);
+    return iceStandings(tally, finishedWeeks, pf, ledger.status === "ok" ? ledger.ledger.summary : null);
+  }, [data, tally, finishedWeeks, ledger]);
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!standings || !tally) return <p role="status">Ranking the shame...</p>;
@@ -76,7 +80,7 @@ export function IceStandingsView() {
   return (
     <div className="grid gap-4">
       <div className="overflow-x-auto">
-        <table className="xp-table min-w-[36rem]">
+        <table className="xp-table min-w-[46rem]">
           <caption className="mb-2 text-left text-sm font-bold">Ice Standings — owed, provisional</caption>
           <thead>
             <tr>
@@ -95,6 +99,8 @@ export function IceStandingsView() {
                   </DrillLink>
                 </td>
                 {cell(r.total)}
+                {cell(r.completed ?? "—")}
+                {cell(r.late ?? "—")}
                 {cell(r.reasons.zero)}
                 {cell(r.reasons.empty)}
                 {cell(r.reasons.lowest)}
@@ -150,7 +156,7 @@ export function IceStandingsView() {
         </table>
       </div>
       <p className="xp-note">
-        Owed from Sleeper scores. The live week counts only empty slots until it ends; zeros and the lowest score lock in then.
+        Owed from Sleeper scores. The live week counts only empty slots until it ends; zeros and the lowest score lock in then. Completed and Late come from the ledger.
       </p>
     </div>
   );

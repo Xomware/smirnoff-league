@@ -37,7 +37,7 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init: RequestInit): Promise<T> {
+export async function request<T>(path: string, init: RequestInit): Promise<T> {
   // The ID token, not the access token: only the ID token carries `email`,
   // which the backend needs for the admin check. Fetched per call because
   // Amplify caches and refreshes it already.

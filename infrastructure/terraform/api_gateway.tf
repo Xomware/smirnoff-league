@@ -9,6 +9,11 @@ locals {
       invoke_arn = aws_lambda_function.api["admin_${l.name}"].invoke_arn
     })
   ]
+  ledger_endpoints = [
+    for l in local.ledger_lambdas : merge(l, {
+      invoke_arn = aws_lambda_function.api["ledger_${l.name}"].invoke_arn
+    })
+  ]
 }
 
 module "api" {
@@ -28,7 +33,8 @@ module "api" {
   allow_origin = local.cors_allowed_origins
 
   services = {
-    users = { path_prefix = "users", endpoints = local.users_endpoints }
-    admin = { path_prefix = "admin", endpoints = local.admin_endpoints }
+    users  = { path_prefix = "users", endpoints = local.users_endpoints }
+    admin  = { path_prefix = "admin", endpoints = local.admin_endpoints }
+    ledger = { path_prefix = "ledger", endpoints = local.ledger_endpoints }
   }
 }

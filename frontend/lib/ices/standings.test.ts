@@ -8,7 +8,7 @@ import { seasonTally } from "./tally";
 const pf = Object.fromEntries(golden.weeks[0].matchups.map((m) => [m.roster_id, 200 - m.roster_id]));
 // Sleeper reports week 3 with no games played yet, as in the mock league.
 const tally = seasonTally([...golden.weeks, { week: 3, matchups: [] }], 3);
-const rows = iceStandings(tally, golden.weeks, pf);
+const rows = iceStandings(tally, golden.weeks, pf, null);
 const nameOf = (rosterId: number) => `Team ${String(rosterId).padStart(2, "0")}`;
 
 describe("iceStandings", () => {
