@@ -34,8 +34,8 @@ export function LeagueStatus() {
   if (state.status === "error") return null;
 
   return (
-    <div className="flex justify-center px-4 pt-16 sm:px-8">
-      <Window title="League Status" icon={<IceBottleIcon width={16} height={16} />} controls className="max-w-lg">
+    <div className="flex w-full justify-center">
+      <Window title="League Status" icon={<IceBottleIcon width={16} height={16} />} controls className="w-full max-w-lg">
         <div className="landing-tabs" aria-hidden>
           <span>General</span>
         </div>
