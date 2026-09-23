@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { stubSleeper } from "@/lib/test/league-mock";
 import { Landing } from "./landing";
 
 const RULE_TEXT = [
@@ -40,8 +41,13 @@ function spyObserver() {
   return observe;
 }
 
+beforeEach(() => {
+  vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
+});
+
 afterEach(() => {
   reduceMotion(false);
+  vi.restoreAllMocks();
 });
 
 describe("Landing sign-in", () => {
@@ -86,5 +92,24 @@ describe("Landing motion", () => {
 
     expect(container.querySelector("[data-motion='on']")).not.toBeNull();
     expect(observe).toHaveBeenCalled();
+  });
+});
+
+describe("Landing league status", () => {
+  // stubSleeper answers Sleeper and 404s everything else, ESPN included.
+  it.each([
+    ["Sleeper and ESPN are down", () => {}],
+    ["only ESPN is down", stubSleeper],
+  ])("hides itself when %s, and sign-in still works", async (_, stub) => {
+    stub();
+    const onSignIn = vi.fn();
+    render(<Landing onSignIn={onSignIn} />);
+
+    expect(screen.getByRole("status", { name: /loading league status/i })).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole("status", { name: /loading league status/i })).toBeNull());
+    expect(screen.queryByRole("region", { name: /league status/i })).toBeNull();
+
+    fireEvent.click(screen.getAllByRole("button", { name: /sign in with google/i })[0]);
+    expect(onSignIn).toHaveBeenCalledOnce();
   });
 });
