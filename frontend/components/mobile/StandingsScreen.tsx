@@ -18,7 +18,7 @@ export function StandingsScreen() {
 
   const rows = sortStandings(data.rosters);
   const playoffTeams = data.league.settings.playoff_teams;
-  const danger = dangerZone(rows, playoffTeams);
+  const danger = dangerZone(rows, playoffTeams, data.nfl.week);
   const owed = (rosterId: number) => tally?.owed.find((t) => t.rosterId === rosterId)?.total ?? 0;
 
   return (
@@ -47,7 +47,7 @@ export function StandingsScreen() {
           </li>
         ))}
       </ol>
-      <p className="m-caption">Danger zone: within one game of the playoff cut.</p>
+      {danger.size > 0 && <p className="m-caption">Danger zone: within one game of the playoff cut.</p>}
     </div>
   );
 }

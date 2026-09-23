@@ -3,6 +3,7 @@
 import { useId, useMemo, useState } from "react";
 
 import { DrillLink } from "@/components/views/drill-link";
+import { OpenGame } from "@/components/views/game-view";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import {
@@ -21,6 +22,7 @@ interface IceIndex {
 }
 
 interface MatchupCardProps {
+  week: number;
   id: number;
   sides: SleeperMatchup[];
   ices: IceIndex;
@@ -28,7 +30,7 @@ interface MatchupCardProps {
   teamFor: (rosterId: number) => Team;
 }
 
-function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
+function MatchupCard({ week, id, sides, ices, players, teamFor }: MatchupCardProps) {
   const [open, setOpen] = useState(false);
   const starters = useId();
   const top = Math.max(...sides.map((s) => s.points));
@@ -60,6 +62,9 @@ function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
           );
         })}
       </button>
+      <p className="mt-1 text-right">
+        <OpenGame week={week} matchup={id} />
+      </p>
       {open && (
         <div id={starters} className="mt-2 grid gap-2 sm:grid-cols-2">
           {sides.map((s) => (
@@ -216,6 +221,7 @@ export function ScoresWindow() {
           pairs.map(([id, sides]) => (
             <MatchupCard
               key={`${week}-${id}`}
+              week={week}
               id={id}
               sides={sides}
               ices={ices}

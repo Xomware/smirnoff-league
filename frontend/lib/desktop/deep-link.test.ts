@@ -29,6 +29,10 @@ describe("parseOpen", () => {
     expect(parseOpen(`?open=${bad},ices`)).toEqual([{ kind: "ices", params: {} }]);
   });
 
+  it("reads a game as week-matchup", () => {
+    expect(parseOpen("?open=game:1-7,game:1,game:0-7,game:1-7-2,game:1:7")).toEqual([{ kind: "game", params: { week: 1, matchup: 7 } }]);
+  });
+
   it("opens a folder by id", () => {
     expect(parseOpen("?open=folder:ices,folder,folder:system32")).toEqual([{ kind: "folder", params: { id: "ices" } }]);
   });
@@ -63,6 +67,12 @@ describe("openParam", () => {
   it("names a window that navigated by what it shows now", () => {
     const state = desktopReducer(open([], "standings"), { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
     expect(openParam(state)).toBe("team:6");
+  });
+
+  it("round-trips a game through parseOpen", () => {
+    const state = desktopReducer([], { type: "open", kind: "game", params: { week: 1, matchup: 7 }, size });
+    expect(openParam(state)).toBe("game:1-7");
+    expect(parseOpen(`?open=${openParam(state)}`)).toEqual([{ kind: "game", params: { week: 1, matchup: 7 } }]);
   });
 
   it("round-trips through parseOpen", () => {

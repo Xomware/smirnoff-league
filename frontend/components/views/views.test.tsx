@@ -25,6 +25,8 @@ describe("Team view", () => {
     const results = await screen.findByRole("table", { name: "Weekly results" });
     fireEvent.click(within(results).getByRole("button", { name: "Week 1" }));
     expect(onOpen).toHaveBeenLastCalledWith({ kind: "week", week: 1 });
+    fireEvent.click(within(results).getByRole("button", { name: "91.46 - 134.46" }));
+    expect(onOpen).toHaveBeenLastCalledWith({ kind: "game", week: 1, matchup: 7 });
     fireEvent.click(within(results).getByRole("button", { name: /Romeo Doubs/ }));
     expect(onOpen).toHaveBeenLastCalledWith({ kind: "player", playerId: "8121" });
     unmount();
@@ -67,6 +69,16 @@ describe("Week view", () => {
 
     fireEvent.click(within(matchups).getAllByRole("button", { name: /Team 9/ })[0]);
     expect(onOpen).toHaveBeenCalledWith({ kind: "team", rosterId: 9 });
+  });
+
+  it("opens each matchup's game", async () => {
+    const onOpen = vi.fn();
+    render(withDrill(onOpen, <WeekView week={1} />));
+
+    const matchups = await screen.findByRole("list", { name: "Matchups" });
+    const game = within(matchups).getByText("Team 9").closest("li")!;
+    fireEvent.click(within(game).getByRole("button", { name: "Open game" }));
+    expect(onOpen).toHaveBeenCalledWith({ kind: "game", week: 1, matchup: 7 });
   });
 
   it("says so when the live week has no matchups yet", async () => {

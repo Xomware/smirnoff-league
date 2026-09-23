@@ -6,8 +6,8 @@ import { BackArrowIcon, ForwardArrowIcon } from "@/components/xp/icons";
 import type { WindowParams } from "@/lib/desktop/windows";
 import { POLL_MS } from "@/lib/ices/use-ice-watch";
 import { useDefaultWeek } from "@/lib/league/default-week";
+import { useWeekGames } from "@/lib/league/use-week-games";
 import { MatchupCard } from "./MatchupCard";
-import { useWeekGames } from "./use-week-games";
 
 interface GamesScreenProps {
   params: WindowParams;

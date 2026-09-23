@@ -3,6 +3,7 @@
 import { TeamName } from "@/components/xp/TeamName";
 import { weekSummary } from "@/lib/league/drill";
 import { DrillLink } from "./drill-link";
+import { OpenGame } from "./game-view";
 import { useSeason, WeekIces } from "./week-ices";
 
 interface WeekViewProps {
@@ -48,6 +49,9 @@ export function WeekView({ week }: WeekViewProps) {
                 <span className="xp-score">{s.points.toFixed(2)}</span>
               </span>
             ))}
+            <span className="text-right">
+              <OpenGame week={week} matchup={sides[0].matchup_id!} />
+            </span>
           </li>
         ))}
       </ul>

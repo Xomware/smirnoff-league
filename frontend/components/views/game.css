@@ -1,0 +1,84 @@
+.game-score {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+  background: var(--xp-cream);
+}
+
+.game-side {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.game-side.game-right {
+  order: 3;
+  justify-items: end;
+}
+
+.game-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font: bold 1.75rem var(--xp-title-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--xp-title-dark);
+}
+
+.game-right .game-points {
+  flex-direction: row-reverse;
+}
+
+.game-state {
+  order: 2;
+  font-size: 0.6875rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.game-table .game-player {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-table .game-player .xp-watch-tag {
+  margin-inline: 0.25rem;
+}
+
+.game-table .game-left {
+  text-align: left;
+}
+
+.game-table .game-right {
+  text-align: right;
+}
+
+.game-table .game-slot {
+  font-size: 0.6875rem;
+  font-weight: bold;
+  text-align: center;
+  background: var(--xp-face);
+}
+
+.game-table tfoot th.game-slot {
+  border: 0;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  white-space: nowrap;
+}
+
+.game-table tfoot td {
+  font-weight: bold;
+}
+
+.xp-open-game .xp-drill {
+  font-size: 0.8125rem;
+  font-weight: bold;
+  color: var(--xp-select);
+  text-decoration: underline;
+}

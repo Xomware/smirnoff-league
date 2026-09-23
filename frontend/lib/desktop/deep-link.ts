@@ -22,6 +22,10 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
   team: (v) => (POSITIVE.test(v) ? { rosterId: Number(v) } : null),
   player: (v) => (/^[A-Za-z0-9]+$/.test(v) ? { playerId: v } : null),
   week: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
+  game: (v) => {
+    const [, week, matchup] = v.match(/^([1-9]\d*)-([1-9]\d*)$/) ?? [];
+    return week ? { week: Number(week), matchup: Number(matchup) } : null;
+  },
   writeup: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
   folder: (v) => (v === "ices" ? { id: v } : null),
   admin: (v) => (ADMIN_PANELS.includes(v as AdminPanel) ? { panel: v } : null),

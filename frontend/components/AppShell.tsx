@@ -10,7 +10,6 @@ import { useDesktop } from "@/lib/desktop/desktop-context";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
 
-// The desktop has no game window, so a game opens its week's scores.
 function DesktopSearch() {
   const { open } = useDesktop();
   const [searching, setSearching] = useState(false);
@@ -19,7 +18,7 @@ function DesktopSearch() {
       phone={false}
       open={searching}
       onOpenChange={setSearching}
-      onGo={(to) => (to.type === "game" ? open("week", { week: to.week }) : open(to.kind, to.params))}
+      onGo={(to) => open(to.kind, to.params)}
     />
   );
 }

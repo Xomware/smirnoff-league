@@ -223,9 +223,11 @@ describe("Games", () => {
 
     fireEvent.click(within(games).getByRole("button", { name: /Team 13/ }));
     await waitFor(() => expect(title()).toBe("Week 2"));
-    expect(window.location.search).toMatch(/^\?open=games,game:\d+:2$/);
+    expect(window.location.search).toMatch(/^\?open=games,game:2-\d+$/);
     expect(top().getAllByRole("region", { name: /lineup$/ })).toHaveLength(2);
     expect(top().getByRole("region", { name: "Team 13 lineup" })).toBeTruthy();
+    expect(top().getByRole("list", { name: "Team 13 ices" }).textContent).toContain("Lowest score");
+    expect(top().getByRole("list", { name: "Team 13 bench" })).toBeTruthy();
 
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Games"));
@@ -239,7 +241,7 @@ describe("Games", () => {
   });
 
   it("opens a deep-linked game over the Games tab", async () => {
-    window.history.replaceState(null, "", "/?open=games,game:1:1");
+    window.history.replaceState(null, "", "/?open=games,game:1-1");
     renderShell();
     expect(tab("Games").getAttribute("aria-current")).toBe("page");
     expect(title()).toBe("Week 1");
@@ -304,6 +306,19 @@ function expectStacked(label: string, sections: string[]) {
   expect(top().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(expect.arrayContaining(sections));
 }
 
+describe("Ice Rankings", () => {
+  it("has a Menu row and a section in the Ices tab", async () => {
+    renderShell();
+    fireEvent.click(tab("Ices"));
+    expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
+
+    fireEvent.click(tab("Menu"));
+    fireEvent.click(top().getByRole("button", { name: /^Ice Rankings/ }));
+    await waitFor(() => expect(title()).toBe("Ice Rankings"));
+    expect(window.location.search).toBe("?open=menu,chug-rankings");
+  });
+});
+
 describe("screens that were tabbed on the desktop", () => {
   it("stacks Ice Stats' sections under one chip row", async () => {
     renderShell();
@@ -321,6 +336,12 @@ describe("screens that were tabbed on the desktop", () => {
     expect(title()).toBe("Team 6");
     expectStacked("Team 6 sections", ["Results", "Ices", "Moves", "Head-to-head", "Lineup"]);
     expect(within(top().getByRole("list", { name: "Weekly results" })).getAllByRole("listitem")).toHaveLength(2);
+
+    fireEvent.click(within(top().getByRole("list", { name: "Weekly results" })).getByRole("button", { name: "91.46 - 134.46" }));
+    await waitFor(() => expect(window.location.search).toBe("?open=menu,team:6,game:1-7"));
+    expect(title()).toBe("Week 1");
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Team 6"));
 
     fireEvent.click(within(top().getByRole("list", { name: /^Starters/ })).getAllByRole("button")[0]);
     await waitFor(() => expect(window.location.search).toMatch(/^\?open=menu,team:6,player:\w+$/));

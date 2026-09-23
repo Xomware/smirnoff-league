@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // amplify.ts reads these at import time, so they must exist before any import.
@@ -33,6 +33,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 }));
 
 import { AuthGate } from "@/components/auth/auth-gate";
+import { DrillContext } from "@/components/views/drill-link";
 import { BracketsWindow } from "./BracketsWindow";
 
 // Two weeks played: records spread 2-0 / 1-1 / 0-2, points-for breaks the ties.
@@ -78,16 +79,19 @@ const responses: Record<string, unknown> = {
   "/data/players.json": {},
 };
 
-beforeEach(() => {
+function stubFetch(overrides: Record<string, unknown> = {}) {
+  const all = { ...responses, ...overrides };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
       const path = url.replace("https://api.sleeper.app/v1", "");
-      if (!(path in responses)) return new Response("not found", { status: 404 });
-      return new Response(JSON.stringify(responses[path]), { status: 200 });
+      if (!(path in all)) return new Response("not found", { status: 404 });
+      return new Response(JSON.stringify(all[path]), { status: 200 });
     }),
   );
-});
+}
+
+beforeEach(() => stubFetch());
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -120,5 +124,36 @@ describe("Brackets window", () => {
 
     const watch = screen.getByRole("list", { name: "At risk of last place" });
     expect(teams(watch)).toEqual(bottomSix);
+  });
+});
+
+describe("bracket games", () => {
+  it("opens a playoff game once its week is on the schedule", async () => {
+    const side = (roster_id: number) => ({
+      roster_id,
+      matchup_id: 3,
+      points: 0,
+      custom_points: null,
+      starters: null,
+      starters_points: [],
+      players: null,
+      players_points: null,
+    });
+    stubFetch({
+      "/state/nfl": { week: 15, display_week: 15, season: "2026", season_type: "regular", leg: 15 },
+      [`${league}/matchups/15`]: [side(7), side(2)],
+    });
+    const onOpen = vi.fn();
+    render(
+      <DrillContext.Provider value={onOpen}>
+        <BracketsWindow />
+      </DrillContext.Provider>,
+    );
+
+    const playoffs = await screen.findByRole("region", { name: "Playoffs" });
+    const [open] = await within(playoffs).findAllByRole("button", { name: "Open game" });
+    expect(within(playoffs).getAllByRole("button", { name: "Open game" })).toHaveLength(1);
+    fireEvent.click(open);
+    expect(onOpen).toHaveBeenCalledWith({ kind: "game", week: 15, matchup: 3 });
   });
 });

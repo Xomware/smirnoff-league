@@ -16,6 +16,7 @@ import type { Team } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { ChartCard } from "./chart-card";
 import { DrillLink } from "./drill-link";
+import { OpenGame } from "./game-view";
 import { LineChart } from "./line-chart";
 import { TeamIces } from "./team-ices";
 import { TeamMoves } from "./team-moves";
@@ -62,7 +63,7 @@ export function useTeamProfile(rosterId: number) {
   const standings = sortStandings(data.rosters);
   const rank = standings.findIndex((r) => r.rosterId === rosterId) + 1;
   const playoffTeams = data.league.settings.playoff_teams;
-  const danger = dangerZone(standings, playoffTeams).has(rosterId);
+  const danger = dangerZone(standings, playoffTeams, currentWeek).has(rosterId);
   const positionOf = (id: string) => data.players[id]?.position;
   const results = profileResults(weeks, rosterId, positionOf);
   const provisional = tally.owed.find((t) => t.rosterId === rosterId)?.total ?? 0;
@@ -209,8 +210,13 @@ export function TeamView({ rosterId }: TeamViewProps) {
                 </td>
                 <td className="md:max-w-0">{r.opponent ? <OpponentLink rosterId={r.opponent.rosterId} teamFor={teamFor} /> : "Bye"}</td>
                 <td className="text-right whitespace-nowrap tabular-nums">
-                  {r.points.toFixed(2)}
-                  {r.opponent && ` - ${r.opponent.points.toFixed(2)}`}
+                  {r.opponent && r.matchupId ? (
+                    <OpenGame week={r.week} matchup={r.matchupId}>
+                      {r.points.toFixed(2)} - {r.opponent.points.toFixed(2)}
+                    </OpenGame>
+                  ) : (
+                    r.points.toFixed(2)
+                  )}
                 </td>
                 <td className="font-bold">{r.result ?? "-"}</td>
                 <td className="text-right whitespace-nowrap tabular-nums">{r.margin === null ? "-" : signed(r.margin)}</td>

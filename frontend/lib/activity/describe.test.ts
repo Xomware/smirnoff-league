@@ -20,7 +20,7 @@ describe("describeActivity", () => {
     ["upload", "edition:3", "Uploaded the Week 3 edition"],
     ["publish", "edition:3", "Published the Week 3 edition"],
     ["open", "tab:games", "Opened the Games tab"],
-    ["open", "game:4:3", "Opened a Week 3 game"],
+    ["open", "game:3-4", "Opened a Week 3 game"],
     ["open", "teams", "Opened Teams"],
     ["open", "something-new", "Opened something-new"],
   ] as const)("%s %s reads %s", (kind, target, text) => {

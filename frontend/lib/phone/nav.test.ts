@@ -17,7 +17,7 @@ describe("deep links", () => {
     ["?open=scores", "games", [root("games")]],
     ["?open=watch", "games", [root("games")]],
     ["?open=week:2", "games", [root("games"), { kind: "week", params: { week: 2 } }]],
-    ["?open=games,game:4:3", "games", [root("games"), game]],
+    ["?open=games,game:3-4", "games", [root("games"), game]],
     ["?open=ices", "ices", [root("ices")]],
     ["?open=ice-standings", "ices", [root("ices")]],
     ["?open=videos", "ices", [root("ices")]],
@@ -34,13 +34,13 @@ describe("deep links", () => {
   });
 
   it("drops what it cannot read", () => {
-    expect(parseScreens("?open=bogus,game:0:3,game:4,team:3")).toEqual([team]);
+    expect(parseScreens("?open=bogus,game:0-3,game:4,game:4:3,team:3")).toEqual([team]);
   });
 
   it("writes a stack the way it reads one back", () => {
     const stack = [root("games"), game, team, player];
     expect(stackUrl([root("home")])).toBe("/");
-    expect(stackUrl(stack)).toBe("/?open=games,game:4:3,team:3,player:4046");
+    expect(stackUrl(stack)).toBe("/?open=games,game:3-4,team:3,player:4046");
     expect(stackOf(open(stackUrl(stack).slice(1)))).toEqual(stack);
   });
 });

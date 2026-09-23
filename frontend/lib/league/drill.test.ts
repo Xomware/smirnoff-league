@@ -27,6 +27,7 @@ describe("teamResults", () => {
       [1, 9, 91.46, 134.46, "L"],
       [2, 1, 114.98, 182.68, "L"],
     ]);
+    expect(rows.map((r) => r.matchupId)).toEqual([7, 7]);
     expect(rows[0].ices.map((i) => i.id)).toEqual(["W01#R06#LOWEST", "W01#R06#S4"]);
     expect(rows[1].ices).toEqual([]);
   });

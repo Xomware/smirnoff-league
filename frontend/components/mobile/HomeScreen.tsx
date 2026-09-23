@@ -6,11 +6,11 @@ import { useContext } from "react";
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useDefaultWeek } from "@/lib/league/default-week";
+import { useWeekGames } from "@/lib/league/use-week-games";
 import { useVideos } from "@/lib/videos/use-videos";
 import { useWriteups } from "@/lib/writeups/use-writeups";
 import { ChugBoardCards, ChugReelRow } from "./ChugCards";
 import { MatchupCard } from "./MatchupCard";
-import { useWeekGames } from "./use-week-games";
 import { YourIces } from "./YourIces";
 
 function WeekMatchups({ week }: { week: number | undefined }) {

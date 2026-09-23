@@ -16,7 +16,7 @@ import { isMuted, subscribeMuted } from "@/lib/sound/sound";
 export type Group = "Pages" | "Teams" | "Players" | "Games" | "Weeks" | "Actions";
 export const GROUPS: Group[] = ["Pages", "Teams", "Players", "Games", "Weeks", "Actions"];
 
-export type Destination = ({ type: "view" } & WindowView) | { type: "game"; week: number; matchup: number };
+export type Destination = { type: "view" } & WindowView;
 export type Target = Destination | { type: "upload" | "time" | "mute" | "signout" };
 
 export interface PaletteItem extends Searchable {
@@ -29,9 +29,9 @@ export interface PaletteItem extends Searchable {
 
 type Page = { label: string; keywords: string[]; params?: WindowParams };
 
-// Team, player and week windows are searched by name in their own groups,
-// and My Team is an action, so every other kind needs a name here.
-const PAGES: Record<Exclude<WindowKind, "team" | "player" | "week" | "my-team">, Page> = {
+// Team, player, week and game windows are searched by name in their own
+// groups, and My Team is an action, so every other kind needs a name here.
+const PAGES: Record<Exclude<WindowKind, "team" | "player" | "week" | "game" | "my-team">, Page> = {
   home: { label: "Home", keywords: ["smirnoff league", "summary", "dashboard"] },
   scores: { label: "Scores", keywords: ["matchups", "games", "scoreboard"] },
   standings: { label: "League Standings", keywords: ["records", "playoff race", "table"] },
@@ -108,7 +108,7 @@ export function usePaletteItems(): PaletteItem[] {
     }
     for (const [matchup, sides] of [...byGame].sort(([a], [b]) => a - b)) {
       const [a, b] = sides.map((s) => teamFor(s.roster_id).name);
-      games.push({ id: `game:${w}:${matchup}`, group: "Games", label: `Week ${w}: ${a} vs ${b}`, Icon: ScoresIcon, target: { type: "game", week: w, matchup } });
+      games.push({ id: `game:${w}:${matchup}`, group: "Games", label: `Week ${w}: ${a} vs ${b}`, Icon: ScoresIcon, target: view("game", { week: w, matchup }) });
     }
   }
 

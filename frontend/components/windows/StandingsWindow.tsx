@@ -13,12 +13,13 @@ import { useProfile } from "@/lib/profile/use-profile";
 export function StandingsWindow() {
   const { data, error, teamFor } = useLeague();
   const { myRosterId } = useProfile();
-  const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
+  const week = data ? Math.max(1, data.nfl.week) : undefined;
+  const { tally } = useSeasonIces(week);
   const owed = (rosterId: number) => tally?.owed.find((t) => t.rosterId === rosterId)?.total ?? 0;
   const playoffTeams = data?.league.settings.playoff_teams ?? 0;
 
   const rows = useMemo(() => (data ? sortStandings(data.rosters) : []), [data]);
-  const danger = useMemo(() => dangerZone(rows, playoffTeams), [rows, playoffTeams]);
+  const danger = useMemo(() => dangerZone(rows, playoffTeams, week ?? 0), [rows, playoffTeams, week]);
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data) return <p role="status">Loading the league...</p>;
@@ -79,10 +80,12 @@ export function StandingsWindow() {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 flex items-center gap-1">
-        <WarningIcon />
-        Danger zone: within one game of the playoff cut.
-      </p>
+      {danger.size > 0 && (
+        <p className="mt-2 flex items-center gap-1">
+          <WarningIcon />
+          Danger zone: within one game of the playoff cut.
+        </p>
+      )}
     </>
   );
 }

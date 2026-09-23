@@ -4,6 +4,8 @@ import { iceId, type MatchupRow, SLOTS } from "./compute";
 
 export type WatchState = "LOCKED" | "WATCH" | "SAFE" | "FINAL_ICE" | "FINAL_SAFE";
 
+export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "ICED", WATCH: "WATCH", LOCKED: "LOCKED" };
+
 export interface StarterWatch {
   // Same id weekIces gives this slot's ice.
   id: string;

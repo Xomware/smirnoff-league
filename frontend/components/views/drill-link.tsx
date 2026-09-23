@@ -8,6 +8,7 @@ export type DrillTarget =
   | { kind: "team"; rosterId: number }
   | { kind: "player"; playerId: string }
   | { kind: "week"; week: number }
+  | { kind: "game"; week: number; matchup: number }
   | { kind: "news" }
   | { kind: "ices" | "ice-standings" | "chug-rankings" | "stats" | "watch" | "videos" }
   | { kind: "admin" }

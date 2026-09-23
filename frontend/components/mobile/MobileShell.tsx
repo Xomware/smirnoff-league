@@ -27,7 +27,7 @@ import "./mobile.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 
-const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen, game: GameScreen } satisfies Record<
+const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen } satisfies Record<
   Exclude<ScreenKind, WindowKind>,
   Body
 >;
@@ -35,6 +35,7 @@ const OVERRIDES: Partial<Record<WindowKind, Body>> = {
   home: HomeScreen,
   ices: IcesScreen,
   week: GamesScreen,
+  game: GameScreen,
   standings: StandingsScreen,
   stats: StatsScreen,
   team: TeamScreen,
@@ -165,7 +166,7 @@ export function MobileShell() {
         phone
         open={searching}
         onOpenChange={setSearching}
-        onGo={(to) => go(to.type === "game" ? { kind: "game", params: { matchup: to.matchup, week: to.week } } : to)}
+        onGo={go}
       />
     </div>
   );

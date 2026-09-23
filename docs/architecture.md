@@ -365,7 +365,13 @@ the same component in either shell.
     history so hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`).
     A `?open=` link to a window a tab already shows (Scores, Ice Watch, Ice Standings,
     Chug Videos, the Ices folder) opens that tab; anything else is pushed on the first
-    link's tab. The phone's own kinds are `games`, `menu`, `teams` and `game:<matchup>:<week>`.
+    link's tab. The phone's own kinds are `games`, `menu` and `teams`.
+- **Games.** The `game` kind (`?open=game:<week>-<matchup>`) is one matchup: both
+  lineups by slot, benches, points left on the bench and that week's ices. The
+  desktop renders `components/views/game-view.tsx` and the phone
+  `components/mobile/GameScreen.tsx`, both from `lib/league/use-week-games.ts`.
+  Every matchup drills to it: Scores cards, Week rows, profile results, Ice Watch
+  teams and bracket games whose week has started.
 - **Registry.** `lib/desktop/registry.tsx` maps each window kind to its title,
   icon, component and default size. Both shells render bodies from it, so a new
   view is one registry entry.

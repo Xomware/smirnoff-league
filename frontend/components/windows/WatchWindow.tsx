@@ -3,16 +3,16 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { DrillLink } from "@/components/views/drill-link";
+import { OpenGame } from "@/components/views/game-view";
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import { type Notice, useAlerts } from "@/lib/alerts/alerts";
 import type { Game } from "@/lib/espn";
 import { POLL_MS, useIceWatch } from "@/lib/ices/use-ice-watch";
-import { type StarterWatch, type TeamWatch, type WatchState, watchStates } from "@/lib/ices/watch";
+import { type StarterWatch, type TeamWatch, WATCH_TAG, type WatchState, watchStates } from "@/lib/ices/watch";
 import { type Player, useLeague } from "@/lib/league/use-league";
 
 const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2 };
-const TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "ICED", WATCH: "WATCH", LOCKED: "LOCKED" };
 
 function chip(s: StarterWatch, player: Player | undefined): string {
   const g = s.game;
@@ -98,12 +98,16 @@ export function WatchWindow() {
       {teams.length === 0 && <p className="xp-note">Sleeper has no lineups for week {week} yet.</p>}
       {teams.map((t) => {
         const { name } = teamFor(t.rosterId);
+        const matchup = matchups?.find((m) => m.roster_id === t.rosterId)?.matchup_id;
         const flagged = t.starters.filter((s) => RANK[s.state] !== undefined).sort((a, b) => RANK[a.state]! - RANK[b.state]!);
         return (
           <section key={t.rosterId} aria-label={`${name} ice watch`}>
-            <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
-              <TeamName name={name} iced={t.finalIce + t.locked > 0} ices={t.finalIce + t.locked} />
-            </DrillLink>
+            <div className="flex items-center justify-between gap-2">
+              <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
+                <TeamName name={name} iced={t.finalIce + t.locked > 0} ices={t.finalIce + t.locked} />
+              </DrillLink>
+              {week && matchup && <OpenGame week={week} matchup={matchup} />}
+            </div>
             {flagged.length === 0 ? (
               <p className="mt-1 text-xs italic">All starters safe.</p>
             ) : (
@@ -121,7 +125,7 @@ export function WatchWindow() {
                       ices={0}
                       status={
                         <>
-                          <span className="xp-watch-tag">{TAG[s.state]}</span>
+                          <span className="xp-watch-tag">{WATCH_TAG[s.state]}</span>
                           <span className="xp-game-chip">{chip(s, player)}</span>
                         </>
                       }
