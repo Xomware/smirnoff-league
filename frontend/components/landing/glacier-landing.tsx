@@ -156,6 +156,10 @@ function SignIn({ onSignIn }: { onSignIn?: () => void }) {
         Sign in with Google
       </button>
       {!onSignIn && <p className="gl-quiet">Sign-in is switched off on this build.</p>}
+      <p className="gl-quiet">
+        Google shares your name, email and photo so we know which league member you are.{" "}
+        <a href="/privacy/">How we use it</a>
+      </p>
     </div>
   );
 }
