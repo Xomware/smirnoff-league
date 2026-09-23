@@ -1,8 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { type ComponentType, useEffect, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
+import { Effects } from "@/components/glacier/Effects";
+import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
+import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
+import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
@@ -24,6 +29,9 @@ import { StatsScreen } from "./StatsScreen";
 import { MyTeamScreen, TeamScreen } from "./TeamScreen";
 
 import "./mobile.css";
+import "@/components/glacier/glacier.css";
+import "@/components/glacier/glacier-skin.css";
+import "@/components/glacier/glacier-phone.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 
@@ -78,7 +86,12 @@ function useScreenTitle(): (screen: Screen) => string {
   };
 }
 
-export function MobileShell() {
+interface MobileShellProps {
+  theme?: "xp" | "glacier";
+}
+
+export function MobileShell({ theme = "xp" }: MobileShellProps) {
+  const glacier = theme === "glacier";
   const { nav, push, selectTab, back } = usePhoneNav();
   const title = useScreenTitle();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -102,19 +115,32 @@ export function MobileShell() {
   };
   const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
 
+  // Sheets and dialogs portal to <body>, outside this tree, so the theme sits on <html> too.
+  useEffect(() => {
+    if (!glacier) return;
+    document.documentElement.dataset.theme = "glacier";
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, [glacier]);
+
   return (
-    <div className="m-app">
+    <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
+      {glacier && <link rel="stylesheet" href={FONTS} precedence="default" />}
       <header className="m-bar">
-        {stack.length > 1 && (
+        {glacier && <Icicles className="m-bar-icicles" d={HEADER_ICICLES} />}
+        {stack.length > 1 ? (
           <button type="button" className="m-back" aria-label="Back" onClick={back}>
-            <BackArrowIcon width={30} height={30} />
+            {glacier ? <LineIcon d={LINE_ICONS.back} size={26} /> : <BackArrowIcon width={30} height={30} />}
           </button>
+        ) : (
+          glacier && <Image src="/brand/crest.png" alt="" width={32} height={38} className="m-crest" />
         )}
         <h1 ref={heading} tabIndex={-1} className="m-title">
           {title(top)}
         </h1>
         <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
-          <SearchIcon width={24} height={24} />
+          {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
         </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
@@ -124,7 +150,7 @@ export function MobileShell() {
             <main className="m-screens">
               {TABS.flatMap((tab) =>
                 (nav.stacks[tab] ?? []).map((screen, i, all) => {
-                  const Body = bodyOf(screen.kind);
+                  const Body = glacier && screen.kind === "home" ? GlacierPhoneHome : bodyOf(screen.kind);
                   return (
                     // Screens under the top one stay mounted, so Back returns to
                     // them as they were left: scroll, week picked.
@@ -145,7 +171,7 @@ export function MobileShell() {
           </NavigateContext>
         </DrillContext.Provider>
       </PushContext>
-      <nav className="m-tabs" aria-label="Tabs">
+      <nav className={glacier ? "m-tabs m-tabs-pill" : "m-tabs"} aria-label="Tabs">
         {TABS.map((tab) => {
           const { label, Icon } = TAB_BAR[tab];
           return (
@@ -156,7 +182,7 @@ export function MobileShell() {
               aria-current={tab === nav.tab ? "page" : undefined}
               onClick={() => selectTab(tab)}
             >
-              <Icon width={24} height={24} />
+              {glacier ? <LineIcon d={LINE_ICONS[tab]} /> : <Icon width={24} height={24} />}
               {label}
             </button>
           );
@@ -168,6 +194,7 @@ export function MobileShell() {
         onOpenChange={setSearching}
         onGo={go}
       />
+      {glacier && <Effects />}
     </div>
   );
 }
