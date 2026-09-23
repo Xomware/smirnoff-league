@@ -387,6 +387,22 @@ While in the sandbox, test sends work only to recipients verified as SES identit
 and the Lambda role would also need `ses:SendEmail` on each recipient identity. Get
 production access instead of widening the role.
 
+### Alert emails: what went out
+
+`cron_tick` logs `mail: N sent, M failed` every tick, and each failed send as
+`mail <eventId> to <sub> failed`. The sent log is in `smirnoff-settings`:
+
+```bash
+aws dynamodb query --table-name smirnoff-settings \
+  --key-condition-expression 'season = :s AND begins_with(#k, :p)' \
+  --expression-attribute-names '{"#k":"key"}' \
+  --expression-attribute-values '{":s":{"S":"2026"},":p":{"S":"MAIL#"}}' \
+  --query 'Items[].[key.S,status.S,at.S]' --output text
+```
+
+A `failed` row is retried on the next tick. To resend a `sent` one, set its `status`
+to `failed`; only events from the last 2 days are picked up.
+
 ## Move the repo
 
 The repo is `domgiordano/smirnoff-league`; it moved from the `Xomware` org

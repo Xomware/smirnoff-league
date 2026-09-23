@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 
   # Table-prefix grant: a new smirnoff-* table needs no IAM change. Only the
-  # calls lambdas/ makes: no handler deletes, scans, batches or transacts.
+  # calls lambdas/ makes: no handler deletes, batches or transacts.
   statement {
     sid = "DynamoDB"
     actions = [
@@ -34,6 +34,14 @@ data "aws_iam_policy_document" "lambda_policy" {
       "dynamodb:Query",
     ]
     resources = ["arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.app_name}-*"]
+  }
+
+  # The mailer lists every profile. The table is keyed by sub alone and holds
+  # one row per league member, so a scan is one page and cheaper than a GSI.
+  statement {
+    sid       = "ScanUsers"
+    actions   = ["dynamodb:Scan"]
+    resources = [aws_dynamodb_table.users.arn]
   }
 
   statement {

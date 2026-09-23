@@ -36,6 +36,17 @@ def get_profile(sub: str) -> dict | None:
     return _profile(item) if item else None
 
 
+def list_profiles() -> list[dict]:
+    """Every profile with its sub. A scan, since the table holds one row per league member."""
+    tbl = table("USERS_TABLE")
+    page = tbl.scan()
+    items = page["Items"]
+    while "LastEvaluatedKey" in page:
+        page = tbl.scan(ExclusiveStartKey=page["LastEvaluatedKey"])
+        items += page["Items"]
+    return [{"sub": i["sub"], **_profile(i)} for i in items]
+
+
 def save_profile(
     sub: str, name: str, username: str, roster_id: int, address: str, seen_at: str | None = None
 ) -> dict:
