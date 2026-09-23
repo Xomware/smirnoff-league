@@ -294,9 +294,9 @@ flowchart TD
   APP --> NP["NotificationsProvider"]
   NP --> Q{"useMediaQuery PHONE"}
   Q -->|"desktop"| D["Desktop and Taskbar"]
-  Q -->|"phone"| PH["PhoneShell"]
+  Q -->|"phone"| PH["MobileShell"]
   D -->|"one window per open view"| REG["REGISTRY in lib/desktop/registry.tsx"]
-  PH -->|"one screen per tab stack entry"| REG
+  PH -->|"phone screens, else the registry's"| REG
   REG --> K1["home: HomeWindow"]
   REG --> K2["ices, ice-standings, stats, watch, videos"]
   REG --> K3["scores, standings, brackets, news, writeup"]
@@ -341,13 +341,18 @@ the same component in either shell.
   - **Ices folder.** `lib/desktop/ice-apps.ts` lists the ice apps in one place: Ice
     Ledger, Ice Standings, Ice Stats, Ice Watch, Chug Videos. The desktop folder
     window (`components/windows/FolderWindow.tsx`, path `C:\Smirnoff\Ices`), the
-    Start menu's Ices submenu, the phone Start sheet and the phone Ices tab all read
-    it. In the folder an app opens in place; Ctrl/Cmd opens a new window.
-  - **Phone:** `components/phone/PhoneShell.tsx` with bottom tabs `home`, `scores`,
-    `ices`, `standings`, `my-team`; the Ices tab opens on the Ices folder. Each tab
-    keeps a stack of screens (`lib/phone/nav.ts`), mirrored into browser history so
-    hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`). In
-    landscape the tab bar docks to the left as a rail (`components/phone/phone.css`).
+    Start menu's Ices submenu read it. In the folder an app opens in place; Ctrl/Cmd
+    opens a new window.
+  - **Phone:** `components/mobile/MobileShell.tsx`, a phone-first app with four
+    bottom tabs: Home, Games, Ices and a hamburger Menu. Its screens live in
+    `components/mobile/` and reuse the data hooks; kinds without a phone screen fall
+    back to the registry's component. No phone screen has a tab strip: a desktop
+    view's tabs become stacked sections under one sticky chip row (`JumpSections.tsx`).
+    Each tab keeps a stack of screens (`lib/phone/nav.ts`), mirrored into browser
+    history so hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`).
+    A `?open=` link to a window a tab already shows (Scores, Ice Watch, Ice Standings,
+    Chug Videos, the Ices folder) opens that tab; anything else is pushed on the first
+    link's tab. The phone's own kinds are `games`, `menu`, `teams` and `game:<matchup>:<week>`.
 - **Registry.** `lib/desktop/registry.tsx` maps each window kind to its title,
   icon, component and default size. Both shells render bodies from it, so a new
   view is one registry entry.
@@ -391,7 +396,8 @@ the same component in either shell.
   - **Countdowns** tick every minute, and every second once a deadline is under an
     hour off (`lib/ices/use-now.ts`). They use real elapsed time.
 - **Due warning.** `components/home/DueWarning.tsx`, in the taskbar tray
-  (`components/xp/Taskbar.tsx`) and the phone title bar (`PhoneShell.tsx`). It
+  (`components/xp/Taskbar.tsx`); the phone's Home shows the same debt in its Your
+  ices card (`components/mobile/YourIces.tsx`). It
   shows the signed-in manager's owed count and the nearest deadline (`myDue` in
   `chug-board.ts`). The level is `due`, `soon` (24 hours or less) or `late` (any
   late ice owed or a deadline passed). Clicking it opens the upload dialog on the
