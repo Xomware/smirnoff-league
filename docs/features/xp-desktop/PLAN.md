@@ -1,6 +1,6 @@
 # Plan: XP Desktop, Drill-down and Ice Stats
 
-**Status**: Ready
+**Status**: Done (2026-09-23, tracking #29)
 **Created**: 2026-09-22
 
 ## Summary
