@@ -171,6 +171,18 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
+// Chug Videos: a camcorder with its red record light on.
+export function CamcorderIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="4.5" width="9.5" height="7.5" rx="1" className="fill-(--xp-silver) stroke-(--xp-text)" />
+      <path d="M11 7l3.5-2v6.5L11 9.5z" className="fill-(--xp-face-shadow) stroke-(--xp-text)" />
+      <circle cx="6" cy="8.25" r="2" className="fill-(--xp-screen) stroke-(--ice-deep)" />
+      <circle cx="3.25" cy="6" r="0.9" className="fill-(--smirnoff-red)" />
+    </Icon>
+  );
+}
+
 // The League News feed: an Outlook Express inbox tray with a letter in it.
 export function NewsFeedIcon(props: IconProps) {
   return (

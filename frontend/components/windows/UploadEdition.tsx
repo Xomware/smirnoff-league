@@ -2,7 +2,8 @@
 
 import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
-import { presignWriteup, publishWriteup, uploadPdf } from "@/lib/api/writeups";
+import { uploadFile } from "@/lib/api/upload";
+import { presignWriteup, publishWriteup } from "@/lib/api/writeups";
 
 const MAX_BYTES = 30 * 1024 * 1024;
 const POLL_MS = 3000;
@@ -73,7 +74,7 @@ export function UploadEdition({ defaultWeek, onPublished, onClose }: UploadEditi
     setPhase({ step: "uploading", progress: 0 });
     try {
       const { mediaId, ...post } = await presignWriteup({ week: Number(week), title: title.trim() });
-      await uploadPdf(post, file, (progress) => setPhase({ step: "uploading", progress }));
+      await uploadFile(post, file, (progress) => setPhase({ step: "uploading", progress }));
       setPhase({ step: "rendering", mediaId });
     } catch (err) {
       backToForm((err as Error).message);
