@@ -15,10 +15,17 @@ locals {
     { name = "get", description = "Season ice ledger and summary", path_part = "get", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
   ]
 
+  videos_lambdas = [
+    { name = "presign", description = "Presigned POST for an ice video", path_part = "presign", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "confirm", description = "Confirm an ice video upload", path_part = "confirm", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "list", description = "Ready ice videos with presigned GETs", path_part = "list", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+  ]
+
   all_api_lambdas = merge(
     { for l in local.users_lambdas : "users_${l.name}" => l },
     { for l in local.admin_lambdas : "admin_${l.name}" => l },
     { for l in local.ledger_lambdas : "ledger_${l.name}" => l },
+    { for l in local.videos_lambdas : "videos_${l.name}" => l },
   )
 }
 
