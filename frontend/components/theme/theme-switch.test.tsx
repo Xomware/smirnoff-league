@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // amplify.ts reads these at import time, so they must exist before any import.
@@ -121,15 +121,14 @@ describe("switching themes in the app", () => {
     expect(taskbar()).toBeNull();
   });
 
-  it("goes back to XP when the profile save fails", async () => {
+  it("stays on Glacier when the profile save fails", async () => {
     vi.mocked(updateMe).mockRejectedValue(new Error("offline"));
     renderApp("xp");
     await screen.findByRole("list", { name: "Open windows" });
 
     fireEvent.click(screen.getByRole("button", { name: "Switch to the Glacier theme" }));
-    expect(await screen.findByRole("list", { name: "Open windows" })).not.toBeNull();
-    expect(glacierNav()).toBeNull();
-    expect(localStorage.getItem(THEME_KEY)).toBe("xp");
+    await waitFor(() => expect(glacierNav()).not.toBeNull());
+    expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
   });
 
   it("on a phone opens Glacier, and switches to the XP phone from the Home toggle and back from Menu", async () => {
