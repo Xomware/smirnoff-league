@@ -831,61 +831,8 @@
   }
 }
 
-/* The loader: a frosted bottle in an icy halo, on the same chug. */
-
-[data-theme="glacier"] .brand-loader {
-  position: relative;
-}
-
-[data-theme="glacier"] .brand-loader::before {
-  content: "";
-  position: absolute;
-  inset: -14px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(200 240 255 / 0.5), rgb(110 190 235 / 0.22) 55%, transparent);
-  animation: glacier-halo 1.2s ease-in-out infinite;
-}
-
-[data-theme="glacier"] .brand-loader img {
-  position: relative;
-  animation-name: glacier-chug;
-}
-
-@keyframes glacier-chug {
-  0%,
-  100% {
-    transform: rotate(0deg);
-    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 4px rgb(200 240 255 / 0.9));
-  }
-  40%,
-  75% {
-    transform: rotate(-110deg);
-    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 16px rgb(150 220 255 / 0.95));
-  }
-  58% {
-    transform: rotate(-100deg);
-  }
-}
-
-@keyframes glacier-halo {
-  40%,
-  75% {
-    opacity: 0.6;
-    transform: scale(1.12);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   [data-theme="glacier"] :is(.xp-tab, .rank-chip, .news-chip, .xp-button, .xp-select) {
     transition: none;
-  }
-
-  [data-theme="glacier"] .brand-loader::before {
-    animation: none;
-  }
-
-  [data-theme="glacier"] .brand-loader img {
-    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 8px rgb(200 240 255 / 0.9));
-    animation: brand-pulse 1.2s ease-in-out infinite alternate;
   }
 }
