@@ -13,6 +13,7 @@ export interface Writeup {
 export interface WriteupStatus {
   mediaId: string;
   status: "pending" | "rendered" | "failed";
+  failReason?: string;
   publishedAt?: string;
 }
 

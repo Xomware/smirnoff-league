@@ -11,12 +11,19 @@ const POLL_MS = 3000;
 // render Lambda died without marking it failed.
 const MAX_POLLS = 60;
 
+// Keyed by the render Lambda's failReason values (backend/lambdas/writeup_render).
+const FAIL_COPY: Record<string, string> = {
+  "too many pages": "That PDF has more than 40 pages. Split it up and re-upload.",
+  "bad page size": "A page in that PDF has a broken size. Export it again and re-upload.",
+  "render error": "The PDF couldn't be rendered. Try exporting it again and re-uploading.",
+};
+
 type Phase =
   | { step: "form"; error?: string }
   | { step: "uploading"; progress: number }
   | { step: "rendering"; mediaId: string }
   | { step: "rendered"; mediaId: string; published: boolean; busy: boolean; error?: string }
-  | { step: "failed" };
+  | { step: "failed"; reason?: string };
 
 interface UploadEditionProps {
   defaultWeek: number;
@@ -56,7 +63,7 @@ export function UploadEdition({ defaultWeek, onPublished, onClose }: UploadEditi
       const row = await publishWriteup(rendering, false).catch(() => null);
       if (!live) return;
       if (row?.status === "rendered") return setPhase({ step: "rendered", mediaId: rendering, published: false, busy: false });
-      if (row?.status === "failed") return setPhase({ step: "failed" });
+      if (row?.status === "failed") return setPhase({ step: "failed", reason: row.failReason });
       if (++polls >= MAX_POLLS) return backToForm("Rendering is taking too long. Try the upload again.");
       timer = setTimeout(poll, POLL_MS);
     };
@@ -151,7 +158,7 @@ export function UploadEdition({ defaultWeek, onPublished, onClose }: UploadEditi
             {phase.step === "rendering" && <p role="status">Uploaded. Rendering pages...</p>}
             {phase.step === "failed" && (
               <p role="alert" className="upload-error">
-                The PDF could not be rendered. Export it again and re-upload.
+                {FAIL_COPY[phase.reason ?? ""] ?? "The PDF could not be rendered. Export it again and re-upload."}
               </p>
             )}
             {phase.step === "rendered" && (
