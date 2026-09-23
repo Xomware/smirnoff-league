@@ -983,7 +983,7 @@
     overflow-x: auto;
   }
 
-  @media (max-width: 767.98px) {
+  @media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
     /* Names wrap to nothing in a fixed layout at this width; size the columns
        to their content and let .xp-table-scroll take the overflow. */
     .xp-table {
@@ -1258,7 +1258,7 @@
 
   /* Five tabs don't fit a phone's width. Wrapping to a second row, as XP
      property sheets did, beats hiding tabs off the edge of a scroller. */
-  @media (max-width: 767.98px) {
+  @media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
     .xp-tab-strip {
       flex-wrap: wrap;
     }

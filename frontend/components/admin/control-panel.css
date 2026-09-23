@@ -235,7 +235,7 @@
 
 /* Mouse-sized controls on the desktop, as tall as WebKit's native select.
    The phone keeps the 44px touch targets from globals.css. */
-@media (min-width: 768px) {
+@media not ((max-width: 767.98px) or ((max-height: 500px) and (pointer: coarse))) {
   .cp .xp-button,
   .cp .xp-input {
     min-height: 1.75rem;

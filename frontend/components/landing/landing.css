@@ -47,7 +47,7 @@
   text-decoration: underline;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   .landing-link {
     align-self: flex-start;
     display: inline-flex;

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -26,5 +26,14 @@ describe("Standings", () => {
     await waitFor(() => expect(badgeOf("Team 13")?.textContent).toContain("season"));
     expect(badgeOf("Team 13")?.textContent).toContain("2 ices this season");
     expect(badgeOf("Team 2")?.textContent).toContain("1 ice this season");
+  });
+
+  it("shows points-for and points-against for every team", async () => {
+    render(<StandingsWindow />);
+
+    const table = await screen.findByRole("table");
+    expect(within(table).getAllByRole("columnheader").map((c) => c.textContent)).toEqual(["#", "Team", "W-L", "PF", "PA"]);
+    const row = within(table).getByText("Team 1").closest("tr")!;
+    expect(within(row).getAllByRole("cell").slice(-2).map((c) => c.textContent)).toEqual(["199.00", "0.00"]);
   });
 });

@@ -6,6 +6,7 @@ export interface Standing {
   losses: number;
   ties: number;
   pf: number;
+  pa: number;
 }
 
 // Sleeper's configured tiebreaker is unknown; check this order against
@@ -18,6 +19,7 @@ export function sortStandings(rosters: SleeperRoster[]): Standing[] {
       losses: s.losses,
       ties: s.ties,
       pf: s.fpts + (s.fpts_decimal ?? 0) / 100,
+      pa: (s.fpts_against ?? 0) + (s.fpts_against_decimal ?? 0) / 100,
     }))
     .sort((a, b) => b.wins - a.wins || b.ties - a.ties || b.pf - a.pf);
 }

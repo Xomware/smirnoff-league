@@ -1,20 +1,61 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { AppShell } from "./AppShell";
 
-function viewport(phone: boolean) {
+interface Screen {
+  width: number;
+  height: number;
+  coarse: boolean;
+}
+
+const PORTRAIT: Screen = { width: 390, height: 844, coarse: true };
+const LANDSCAPE: Screen = { width: 844, height: 390, coarse: true };
+const DESKTOP: Screen = { width: 1440, height: 900, coarse: false };
+
+let screenNow = PORTRAIT;
+const listeners = new Set<() => void>();
+
+// A tiny media query engine for the features the app queries, so the tests
+// exercise the real PHONE query string rather than an echo of it.
+function evaluate(query: string, s: Screen): boolean {
+  return query.split(",").some((q) =>
+    q
+      .trim()
+      .split(/\s+and\s+/)
+      .every((feature) => {
+        const [, name, value] = feature.match(/^\(([\w-]+):\s*([\w.]+?)(?:px)?\)$/) ?? [];
+        if (name === "max-width") return s.width <= Number(value);
+        if (name === "max-height") return s.height <= Number(value);
+        if (name === "pointer") return (s.coarse ? "coarse" : "fine") === value;
+        if (name === "prefers-reduced-motion") return false;
+        throw new Error(`Unhandled media feature: ${feature}`);
+      }),
+  );
+}
+
+function viewport(s: Screen) {
+  screenNow = s;
   vi.spyOn(window, "matchMedia").mockImplementation(
     (query) =>
       ({
-        matches: phone && query === "(max-width: 767.98px)",
+        get matches() {
+          return evaluate(query, screenNow);
+        },
         media: query,
-        addEventListener: () => {},
-        removeEventListener: () => {},
+        addEventListener: (_: string, fn: () => void) => listeners.add(fn),
+        removeEventListener: (_: string, fn: () => void) => listeners.delete(fn),
       }) as unknown as MediaQueryList,
   );
+}
+
+function rotate(s: Screen) {
+  act(() => {
+    screenNow = s;
+    listeners.forEach((fn) => fn());
+  });
 }
 
 function renderShell() {
@@ -47,10 +88,11 @@ const drillTo = async (pattern: RegExp) => {
 
 beforeEach(() => {
   stubSleeper();
-  viewport(true);
+  viewport(PORTRAIT);
 });
 afterEach(() => {
   vi.restoreAllMocks();
+  listeners.clear();
   window.history.replaceState(null, "", "/");
 });
 
@@ -63,11 +105,51 @@ describe("AppShell", () => {
   });
 
   it("renders the desktop and its taskbar otherwise", () => {
-    viewport(false);
+    viewport(DESKTOP);
     renderShell();
     expect(document.querySelector(".xp-desktop")).not.toBeNull();
     expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
     expect(screen.getByRole("list", { name: "Open windows" })).toBeTruthy();
+  });
+});
+
+describe("shell choice", () => {
+  it.each([
+    ["a portrait phone", true, PORTRAIT],
+    ["a landscape phone", true, LANDSCAPE],
+    ["a large landscape phone", true, { width: 932, height: 430, coarse: true }],
+    ["a narrow desktop window", true, { width: 600, height: 900, coarse: false }],
+    ["a short desktop window with a mouse", false, { width: 1280, height: 420, coarse: false }],
+    ["a landscape tablet", false, { width: 1024, height: 768, coarse: true }],
+    ["a portrait tablet", false, { width: 768, height: 1024, coarse: true }],
+    ["a desktop", false, DESKTOP],
+  ])("%s: phone shell %s", (_, phone, s) => {
+    viewport(s);
+    renderShell();
+    expect(screen.queryByRole("navigation", { name: "Tabs" }) !== null).toBe(phone);
+    expect(document.querySelector(".xp-desktop") !== null).toBe(!phone);
+  });
+
+  it("keeps the screen and every tab's stack when the phone rotates", async () => {
+    renderShell();
+    fireEvent.click(tab("Standings"));
+    const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
+    fireEvent.click(tab("Scores"));
+    await waitFor(() => expect(title()).toBe("Scores"));
+    const scores = document.querySelector(".phone-screen:not([hidden])");
+
+    rotate(LANDSCAPE);
+
+    expect(title()).toBe("Scores");
+    expect(document.querySelector(".phone-screen:not([hidden])")).toBe(scores);
+    fireEvent.click(tab("Standings"));
+    await waitFor(() => expect(title()).toBe(`Team Profile - ${team}`));
+
+    rotate(PORTRAIT);
+
+    expect(title()).toBe(`Team Profile - ${team}`);
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("League Standings"));
   });
 });
 

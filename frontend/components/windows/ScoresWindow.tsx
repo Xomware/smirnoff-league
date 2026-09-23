@@ -202,7 +202,7 @@ export function ScoresWindow() {
           <StepIcon d="M6 3l5 5-5 5z" />
         </button>
       </div>
-      <div aria-live="polite" className="grid gap-3">
+      <div aria-live="polite" className="scores-list grid gap-3">
         {!matchups ? (
           <p role="status">Loading week {week}...</p>
         ) : pairs.length === 0 ? (

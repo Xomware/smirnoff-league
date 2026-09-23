@@ -36,6 +36,7 @@ export function StandingsWindow() {
               <th scope="col">Team</th>
               <th scope="col" className="w-14">W-L</th>
               <th scope="col" className="w-18 text-right">PF</th>
+              <th scope="col" className="standings-pa w-18 text-right">PA</th>
             </tr>
           </thead>
           <tbody>
@@ -43,7 +44,7 @@ export function StandingsWindow() {
               <Fragment key={s.rosterId}>
                 {i === playoffTeams && (
                   <tr className="xp-cut">
-                    <td colSpan={4}>Playoff cut</td>
+                    <td colSpan={5}>Playoff cut</td>
                   </tr>
                 )}
                 <tr className={danger.has(s.rosterId) ? "xp-danger" : undefined}>
@@ -71,6 +72,7 @@ export function StandingsWindow() {
                     {s.ties > 0 && `-${s.ties}`}
                   </td>
                   <td className="text-right tabular-nums">{s.pf.toFixed(2)}</td>
+                  <td className="standings-pa text-right tabular-nums">{s.pa.toFixed(2)}</td>
                 </tr>
               </Fragment>
             ))}
