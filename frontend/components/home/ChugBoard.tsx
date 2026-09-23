@@ -90,7 +90,7 @@ export function ChugBoard({ ledger, videos, onVideoError }: ChugBoardProps) {
           })}
         </ul>
       )}
-      {upload && createPortal(<UploadChug ices={ledger.ices} iceId={upload} onClose={() => setUpload(null)} />, document.body)}
+      {upload && createPortal(<UploadChug ices={ledger.ices} initialIceIds={[upload]} onClose={() => setUpload(null)} />, document.body)}
       {playing &&
         playingVideo &&
         createPortal(

@@ -32,7 +32,7 @@ export function DueWarning() {
           {due.when && <> &middot; {due.when}</>}
         </span>
       </button>
-      {upload && createPortal(<UploadChug ices={ok.ices} iceId={due.iceIds[0]} onClose={() => setUpload(false)} />, document.body)}
+      {upload && createPortal(<UploadChug ices={ok.ices} initialIceIds={due.iceIds.slice(0, 1)} onClose={() => setUpload(false)} />, document.body)}
     </>
   );
 }

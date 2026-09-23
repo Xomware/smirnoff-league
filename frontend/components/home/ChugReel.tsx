@@ -32,7 +32,7 @@ export function ChugReel({ week, videos, onVideoError }: ChugReelProps) {
       ? videos.videos.filter((v) => v.week >= week - 1).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       : [];
   const paused = hovered || focused || reduced || clips.length < 2;
-  const label = (v: Video) => `${teamFor(v.rosterId).name} · Week ${v.week}`;
+  const label = (v: Video) => `${v.rosterIds.map((r) => teamFor(r).name).join(" & ")} · Week ${v.week}`;
   const shown = clips[at % Math.max(1, clips.length)];
   const open = clips.find((v) => v.mediaId === playing);
 

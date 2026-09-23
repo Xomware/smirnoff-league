@@ -40,9 +40,9 @@ const LEDGER: Ledger = {
 
 const clip = (n: number, over: Partial<Video> = {}): Video => ({
   mediaId: `v${n}`,
-  iceId: `W02#R${n}#0`,
+  iceIds: [`W02#R${n}#0`],
   week: 2,
-  rosterId: n,
+  rosterIds: [n],
   createdAt: `2026-09-2${n}T12:00:00+00:00`,
   bytes: 1,
   url: `https://media.test/${n}.mp4`,
@@ -71,7 +71,12 @@ afterEach(() => {
   reducedMotion(false);
 });
 
-const board = (videos: Video[] = [clip(1, { mediaId: "v1", iceId: "W01#R4#0", week: 1, rosterId: 4 })]) =>
+const ticked = () =>
+  (within(within(screen.getByRole("dialog", { name: "Upload chug" })).getByRole("group", { name: "Your ices" })).getAllByRole("checkbox") as HTMLInputElement[])
+    .filter((box) => box.checked)
+    .map((box) => box.value);
+
+const board = (videos: Video[] = [clip(1, { mediaId: "v1", iceIds: ["W01#R4#0"], week: 1, rosterIds: [4] })]) =>
   render(
     <ProfileProvider>
       <ChugBoard ledger={LEDGER} videos={videos} onVideoError={() => {}} />
@@ -108,8 +113,7 @@ describe("Chug Board", () => {
     expect(within(screen.getByRole("list", { name: "Team 7 chugs" })).queryByRole("button", { name: "Upload chug" })).toBeNull();
 
     fireEvent.click(within(mine).getAllByRole("button", { name: "Upload chug" })[1]);
-    const picker = within(screen.getByRole("dialog", { name: "Upload chug" })).getByLabelText("Ice") as HTMLSelectElement;
-    expect(picker.value).toBe("W02#R4#1");
+    expect(ticked()).toEqual(["W02#R4#1"]);
   });
 });
 
@@ -171,6 +175,11 @@ describe("Chug Reel", () => {
     expect(slide()).toBe("2 of 3");
   });
 
+  it("names every team a shared chug covers", () => {
+    reel({ status: "ok", videos: [clip(1, { iceIds: ["W02#R1#0", "W02#R2#0"], rosterIds: [1, 2] })] });
+    expect(screen.getByRole("button", { name: "Watch Team 1 & Team 2 · Week 2 chug" })).toBeTruthy();
+  });
+
   it("opens the chug with sound on click", () => {
     reel(three);
     fireEvent.click(screen.getByRole("button", { name: "Watch Team 3 · Week 2 chug" }));
@@ -229,8 +238,7 @@ describe("tray warning", () => {
 
   it("opens the upload on my first owed ice", async () => {
     fireEvent.click(await warn("2026-09-25T22:00:00Z"));
-    const picker = within(screen.getByRole("dialog", { name: "Upload chug" })).getByLabelText("Ice") as HTMLSelectElement;
-    expect(picker.value).toBe("W02#R4#0");
+    expect(ticked()).toEqual(["W02#R4#0"]);
   });
 
   it("is absent when I owe nothing", async () => {

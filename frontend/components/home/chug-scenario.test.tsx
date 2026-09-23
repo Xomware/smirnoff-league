@@ -34,7 +34,7 @@ import { FakeXhr } from "@/lib/test/xhr-mock";
 // Friday of W2, two days before the deadline, so no late rows exist yet.
 const LEDGER: Ledger = { ...SCENARIO_LEDGER, ices: SCENARIO_LEDGER.ices.filter((i) => i.reason !== "late") };
 const MINE = LEDGER.ices.find((i) => i.week === 2 && i.rosterId === 12)!;
-const UPLOADED: Video = { mediaId: "W02#new", iceId: MINE.iceId, week: 2, rosterId: 12, createdAt: "2026-09-25T22:05:00+00:00", bytes: 4, url: "https://media.test/new.mp4" };
+const UPLOADED: Video = { mediaId: "W02#new", iceIds: [MINE.iceId], week: 2, rosterIds: [12], createdAt: "2026-09-25T22:05:00+00:00", bytes: 4, url: "https://media.test/new.mp4" };
 const me: Me = { sub: "s", email: "e", profile: { name: "N", username: "u", rosterId: 12, createdAt: "", updatedAt: "" }, isAdmin: false };
 
 beforeEach(() => {
@@ -78,10 +78,12 @@ describe("scenario: Friday of W2, owing one ice", () => {
     fireEvent.click(upload);
 
     const dialog = screen.getByRole("dialog", { name: "Upload chug" });
-    expect((within(dialog).getByLabelText("Ice") as HTMLSelectElement).value).toBe(MINE.iceId);
+    const boxes = within(within(dialog).getByRole("group", { name: "Your ices" })).getAllByRole("checkbox") as HTMLInputElement[];
+    expect(boxes.filter((box) => box.checked).map((box) => box.value)).toEqual([MINE.iceId]);
     fireEvent.change(within(dialog).getByLabelText("Video file"), { target: { files: [new File(["chug"], "chug.mp4", { type: "video/mp4" })] } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Upload" }));
     await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
+    expect(presignVideo).toHaveBeenCalledWith({ iceIds: [MINE.iceId], contentType: "video/mp4", bytes: 4 });
 
     vi.mocked(getLedger).mockResolvedValue({
       ...LEDGER,
