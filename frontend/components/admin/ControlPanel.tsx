@@ -15,7 +15,7 @@ import "./control-panel.css";
 export const ADMIN_PANELS = ["ices", "rules", "toilet", "users"] as const;
 export type AdminPanel = (typeof ADMIN_PANELS)[number];
 
-const CATEGORIES = {
+export const CATEGORIES = {
   ices: { label: "Ices", blurb: "Add, void and complete ices, and log chug times", Icon: IceBottleIcon },
   rules: { label: "Week Rules", blurb: "Switch ice rules per week, pick who counts for lowest, finalize", Icon: CalendarIcon },
   toilet: { label: "Toilet Bowl", blurb: "Choose the two seeds that skip round one", Icon: ToiletIcon },

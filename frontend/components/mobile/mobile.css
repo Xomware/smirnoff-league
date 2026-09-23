@@ -131,6 +131,7 @@
 }
 
 .m-back,
+.m-search,
 .m-bar .notif-bell {
   display: grid;
   flex: none;
@@ -147,6 +148,7 @@
 }
 
 .m-back:active,
+.m-search:active,
 .m-bar .notif-bell:active {
   background: rgb(0 0 0 / 0.15);
 }
