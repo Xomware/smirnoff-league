@@ -35,3 +35,11 @@ describe("Home before Thursday night", () => {
     expect(screen.getByText("Ices in week 2").nextElementSibling?.textContent).toBe("3");
   });
 });
+
+describe("Home summary", () => {
+  it("shows the league mascot", () => {
+    render(<HomeWindow />);
+    const mascot = screen.getByRole("img", { name: /robot chugging a smirnoff ice/i });
+    expect(mascot.getAttribute("src")).toContain("mascot.png");
+  });
+});

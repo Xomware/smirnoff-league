@@ -70,6 +70,12 @@ describe("Start menu", () => {
     expect(screen.getByRole("button", { name: "Brackets" }).getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("shows the robot head on Start", () => {
+    renderTaskbar();
+    const start = screen.getByRole("button", { name: /start/i });
+    expect(start.querySelector('img[src*="robot-head.png"]')).not.toBeNull();
+  });
+
   it("offers sign out", () => {
     renderTaskbar();
     fireEvent.click(screen.getByRole("button", { name: /start/i }));

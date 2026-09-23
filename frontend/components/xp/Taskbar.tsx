@@ -7,7 +7,7 @@ import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { defaultLayout } from "@/lib/desktop/windows";
 import { useProfile } from "@/lib/profile/use-profile";
-import { IceBottleIcon } from "./icons";
+import { RobotHeadIcon } from "./icons";
 import { SpeakerToggle } from "./SpeakerToggle";
 import { StartMenu } from "./StartMenu";
 
@@ -84,7 +84,7 @@ export function Taskbar() {
           aria-controls={open ? menuId : undefined}
           onClick={() => setOpen((o) => !o)}
         >
-          <IceBottleIcon width={20} height={20} />
+          <RobotHeadIcon width={22} height={22} className="xp-start-logo" />
           start
         </button>
         <ul className="xp-tasks" aria-label="Open windows">

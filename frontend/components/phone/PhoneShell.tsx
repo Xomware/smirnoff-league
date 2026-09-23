@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { BackArrowIcon, HomeIcon, IceBottleIcon, ScoresIcon, StandingsIcon, StarIcon } from "@/components/xp/icons";
+import { BackArrowIcon, HomeIcon, IceBottleIcon, RobotHeadIcon, ScoresIcon, StandingsIcon, StarIcon } from "@/components/xp/icons";
 import { useAuth } from "@/lib/auth/use-auth";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { windowId } from "@/lib/desktop/windows";
@@ -123,7 +123,7 @@ export function PhoneShell() {
           aria-controls={sheet ? sheetId : undefined}
           onClick={() => setSheet((s) => !s)}
         >
-          <IceBottleIcon width={20} height={20} />
+          <RobotHeadIcon width={22} height={22} className="xp-start-logo" />
           start
         </button>
         <ul className="phone-tab-list">

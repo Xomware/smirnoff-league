@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { DrillContext } from "@/components/views/drill-link";
@@ -12,6 +13,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { DesktopWindow } from "./DesktopWindow";
 
 const ICONS: { kind: WindowKind; label: string }[] = [
+  { kind: "home", label: "Smirnoff Fantasy Football League" },
   { kind: "my-team", label: "My Team" },
   { kind: "scores", label: "Scores" },
   { kind: "standings", label: "Standings" },
@@ -82,7 +84,11 @@ export function Desktop() {
                   onClick={(e) => e.detail === 0 && open(kind)}
                   onPointerUp={(e) => e.pointerType === "touch" && open(kind)}
                 >
-                  <Icon width={40} height={40} />
+                  {kind === "home" ? (
+                    <Image src="/brand/crest.png" alt="" width={56} height={68} className="xp-desktop-crest" />
+                  ) : (
+                    <Icon width={40} height={40} />
+                  )}
                   <span className="xp-desktop-icon-label">{label}</span>
                 </button>
               </li>
