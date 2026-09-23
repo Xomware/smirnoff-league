@@ -814,6 +814,15 @@
     background: var(--xp-sky-bottom) url("/brand/wallpaper.jpg") center / cover no-repeat;
   }
 
+  .xp-wallpaper-credit {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.25rem;
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.75);
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  }
+
   .xp-desktop-icons {
     position: absolute;
     top: 0.75rem;
