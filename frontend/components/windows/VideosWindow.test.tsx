@@ -231,7 +231,12 @@ describe("scenario: uploading a chug", () => {
         </DesktopProvider>
       </ProfileProvider>,
     );
-    fireEvent.doubleClick(screen.getByRole("button", { name: "Chug Videos" }));
+    // In the app AuthGate loads the profile first; here the desktop would restore
+    // its layout when it lands and reopen the folder's view as a new window.
+    await waitFor(() => expect(getMe).toHaveBeenCalled());
+    await act(async () => {});
+    fireEvent.doubleClick(within(screen.getByRole("list", { name: "Desktop" })).getByRole("button", { name: "Ices" }));
+    fireEvent.doubleClick(within(screen.getByRole("list", { name: "Ices" })).getByRole("button", { name: "Chug Videos" }));
     const win = document.querySelector<HTMLElement>('section[aria-label="Chug Videos"]')!;
     const owes = await within(win).findByRole("region", { name: "Owes" });
     const upload = await within(owes).findAllByRole("button", { name: "Upload chug" });

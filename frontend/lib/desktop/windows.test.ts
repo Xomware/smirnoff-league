@@ -156,14 +156,20 @@ describe("window history", () => {
 });
 
 describe("defaultLayout", () => {
-  it("opens the summary, recap, standings and news, with the summary focused", () => {
+  it("opens ice-first: the summary, Ice Standings in the big right slot, the News Drop, and the recap minimized", () => {
     const layout = defaultLayout(1440, 900);
 
-    expect(layout.map((w) => w.kind).sort()).toEqual(["home", "news", "recap", "standings"]);
+    expect(layout.map((w) => w.kind).sort()).toEqual(["home", "ice-standings", "recap", "writeup"]);
     expect(activeWindow(layout)?.kind).toBe("home");
     const home = byKind(layout, "home");
-    expect(byKind(layout, "recap").y).toBeGreaterThan(home.y + home.h - 1);
-    expect(byKind(layout, "standings").x).toBeGreaterThanOrEqual(home.x + home.w);
-    for (const w of layout) expect(w.x + w.w).toBeLessThanOrEqual(1440);
+    const iceStandings = byKind(layout, "ice-standings");
+    expect(iceStandings.x).toBeGreaterThanOrEqual(home.x + home.w);
+    expect(iceStandings.h).toBeGreaterThan(home.h);
+    expect(byKind(layout, "writeup").y).toBeGreaterThan(home.y + home.h - 1);
+    expect(byKind(layout, "recap").minimized).toBe(true);
+    for (const w of layout) {
+      expect(w.x + w.w).toBeLessThanOrEqual(1440);
+      expect(w.y + w.h).toBeLessThanOrEqual(900 - 44);
+    }
   });
 });

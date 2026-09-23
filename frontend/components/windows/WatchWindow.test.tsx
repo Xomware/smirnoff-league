@@ -103,18 +103,19 @@ describe("opening Ice Watch", () => {
       </DesktopProvider>,
     );
 
-  it("opens from its desktop icon", async () => {
+  it("opens from the Ices folder on the desktop", async () => {
     renderDesktop();
-    fireEvent.doubleClick(screen.getByRole("button", { name: "Ice Watch" }));
+    fireEvent.doubleClick(within(screen.getByRole("list", { name: "Desktop" })).getByRole("button", { name: "Ices" }));
+    const folder = await screen.findByRole("region", { name: "Ices" });
+    fireEvent.doubleClick(within(folder).getByRole("button", { name: "Ice Watch" }));
     expect(await screen.findByRole("region", { name: "Ice Watch" })).toBeTruthy();
   });
 
-  it("opens from the Start menu", async () => {
+  it("opens from the Start menu's Ices submenu", async () => {
     renderDesktop();
     fireEvent.click(screen.getByRole("button", { name: /start/i }));
-    // The desktop icon shares the name, so pick the one inside the menu.
-    const item = screen.getAllByRole("button", { name: "Ice Watch" }).find((b) => b.closest(".xp-start-menu-list"));
-    fireEvent.click(item!);
+    fireEvent.click(screen.getByRole("button", { name: "Ices", expanded: false }));
+    fireEvent.click(within(screen.getByRole("list", { name: "Ices" })).getByRole("button", { name: "Ice Watch" }));
     expect(await screen.findByRole("region", { name: "Ice Watch" })).toBeTruthy();
   });
 });

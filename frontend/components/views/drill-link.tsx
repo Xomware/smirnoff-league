@@ -9,8 +9,7 @@ export type DrillTarget =
   | { kind: "player"; playerId: string }
   | { kind: "week"; week: number }
   | { kind: "news" }
-  | { kind: "ices" }
-  | { kind: "videos" }
+  | { kind: "ices" | "ice-standings" | "stats" | "watch" | "videos" }
   | { kind: "admin" }
   | { kind: "admin"; panel: AdminPanel }
   | { kind: "writeup"; week: number };

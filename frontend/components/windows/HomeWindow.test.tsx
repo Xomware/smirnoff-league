@@ -36,6 +36,17 @@ describe("Home before Thursday night", () => {
   });
 });
 
+describe("Home is ice-first", () => {
+  it("lists who owes and leaves the news feed to League News", async () => {
+    render(<HomeWindow />);
+
+    const owes = await screen.findByRole("list", { name: "Who owes" });
+    expect(within(owes).getByText("Team 13")).toBeTruthy();
+    expect(screen.queryByText("Latest news")).toBeNull();
+    expect(screen.queryByRole("region", { name: /news/i })).toBeNull();
+  });
+});
+
 describe("Home summary", () => {
   it("shows the league mascot", () => {
     render(<HomeWindow />);

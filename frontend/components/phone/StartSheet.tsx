@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 
 import { ControlPanelIcon, ProfileIcon, RobotHeadIcon, SpeakerIcon } from "@/components/xp/icons";
+import { ICE_APPS } from "@/lib/desktop/ice-apps";
 import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import { isMuted, play, setMuted, subscribeMuted } from "@/lib/sound/sound";
 
-const VIEWS: { kind: WindowKind; label: string }[] = [
-  { kind: "news", label: "League News" },
-  { kind: "writeup", label: "News Drop" },
-  { kind: "brackets", label: "Brackets" },
-  { kind: "stats", label: "Ice Stats" },
-  { kind: "watch", label: "Ice Watch" },
-  { kind: "ice-standings", label: "Ice Standings" },
-  { kind: "videos", label: "Chug Videos" },
-  { kind: "recap", label: "Draft Recap" },
+const GROUPS: { heading: string; views: readonly { kind: WindowKind; label: string }[] }[] = [
+  { heading: "Ices", views: ICE_APPS },
+  {
+    heading: "League",
+    views: [
+      { kind: "news", label: "League News" },
+      { kind: "writeup", label: "News Drop" },
+      { kind: "brackets", label: "Brackets" },
+      { kind: "recap", label: "Draft Recap" },
+    ],
+  },
 ];
 
 const serverMuted = () => false;
@@ -34,6 +37,7 @@ export function StartSheet({ id, name, onOpen, onEditProfile, onSignOut }: Start
   const first = useRef<HTMLButtonElement>(null);
   const muted = useSyncExternalStore(subscribeMuted, isMuted, serverMuted);
   const isAdmin = useProfile().me?.isAdmin;
+  const headingId = useId();
 
   useEffect(() => first.current?.focus(), []);
 
@@ -46,19 +50,33 @@ export function StartSheet({ id, name, onOpen, onEditProfile, onSignOut }: Start
         <span className="truncate">{name}</span>
       </div>
       <div className="phone-sheet-columns">
-        <ul className="phone-sheet-list">
-          {VIEWS.map(({ kind, label }, i) => {
-            const { Icon } = REGISTRY[kind];
-            return (
-              <li key={kind}>
-                <button ref={i === 0 ? first : undefined} type="button" className="xp-start-menu-link w-full" onClick={() => onOpen(kind)}>
-                  <Icon width={24} height={24} className="shrink-0" />
-                  {label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="phone-sheet-list">
+          {GROUPS.map(({ heading, views }, g) => (
+            <div key={heading}>
+              <h2 id={`${headingId}-${g}`} className="phone-sheet-heading">
+                {heading}
+              </h2>
+              <ul aria-labelledby={`${headingId}-${g}`}>
+                {views.map(({ kind, label }, i) => {
+                  const { Icon } = REGISTRY[kind];
+                  return (
+                    <li key={kind}>
+                      <button
+                        ref={g === 0 && i === 0 ? first : undefined}
+                        type="button"
+                        className="xp-start-menu-link w-full"
+                        onClick={() => onOpen(kind)}
+                      >
+                        <Icon width={24} height={24} className="shrink-0" />
+                        {label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
         <ul className="phone-sheet-list phone-sheet-side">
           {isAdmin && (
             <li>

@@ -291,6 +291,7 @@ describe("scenario", () => {
         <Desktop />
       </DesktopProvider>,
     );
+    fireEvent.doubleClick(screen.getByRole("button", { name: "Standings" }));
     const win = document.querySelector<HTMLElement>('section[aria-label="League Standings"]')!;
     fireEvent.click((await within(win).findByText("Team 6")).closest("button")!);
 
@@ -321,6 +322,7 @@ describe("scenario", () => {
         </DesktopProvider>
       </ProfileProvider>,
     );
+    fireEvent.doubleClick(screen.getByRole("button", { name: "Standings" }));
     const standings = document.querySelector<HTMLElement>('section[aria-label="League Standings"]')!;
     fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
     await within(standings).findByRole("table", { name: "Weekly results" });

@@ -155,7 +155,8 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
           </button>
         </span>
       </header>
-      {views.length > 1 && (
+      {/* Explorer always shows its toolbar; other windows only once they have navigated. */}
+      {(views.length > 1 || win.kind === "folder") && (
         <div className="xp-toolbar">
           <button
             type="button"

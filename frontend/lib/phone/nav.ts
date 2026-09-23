@@ -15,16 +15,20 @@ export type NavAction =
   | { type: "tab"; tab: Tab }
   | { type: "set"; tab: Tab; stack: WindowView[] };
 
-const root = (tab: Tab): WindowView[] => [{ kind: tab, params: {} }];
-const isTab = (kind: string): kind is Tab => (TABS as readonly string[]).includes(kind);
+// Each tab's root screen is the window kind of the same name, except Ices,
+// which opens on the Ices folder.
+const rootView = (tab: Tab): WindowView => (tab === "ices" ? { kind: "folder", params: { id: "ices" } } : { kind: tab, params: {} });
+const root = (tab: Tab): WindowView[] => [rootView(tab)];
+const rootedAt = ({ kind, params }: WindowLink) =>
+  TABS.find((tab) => windowId(kind, params) === windowId(rootView(tab).kind, rootView(tab).params));
 
 export const stackOf = (nav: Nav): WindowView[] => nav.stacks[nav.tab] ?? root(nav.tab);
 
 // A link list opens on its first item's tab when that is a tab, otherwise on
 // Home, and every other link is pushed on top in order.
 export function navFromLinks(links: WindowLink[]): Nav {
-  const [first] = links;
-  if (first && isTab(first.kind)) return { tab: first.kind, stacks: { [first.kind]: links } };
+  const tab = links[0] && rootedAt(links[0]);
+  if (tab) return { tab, stacks: { [tab]: links } };
   return { tab: "home", stacks: { home: [...root("home"), ...links] } };
 }
 

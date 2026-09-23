@@ -75,18 +75,19 @@ describe("Home", () => {
     expect(owed.nextElementSibling?.textContent).toBe("8");
   });
 
-  it("opens the default desktop, then focuses, minimizes and restores Standings", async () => {
+  it("opens the ice-first default desktop, then opens, moves, minimizes and restores Standings", async () => {
     renderSignedIn();
 
-    for (const name of ["Smirnoff Fantasy Football League", "Now Playing - Draft Recap", "League Standings", "League News"]) {
+    for (const name of ["Smirnoff Fantasy Football League", "Ice Standings", "Smirnoff League - Latest Edition"]) {
       expect(await screen.findByRole("region", { name })).toBeTruthy();
     }
-    const standingsTab = tabs().getByRole("button", { name: "League Standings" });
-    expect(standingsTab.getAttribute("aria-pressed")).toBe("false");
+    expect(tabs().getByRole("button", { name: "Now Playing - Draft Recap" }).getAttribute("aria-pressed")).toBe("false");
+    expect(screen.queryByRole("region", { name: "League Standings" })).toBeNull();
 
     fireEvent.doubleClick(screen.getByRole("button", { name: "Standings" }));
+    const standingsTab = tabs().getByRole("button", { name: "League Standings" });
     expect(standingsTab.getAttribute("aria-pressed")).toBe("true");
-    expect(tabs().getAllByRole("button")).toHaveLength(4);
+    expect(tabs().getAllByRole("button")).toHaveLength(5);
 
     const standings = screen.getByRole("region", { name: "League Standings" });
     const bar = within(standings).getByRole("heading", { name: "League Standings" }).parentElement!;

@@ -12,7 +12,7 @@ afterEach(() => {
 
 describe("saved layout", () => {
   it("round-trips per user", () => {
-    const layout = defaultLayout(1440, 900).map((w) => (w.id === "news" ? { ...w, x: 7, minimized: true } : w));
+    const layout = defaultLayout(1440, 900).map((w) => (w.id === "writeup" ? { ...w, x: 7, minimized: true } : w));
 
     saveLayout("user-a", layout);
 
@@ -21,18 +21,29 @@ describe("saved layout", () => {
   });
 
   it("returns null for corrupt JSON or a non-array", () => {
-    realStorage.setItem("smirnoff.desktop.v1:u", "{not json");
+    realStorage.setItem("smirnoff.desktop.v2:u", "{not json");
     expect(loadLayout("u")).toBeNull();
 
-    realStorage.setItem("smirnoff.desktop.v1:u", JSON.stringify({ kind: "home" }));
+    realStorage.setItem("smirnoff.desktop.v2:u", JSON.stringify({ kind: "home" }));
     expect(loadLayout("u")).toBeNull();
   });
 
   it("drops windows whose kind no longer exists", () => {
     const [home] = defaultLayout(1440, 900);
-    realStorage.setItem("smirnoff.desktop.v1:u", JSON.stringify([home, { ...home, id: "gone", kind: "gone" }]));
+    realStorage.setItem("smirnoff.desktop.v2:u", JSON.stringify([home, { ...home, id: "gone", kind: "gone" }]));
 
     expect(loadLayout("u")).toEqual([home]);
+  });
+
+  it("resets a layout saved before the ice-first default, once", () => {
+    const old = [{ ...defaultLayout(1440, 900)[0], id: "standings", kind: "standings" }];
+    realStorage.setItem("smirnoff.desktop.v1:u", JSON.stringify(old));
+
+    expect(loadLayout("u")).toBeNull();
+
+    const layout = defaultLayout(1440, 900);
+    saveLayout("u", layout);
+    expect(loadLayout("u")).toEqual(layout);
   });
 
   it("falls back when storage throws", () => {
