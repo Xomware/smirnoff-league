@@ -14,7 +14,7 @@
   box-shadow:
     inset 0 -3px 6px rgb(10 30 80 / 0.35),
     2px 3px 8px rgb(10 30 80 / 0.45);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .palette-fab:hover {
@@ -113,7 +113,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .palette-run .palette-option {
@@ -172,7 +172,7 @@
   color: var(--xp-face-shadow);
   background: var(--xp-face);
   box-shadow: none;
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 /* The phone's search: a full-screen sheet under a blue bar with the field. */
@@ -237,7 +237,7 @@
   color: var(--xp-text-inverse);
   font-size: 1rem;
   text-shadow: 1px 1px var(--xp-frame);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .palette-cancel:active {

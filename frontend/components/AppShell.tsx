@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Desktop } from "@/components/desktop/Desktop";
+import { XpCursor } from "@/components/desktop/XpCursor";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { Taskbar } from "@/components/xp/Taskbar";
@@ -34,6 +35,7 @@ export function AppShell() {
           <Desktop />
           <Taskbar />
           <DesktopSearch />
+          <XpCursor />
         </>
       )}
     </NotificationsProvider>

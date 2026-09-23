@@ -96,12 +96,12 @@
   gap: 0.5rem;
   min-height: 2.25rem;
   padding: 0 0.5rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .chug-picks label:has(:disabled) {
   color: var(--xp-face-shadow);
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 .chug-picks input {
@@ -143,7 +143,7 @@
   font: bold 0.8125rem var(--xp-font);
   color: var(--xp-text);
   background: linear-gradient(var(--xp-cream), var(--xp-face) 85%, var(--xp-face-shadow));
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .chug-dialog input[type="file"]:focus-visible {

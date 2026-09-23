@@ -87,7 +87,7 @@
   border: 1px solid var(--xp-text);
   border-radius: 2px;
   background: var(--xp-screen);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .chug-thumb video,
@@ -107,7 +107,7 @@
   text-transform: uppercase;
   color: var(--xp-start-dark);
   background: var(--xp-face);
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 .chug-thumb-play {
@@ -176,7 +176,7 @@
   overflow: hidden;
   border: 1px solid var(--xp-text);
   background: var(--xp-screen);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .chug-reel-caption {
@@ -219,7 +219,7 @@
   white-space: nowrap;
   color: var(--xp-text-inverse);
   background: linear-gradient(var(--xp-close), var(--xp-close-dark));
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .due-warning:hover {
