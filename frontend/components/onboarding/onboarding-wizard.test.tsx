@@ -35,6 +35,11 @@ afterEach(() => {
 });
 
 describe("OnboardingWizard", () => {
+  it("puts the league mascot on the banner", () => {
+    const { container } = render(<OnboardingWizard onDone={vi.fn()} />);
+    expect(container.querySelector('.xp-wizard-banner img[src*="mascot.png"]')).not.toBeNull();
+  });
+
   it("blocks Next until the name is valid", () => {
     render(<OnboardingWizard onDone={vi.fn()} />);
 

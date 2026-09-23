@@ -28,6 +28,22 @@ export function IceBottleIcon({ height = 16, className }: IconProps) {
   );
 }
 
+// The robot head on its navy tile, 256x248: the app-button icon from the logo sheet.
+export function RobotHeadIcon({ height = 16, className }: IconProps) {
+  const h = Number(height);
+  return (
+    <Image
+      src="/brand/robot-head.png"
+      alt=""
+      aria-hidden
+      width={Math.round((h * 256) / 248)}
+      height={h}
+      className={className}
+      style={{ display: "inline-block" }}
+    />
+  );
+}
+
 export function StopwatchIcon(props: IconProps) {
   return (
     <Icon {...props}>

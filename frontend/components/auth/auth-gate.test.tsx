@@ -82,6 +82,16 @@ describe("AuthGate", () => {
     expect(screen.queryByRole("button", { name: /sign in with google/i })).toBeNull();
   });
 
+  it("shows the robot head while the profile loads", async () => {
+    signedIn();
+    vi.mocked(getMe).mockReturnValue(new Promise(() => {}));
+    nav.pathname = "/";
+    render(<AuthGate>home</AuthGate>);
+
+    expect((await screen.findByText(/loading your profile/i)).closest('[role="status"]')).not.toBeNull();
+    expect(document.querySelector('main img[src*="robot-head.png"]')).not.toBeNull();
+  });
+
   it("always renders the callback route, even signed out", async () => {
     signedOut();
     nav.pathname = "/auth/callback/";
@@ -92,6 +102,7 @@ describe("AuthGate", () => {
     );
 
     expect(screen.getByRole("status").textContent).toMatch(/signing you in/i);
+    expect(document.querySelector('main img[src*="robot-head.png"]')).not.toBeNull();
     expect(screen.queryByRole("button", { name: /sign in with google/i })).toBeNull();
   });
 });
