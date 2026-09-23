@@ -22,3 +22,13 @@ output "deploy_role_arn" {
   description = "Set as the AWS_ROLE_ARN repo secret after the first apply."
   value       = aws_iam_role.deploy.arn
 }
+
+output "email_sender" {
+  description = "From address for the mailer. Also published to SSM."
+  value       = local.email_sender
+}
+
+output "email_config_set" {
+  description = "SES configuration set for the mailer. Also published to SSM."
+  value       = aws_sesv2_configuration_set.mail.configuration_set_name
+}

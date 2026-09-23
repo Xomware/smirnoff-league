@@ -315,6 +315,78 @@ To change the domain again:
    origins and the media bucket CORS. The frontend deploy waits for the apply.
 5. Remove the old callback and logout URLs in `xomware-infrastructure`.
 
+## Email (SES)
+
+`infrastructure/terraform/ses.tf` makes `smirnoff-league.com` an SES domain identity:
+Easy DKIM (3 CNAMEs), MAIL FROM `mail.smirnoff-league.com` (MX + SPF), and DMARC
+`p=none`. The sender is `alerts@smirnoff-league.com` and the configuration set is
+`smirnoff-mail`, published to SSM as `/smirnoff/email-sender` and
+`/smirnoff/email-config-set`. The shared Lambda role may send only as this identity
+through this set.
+
+**Did the identity verify?** DKIM verifies on its own once the CNAMEs resolve,
+usually within minutes of the apply and at most 72 hours:
+
+```bash
+aws sesv2 get-email-identity --email-identity smirnoff-league.com \
+  --query '{verified:VerifiedForSendingStatus,dkim:DkimAttributes.Status,mailFrom:MailFromAttributes.MailFromDomainStatus}'
+```
+
+Expect `true`, `SUCCESS`, `SUCCESS`. The console shows the same under SES >
+Identities > `smirnoff-league.com`.
+
+**Bounces and complaints** go to SNS topic `smirnoff-mail-events` and on to SQS queue
+`smirnoff-mail-events`, kept 14 days. Read them without deleting:
+
+```bash
+aws sqs receive-message --max-number-of-messages 10 --visibility-timeout 0 \
+  --queue-url "$(aws sqs get-queue-url --queue-name smirnoff-mail-events --query QueueUrl --output text)"
+```
+
+### Sandbox and production access
+
+SES sandbox status is per account and per region. Whether this account is still in
+the sandbox is unverified. In the sandbox, SES delivers only to verified addresses
+and caps sending at 200 a day.
+
+Check it:
+
+```bash
+aws sesv2 get-account --region us-east-1 \
+  --query '{production:ProductionAccessEnabled,review:Details.ReviewDetails.Status,quota:SendQuota}'
+```
+
+`production: true` means out of the sandbox. The console shows the same on the SES
+**Account dashboard**: a sandbox account has a "Your Amazon SES account is in the
+sandbox" banner.
+
+If it is `false`, request production access from the Account dashboard (**Request
+production access**) or the CLI:
+
+```bash
+aws sesv2 put-account-details --region us-east-1 \
+  --production-access-enabled --mail-type TRANSACTIONAL \
+  --website-url https://smirnoff-league.com --contact-language EN \
+  --use-case-description "<text below>"
+```
+
+AWS usually answers within a day. For the use case, cover:
+
+- **What:** notifications for a private 14-member fantasy football league site, sent
+  from `alerts@smirnoff-league.com`: weekly results and league alerts.
+- **Volume:** low, a few hundred messages a week at most.
+- **Recipients:** opt-in only. Only league members who signed in with Google and turned
+  on email in their profile get mail. No purchased or scraped lists.
+- **Unsubscribe:** every message carries an unsubscribe link and a `List-Unsubscribe`
+  header, and turning email off in the profile stops all mail.
+- **Bounces and complaints:** a configuration set publishes both to SNS/SQS. Bounced
+  or complaining addresses are removed; SES's account-level suppression list also
+  applies.
+
+While in the sandbox, test sends work only to recipients verified as SES identities,
+and the Lambda role would also need `ses:SendEmail` on each recipient identity. Get
+production access instead of widening the role.
+
 ## Move the repo
 
 The repo is `domgiordano/smirnoff-league`; it moved from the `Xomware` org
