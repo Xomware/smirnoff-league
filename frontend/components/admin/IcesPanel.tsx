@@ -1,13 +1,14 @@
 "use client";
 
-import { type FormEvent, useId, useState } from "react";
+import { type FormEvent, useEffect, useId, useState } from "react";
 
-import { addIce, setChugTime, setIceCompleted, voidIce } from "@/lib/api/admin";
-import type { Ledger, LedgerIce } from "@/lib/api/ledger";
+import { addIce, type AdminUser, listUsers, setChugTime, setIceCompleted, voidIce } from "@/lib/api/admin";
+import type { ChuggerPick, Ledger, LedgerIce } from "@/lib/api/ledger";
 import { useLeague } from "@/lib/league/use-league";
 import { useAdminAction } from "./use-admin-action";
 
 const WEEKS = Array.from({ length: 17 }, (_, i) => i + 1);
+const OTHER = "other";
 
 const mss = (s: number) => {
   const whole = String(Math.floor(s % 60)).padStart(2, "0");
@@ -30,20 +31,27 @@ interface IceRowProps {
   ice: LedgerIce;
   team: string;
   label: string;
+  users: AdminUser[];
   onComplete: (at?: string) => void;
   onUndo: () => void;
-  onChug: (seconds: number) => void;
+  onChug: (seconds: number, chugger?: ChuggerPick) => void;
   onVoid: (note: string) => void;
 }
 
-function IceRow({ ice, team, label, onComplete, onUndo, onChug, onVoid }: IceRowProps) {
+function IceRow({ ice, team, label, users, onComplete, onUndo, onChug, onVoid }: IceRowProps) {
   const [at, setAt] = useState("");
   const [seconds, setSeconds] = useState(ice.chugSeconds ? String(ice.chugSeconds) : "");
+  // Null until the admin picks, so a user list that arrives late still preselects the chugger on record.
+  const [who, setWho] = useState<string | null>(null);
+  const [other, setOther] = useState(ice.chugger?.name ?? "");
   const [voiding, setVoiding] = useState(false);
   const [note, setNote] = useState("");
   const hintId = useId();
   const done = ice.status === "completed";
   const typed = Number(seconds);
+  const onRecord = users.find((u) => u.name === ice.chugger?.name);
+  const pick = who ?? (onRecord ? onRecord.sub : ice.chugger ? OTHER : "");
+  const chugger: ChuggerPick | undefined = pick === OTHER ? (other.trim() ? { name: other.trim() } : undefined) : pick ? { sub: pick } : undefined;
 
   const submit = (e: FormEvent, action: () => void) => {
     e.preventDefault();
@@ -78,15 +86,15 @@ function IceRow({ ice, team, label, onComplete, onUndo, onChug, onVoid }: IceRow
             </button>
           </form>
         )}
-        <form className="cp-inline" onSubmit={(e) => submit(e, () => onChug(typed))}>
+        <form className="cp-inline" onSubmit={(e) => submit(e, () => onChug(typed, chugger))}>
           <label className="cp-field">
             Chug seconds
             <input
               type="number"
               className="xp-input cp-seconds"
-              min="0.01"
-              max="599.99"
-              step="any"
+              min="0.1"
+              max="599.9"
+              step="0.1"
               required
               value={seconds}
               onChange={(e) => setSeconds(e.target.value)}
@@ -95,6 +103,24 @@ function IceRow({ ice, team, label, onComplete, onUndo, onChug, onVoid }: IceRow
           <output className="cp-mss" aria-label="Chug time">
             {typed > 0 && typed < 600 ? mss(typed) : "-:--"}
           </output>
+          <label className="cp-field">
+            Chugger
+            <select className="xp-select" value={pick} onChange={(e) => setWho(e.target.value)}>
+              <option value="">Not named</option>
+              {users.map((u) => (
+                <option key={u.sub} value={u.sub}>
+                  {u.name}
+                </option>
+              ))}
+              <option value={OTHER}>Someone else...</option>
+            </select>
+          </label>
+          {pick === OTHER && (
+            <label className="cp-field">
+              Chugger name
+              <input className="xp-input" required maxLength={40} value={other} onChange={(e) => setOther(e.target.value)} />
+            </label>
+          )}
           <button type="submit" className="xp-button" aria-label="Save chug time">
             Save
           </button>
@@ -189,6 +215,19 @@ export function IcesPanel({ ledger }: { ledger: Ledger }) {
   const [team, setTeam] = useState(ALL);
   // Tied to the ledger it was made from, so the refetch replaces it.
   const [optimistic, setOptimistic] = useState<{ base: Ledger; ices: LedgerIce[] } | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+
+  // Without the list the picker still takes a typed name.
+  useEffect(() => {
+    let live = true;
+    listUsers().then(
+      (list) => live && setUsers([...list].sort((a, b) => a.name.localeCompare(b.name))),
+      () => live && setUsers([]),
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
 
   if (!data) return <p role="status">Loading teams...</p>;
 
@@ -245,6 +284,7 @@ export function IcesPanel({ ledger }: { ledger: Ledger }) {
                 ice={ice}
                 team={name}
                 label={label}
+                users={users}
                 onComplete={(at) => {
                   patch(ice.iceId, { status: "completed", completedAt: at ?? new Date().toISOString() });
                   void run(() => setIceCompleted(ice.iceId, true, at));
@@ -254,9 +294,10 @@ export function IcesPanel({ ledger }: { ledger: Ledger }) {
                   patch(ice.iceId, { status: "owed", completedAt: null });
                   void run(() => setIceCompleted(ice.iceId, false));
                 }}
-                onChug={(seconds) => {
-                  patch(ice.iceId, { chugSeconds: seconds });
-                  void run(() => setChugTime(ice.iceId, seconds));
+                onChug={(seconds, chugger) => {
+                  const name = chugger && ("name" in chugger ? chugger.name : users.find((u) => u.sub === chugger.sub)?.name);
+                  patch(ice.iceId, name ? { chugSeconds: seconds, chugger: { name } } : { chugSeconds: seconds });
+                  void run(() => setChugTime(ice.iceId, seconds, chugger));
                 }}
                 onVoid={async (note) => {
                   if (!(await confirm("Void ice", `Void ${what}? It leaves the ledger and cannot be brought back here.`, "Void"))) return;

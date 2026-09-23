@@ -14,6 +14,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { play } from "@/lib/sound/sound";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
 import { refreshVideos } from "@/lib/videos/use-videos";
+import { ChugTimeForm, chugTime } from "./ChugTime";
 import { iceLabel } from "./ice-label";
 
 import "@/components/windows/writeup.css";
@@ -123,6 +124,7 @@ export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProp
   const [team, setTeam] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<Phase>({ step: "form" });
+  const [timed, setTimed] = useState<number | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const busy = phase.step === "uploading" || phase.step === "confirming";
 
@@ -134,6 +136,8 @@ export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProp
   const covers = teamList([...new Set(picked.flatMap((id) => byId.get(id)?.rosterId ?? []))].map((r) => teamFor(r).name));
   const label = (ice: LedgerIce) => iceLabel(ice, teamFor, data?.players ?? {});
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+  // The time is the uploader's own; teams riding along time their chugs themselves.
+  const ownPicked = picked.filter((id) => byId.get(id)?.rosterId === myRosterId);
 
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
@@ -142,7 +146,7 @@ export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProp
   }, []);
 
   useEffect(() => {
-    if (phase.step === "done" || phase.step === "failed") box.current?.querySelector<HTMLElement>("button")?.focus();
+    if (phase.step === "done" || phase.step === "failed") box.current?.querySelector<HTMLElement>("input, button")?.focus();
   }, [phase.step]);
 
   const send = async (video: File) => {
@@ -285,6 +289,9 @@ export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProp
               </p>
             )}
             {phase.step === "done" && <p>Chug logged for {covers}.</p>}
+            {phase.step === "done" &&
+              ownPicked.length > 0 &&
+              (timed === null ? <ChugTimeForm iceIds={ownPicked} onSaved={setTimed} /> : <p>Time saved: {chugTime(timed)}.</p>)}
             {phase.step === "failed" && (
               <p role="alert" className="upload-error flex items-start gap-3">
                 <ErrorIcon width={32} height={32} className="shrink-0" />

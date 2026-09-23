@@ -24,6 +24,20 @@ import { ControlPanelWindow } from "./ControlPanel";
 const API = "https://api.test";
 const W3_ICE: LedgerIce = { iceId: "W03#R06#ADMIN1", week: 3, rosterId: 6, reason: "admin", status: "owed", note: "Skipped the chug" };
 
+const user = (sub: string, name: string, rosterId: number) => ({
+  sub,
+  name,
+  username: name.toLowerCase(),
+  emailAddress: null,
+  rosterId,
+  createdAt: "",
+  lastSeenAt: null,
+  signInCount: 1,
+  lastUa: null,
+  emailOptIn: false,
+});
+const USERS = [user("sub-6", "Player Six", 6), user("sub-2", "Player Two", 2)];
+
 let ledger: Ledger;
 let isAdmin: boolean;
 let adminReply: (path: string, body: Record<string, unknown>) => Response | Promise<Response>;
@@ -53,6 +67,7 @@ beforeEach(() => {
       return envelope({ sub: "s", email: "e", profile, isAdmin });
     }
     if (path === "/ledger/get") return envelope(structuredClone(ledger));
+    if (path === "/admin/users") return envelope(USERS);
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     adminCalls.push({ path, body, token: new Headers(init?.headers).get("Authorization") });
     return adminReply(path, body);
@@ -187,6 +202,35 @@ describe("Ices panel", () => {
 
     await waitFor(() => expect(adminCalls).toHaveLength(1));
     expect(adminCalls[0]).toMatchObject({ path: "/admin/chug-time", body: { iceId: "W03#R06#ADMIN1", seconds: 67.5 }, token: "id-token" });
+  });
+
+  it("names the chugger from the league's users or as free text", async () => {
+    await renderPanel("ices");
+    fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
+    const row = await iceRow(/W3 Team 6/);
+    const picker = within(row).getByLabelText("Chugger");
+    await within(row).findByRole("option", { name: "Player Two" });
+
+    fireEvent.change(within(row).getByLabelText("Chug seconds"), { target: { value: "9.4" } });
+    fireEvent.change(picker, { target: { value: "sub-2" } });
+    fireEvent.click(within(row).getByRole("button", { name: "Save chug time" }));
+    await waitFor(() => expect(adminCalls).toHaveLength(1));
+    expect(adminCalls[0].body).toEqual({ iceId: "W03#R06#ADMIN1", seconds: 9.4, chugger: { sub: "sub-2" } });
+
+    fireEvent.change(picker, { target: { value: "other" } });
+    fireEvent.change(within(row).getByLabelText("Chugger name"), { target: { value: "Cousin Vinny" } });
+    fireEvent.click(within(row).getByRole("button", { name: "Save chug time" }));
+    await waitFor(() => expect(adminCalls).toHaveLength(2));
+    expect(adminCalls[1].body).toEqual({ iceId: "W03#R06#ADMIN1", seconds: 9.4, chugger: { name: "Cousin Vinny" } });
+  });
+
+  it("preselects the chugger on record", async () => {
+    ledger.ices = ledger.ices.map((i) => (i.iceId === W3_ICE.iceId ? { ...i, chugSeconds: 8, chugger: { name: "Player Six" } } : i));
+    await renderPanel("ices");
+    fireEvent.change(await panel().findByLabelText("Filter by week"), { target: { value: "3" } });
+    const row = await iceRow(/W3 Team 6/);
+
+    await waitFor(() => expect((within(row).getByLabelText("Chugger") as HTMLSelectElement).value).toBe("sub-6"));
   });
 
   it("voids with a note only after the confirm dialog, and drops the row at once", async () => {

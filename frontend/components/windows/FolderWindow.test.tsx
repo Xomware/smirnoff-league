@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { DrillContext, NavigateContext } from "@/components/views/drill-link";
 import { FolderWindow } from "./FolderWindow";
 
-const APPS = ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"];
-const KINDS = ["ices", "ice-standings", "stats", "watch", "videos"];
+const APPS = ["Ice Ledger", "Ice Standings", "Ice Rankings", "Ice Stats", "Ice Watch", "Chug Videos"];
+const KINDS = ["ices", "ice-standings", "chug-rankings", "stats", "watch", "videos"];
 
 function renderFolder() {
   const navigate = vi.fn();
@@ -21,7 +21,7 @@ function renderFolder() {
 }
 
 describe("Ices folder", () => {
-  it("shows the address and a large icon for each of the five ice apps", () => {
+  it("shows the address and a large icon for each of the six ice apps", () => {
     const { icons } = renderFolder();
 
     expect(screen.getByRole("textbox", { name: "Address" })).toHaveProperty("value", "C:\\Smirnoff\\Ices");
@@ -39,7 +39,7 @@ describe("Ices folder", () => {
 
     fireEvent.doubleClick(icons.getByRole("button", { name: "Ice Watch" }), { ctrlKey: true });
     expect(open).toHaveBeenCalledWith({ kind: "watch" });
-    expect(navigate).toHaveBeenCalledTimes(6);
+    expect(navigate).toHaveBeenCalledTimes(APPS.length + 1);
   });
 
   it("opens on a tap's click, once, and ignores a single mouse click", () => {

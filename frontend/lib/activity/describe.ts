@@ -18,6 +18,7 @@ const PLACES: Partial<Record<WindowKind, string>> = {
   watch: "Ice Watch",
   stats: "Ice Stats",
   "ice-standings": "Ice Standings",
+  "chug-rankings": "Ice Rankings",
   folder: "Ices folder",
   notifications: "Notifications",
   videos: "Chug Videos",

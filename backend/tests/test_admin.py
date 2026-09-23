@@ -171,11 +171,11 @@ def test_complete_a_voided_ice_is_409(admin):
 
 
 def test_chug_time(admin):
-    status, body = call("/admin/chug-time", {"iceId": ICE, "seconds": 7.42})
+    status, body = call("/admin/chug-time", {"iceId": ICE, "seconds": 7.46})
     assert status == 200
     row = rows()[ICE]
-    assert (float(row["chugSeconds"]), row["updatedBy"]) == (7.42, ADMIN)
-    assert body["data"]["chugSeconds"] == 7.42
+    assert (float(row["chugSeconds"]), row["updatedBy"]) == (7.5, ADMIN)
+    assert body["data"]["chugSeconds"] == 7.5
 
 
 @pytest.mark.parametrize("seconds", [0, -3, 600, 601, "7", True, None])
