@@ -31,6 +31,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 import AuthCallbackPage from "@/app/auth/callback/page";
+import PrivacyPage from "@/app/privacy/page";
 import { track } from "@/lib/activity/tracker";
 import { getMe } from "@/lib/api/users";
 import { AuthGate } from "./auth-gate";
@@ -141,5 +142,18 @@ describe("AuthGate", () => {
     expect(screen.getByRole("status").textContent).toMatch(/signing you in/i);
     expect(document.querySelector('main img[src*="robot-head.png"]')).not.toBeNull();
     expect(screen.queryByRole("button", { name: /sign in with google/i })).toBeNull();
+  });
+
+  it("renders the privacy policy signed out, with no sign-in in the way", async () => {
+    signedOut();
+    nav.pathname = "/privacy/";
+    render(
+      <AuthGate>
+        <PrivacyPage />
+      </AuthGate>,
+    );
+
+    expect(screen.getByRole("heading", { level: 1, name: /privacy policy/i })).toBeTruthy();
+    await waitFor(() => expect(screen.queryByRole("button", { name: /sign in with google/i })).toBeNull());
   });
 });
