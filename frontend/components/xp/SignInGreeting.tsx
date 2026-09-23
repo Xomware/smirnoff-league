@@ -17,7 +17,7 @@ export function SignInGreeting() {
   const { myRosterId } = useProfile();
   const { data, teamFor } = useLeague();
   const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
-  const shown = useDefaultWeek(data?.nfl);
+  const shown = useDefaultWeek();
   const reported = useRef(false);
 
   useEffect(() => {

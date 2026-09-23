@@ -45,7 +45,7 @@ function OpponentLink({ rosterId, teamFor }: OpponentLinkProps) {
 
 export function TeamView({ rosterId }: TeamViewProps) {
   const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
-  const shown = useDefaultWeek(data?.nfl);
+  const shown = useDefaultWeek();
   const ledger = useLedger();
   const { myRosterId } = useProfile();
 

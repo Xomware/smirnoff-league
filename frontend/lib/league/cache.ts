@@ -42,8 +42,7 @@ export function nflState(fresh = false) {
   return cached("nfl", getNflState, NFL_TTL);
 }
 
-export function scoreboard(week: number, fresh = false) {
-  if (fresh) entries.delete(`scoreboard/${week}`);
+export function scoreboard(week: number) {
   return cached(`scoreboard/${week}`, () => getScoreboard(week), NFL_TTL);
 }
 
