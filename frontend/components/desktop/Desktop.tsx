@@ -86,6 +86,15 @@ export function Desktop() {
         {windows.map((w) => (
           <DesktopWindow key={w.id} win={w} />
         ))}
+        {/* CC BY-SA 3.0 requires credit for the wallpaper photo. */}
+        <a
+          className="xp-wallpaper-credit"
+          href="https://commons.wikimedia.org/wiki/File:A_hill_covered_with_green_grass.jpg"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Wallpaper: arifovic Jelic Zora, CC BY-SA 3.0
+        </a>
       </main>
     </DrillContext.Provider>
   );

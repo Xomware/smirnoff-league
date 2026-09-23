@@ -49,13 +49,18 @@ function signedIn() {
 
 function signedOut() {
   vi.mocked(getCurrentUser).mockRejectedValue(new Error("not signed in"));
+  // The landing's league status fetches Sleeper; offline, it just hides.
+  vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
 
 describe("AuthGate", () => {
   it("renders the landing on /standings when signed out", async () => {

@@ -188,6 +188,44 @@
   50% { opacity: 0; }
 }
 
+.landing-tabs {
+  display: flex;
+  margin-bottom: -1px;
+}
+
+/* The selected XP tab: cream face with the orange hot-track line on top. */
+.landing-tabs span {
+  position: relative;
+  padding: 0.25rem 0.875rem;
+  border: 1px solid var(--xp-face-shadow);
+  border-bottom-color: var(--xp-cream);
+  border-radius: 3px 3px 0 0;
+  background: var(--xp-cream);
+  box-shadow: inset 0 2px 0 var(--login-rule-bottom);
+}
+
+.landing-status-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.landing-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.landing-skeleton span {
+  height: 0.875rem;
+  border-radius: 2px;
+  background: var(--xp-face);
+  animation: landing-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes landing-pulse {
+  to { opacity: 0.4; }
+}
+
 .landing [data-reveal] {
   transition:
     opacity 0.3s ease-out,
@@ -201,7 +239,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .landing-boot-bar span,
-  .landing-live-dot {
+  .landing-live-dot,
+  .landing-skeleton span {
     animation: none;
   }
 
