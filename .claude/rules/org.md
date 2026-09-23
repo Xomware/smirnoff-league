@@ -1,37 +1,24 @@
-# Org Conventions — Xomware
+# Repo Conventions
 
-## GitHub
-- **Org:** `Xomware`
-- **User:** `domgiordano`
+This repo is no longer in the Xomware GitHub org. It is `domgiordano/smirnoff-league`,
+a public personal repo, moved on 2026-09-23. Org conventions that assumed membership
+do not apply:
 
-## Project Management
-- **Tool:** GitHub Issues + XomBoard (GitHub Projects #2)
-- **Board URL:** https://github.com/orgs/Xomware/projects/2
-- **Board fields:** Status, App, Category, Priority
-- All repos have `add-to-board.yml` workflow — new issues auto-add to XomBoard
-- Update board item status as work progresses — don't just close issues
-- Post completion comments on issues with summary of changes
+- No XomBoard. `pm_tool: none` in `.claude/CLAUDE.md`; issues are plain GitHub Issues.
+- No `add-to-board.yml` workflow and no `BOARD_TOKEN` secret.
+- Org-level branch protection and org secrets do not cover this repo. Branch
+  protection, if any, is set in the repo's own settings.
 
-## Branch Protection
-- All repos: PRs required, no direct pushes to main/master
-- No force pushes, no branch deletions on default branch
-- Enforced for admins
+What still ties it to Xomware:
 
-## Secrets
-- **Local dev:** `.env` files (gitignored)
-- **Production:** environment variables via hosting platform
-- Never commit `.env` files — use `.env.example` with placeholder values
-- `BOARD_TOKEN` org secret for GitHub Projects API access
+- Terraform state is in the `xomware-terraform-state` bucket
+  (`infrastructure/terraform/main.tf`).
+- `Xomware/xomware-infrastructure` owns the shared Cognito pool and the
+  `smirnoff-client` app client (`terraform/cognito.tf`), and the Terraform plan and
+  apply roles this repo's workflow assumes (`terraform/oidc_smirnoff_terraform.tf`).
 
-## Cloud / Infra
-- **Hosting:** AWS (S3 + CloudFront) for frontends
-- **IaC:** Terraform with remote state
-- Keep infra simple — managed services over self-hosted
+Still applies:
 
-## CI/CD
-- GitHub Actions for CI
-- Deploy on merge to main/master (platform-specific)
-
-## Deprecated
-- OpenClaw multi-agent framework is deprecated — use Claude Code native workflows
-- Do not create or reference OpenClaw patterns, dispatcher configs, or agent orchestrators
+- Never commit `.env` files; `.gitignore` excludes `.env*`.
+- Hosting is S3 + CloudFront, infra is Terraform, CI/CD is GitHub Actions, and
+  deploys run on push to `main`.
