@@ -119,6 +119,7 @@ describe("on the golden W1/W2 weeks", () => {
   it("writes a takeaway per section", () => {
     const t = takeaways(iceAnalysis(golden.weeks, w1Position), name);
     expect(t.race).toBe("Team 6, Team 12 and Team 13 are tied for the lead on 2 ices.");
+    expect(t.reasons).toBe("Zeroed starters caused 6 of the 8 ices; the rest were empty slots and lowest scores.");
     expect(t.weeks).toBe("W1 was the iciest week, with 5 ices.");
     expect(t.rate).toBe("Team 12 ices 10.0% of starts, 4.7x the league average of 2.1%.");
     expect(t.bench).toMatch(/^Team \d+ has left [\d.]+ points on the bench, [\d.]+ of it in W\d\.$/);

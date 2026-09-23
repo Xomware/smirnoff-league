@@ -1,4 +1,6 @@
-import { clip, Legend, TEXT, WIDTH } from "./chart-parts";
+"use client";
+
+import { clip, Legend, useChartText, WIDTH } from "./chart-parts";
 
 export interface HeatRow {
   label: string;
@@ -11,12 +13,14 @@ interface HeatmapProps {
   rows: HeatRow[];
 }
 
-const [LEFT, TOP, ROW] = [104, 16, 18];
+const [LEFT, TOP] = [104, 18];
 const LEVELS = ["fill-(--ice-heat-1)", "fill-(--ice-heat-2)", "fill-(--ice-heat-3)", "fill-(--ice-heat-4)"];
 const level = (v: number) => LEVELS[Math.min(v, LEVELS.length - 1)];
 
 export function Heatmap({ label, columns, rows }: HeatmapProps) {
-  const cell = Math.min(28, (WIDTH - LEFT - 4) / columns.length);
+  const { text, small, phone } = useChartText();
+  const ROW = phone ? 22 : 18;
+  const cell = Math.min(40, (WIDTH - LEFT - 4) / columns.length);
   const max = Math.max(0, ...rows.flatMap((r) => r.values));
   const height = TOP + rows.length * ROW + 2;
   const hot = rows
@@ -30,10 +34,10 @@ export function Heatmap({ label, columns, rows }: HeatmapProps) {
         aria-label={`${label}. ${hot.length ? hot.join("; ") : "No ices yet"}; everyone else none.`}
         viewBox={`0 0 ${WIDTH} ${height}`}
         className="block h-auto w-full"
-        style={{ maxWidth: WIDTH * 1.6 }}
+        style={{ maxWidth: WIDTH * 1.25 }}
       >
         {columns.map((c, i) => (
-          <text key={c} x={LEFT + i * cell + cell / 2} y={TOP - 5} textAnchor="middle" className={`${TEXT} text-[9px]`}>
+          <text key={c} x={LEFT + i * cell + cell / 2} y={TOP - 5} textAnchor="middle" className={small}>
             {c}
           </text>
         ))}
@@ -41,7 +45,7 @@ export function Heatmap({ label, columns, rows }: HeatmapProps) {
           const y = TOP + ri * ROW;
           return (
             <g key={`${r.label}-${ri}`}>
-              <text x={LEFT - 5} y={y + ROW / 2 + 4} textAnchor="end" className={TEXT}>{clip(r.label, 16)}</text>
+              <text x={LEFT - 5} y={y + ROW / 2 + 4} textAnchor="end" className={text}>{clip(r.label, phone ? 13 : 16)}</text>
               {r.values.map((v, i) => {
                 const worst = v > 0 && v === max;
                 return (
@@ -56,7 +60,7 @@ export function Heatmap({ label, columns, rows }: HeatmapProps) {
                       className={`${level(v)} ${worst ? "stroke-(--smirnoff-red)" : "stroke-(--xp-face-shadow)"}`}
                     />
                     {v > 0 && (
-                      <text x={LEFT + i * cell + cell / 2} y={y + ROW / 2 + 4} textAnchor="middle" className={`${TEXT} font-bold`}>
+                      <text x={LEFT + i * cell + cell / 2} y={y + ROW / 2 + 4} textAnchor="middle" className={`${text} font-bold`}>
                         {v}
                       </text>
                     )}

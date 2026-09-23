@@ -179,7 +179,9 @@ export function heatCheck(weeks: StatsWeek[]) {
 }
 
 export function iceAnalysis(weeks: StatsWeek[], positionOf: PositionOf) {
+  const all = weeks.flatMap(icesOf);
   return {
+    reasons: { zero: all.filter((i) => i.reason === "zero").length, total: all.length },
     race: iceRace(weeks),
     rate: iceRate(weeks),
     bench: benchPoints(weeks, positionOf),
@@ -213,6 +215,10 @@ export function takeaways(a: IceAnalysis, name: (rosterId: number) => string) {
   }));
   const iciest = [...perWeek].sort((x, y) => y.n - x.n || x.week - y.week)[0];
   const weeks = iciest?.n ? `W${iciest.week} was the iciest week, with ${ices(iciest.n)}.` : "Nobody has iced yet.";
+
+  const reasons = a.reasons.total
+    ? `Zeroed starters caused ${a.reasons.zero} of the ${ices(a.reasons.total)}; the rest were empty slots and lowest scores.`
+    : "Nobody has iced yet.";
 
   const top = a.rate.teams[0];
   const rate =
@@ -254,5 +260,5 @@ export function takeaways(a: IceAnalysis, name: (rosterId: number) => string) {
       ? `Nobody has iced in the last ${HEAT_WEIGHTS.length} weeks.`
       : `${name(hot.rosterId)} is most likely to ice next, with ${ices(sum(hot.recent))} in the last ${HEAT_WEIGHTS.length} weeks.`;
 
-  return { race, weeks, rate, bench, results, positions, extremes, heat };
+  return { race, weeks, reasons, rate, bench, results, positions, extremes, heat };
 }

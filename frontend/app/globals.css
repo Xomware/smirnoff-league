@@ -50,6 +50,7 @@
   --ice-deep: #1d6fa8;
   --ice-label: #1d4f91;
   --ice-glow: rgb(150 215 255 / 0.9);
+  --smirnoff-red: #d4202c;
   --ice-heat-1: #eef8ff;
   --ice-heat-2: #d2ebfc;
   --ice-heat-3: #acd9f7;
@@ -1208,8 +1209,15 @@
     background: var(--xp-balloon);
   }
 
+  /* Five tabs don't fit a phone's width. Wrapping to a second row, as XP
+     property sheets did, beats hiding tabs off the edge of a scroller. */
   @media (max-width: 767.98px) {
+    .xp-tab-strip {
+      flex-wrap: wrap;
+    }
+
     .xp-tab {
+      flex-grow: 1;
       min-height: 2.75rem;
     }
   }

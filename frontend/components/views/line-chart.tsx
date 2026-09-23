@@ -1,4 +1,6 @@
-import { AXIS, clip, HIGHLIGHTS, Legend, niceTicks, Swatch, TEXT, WIDTH } from "./chart-parts";
+"use client";
+
+import { AXIS, clip, HIGHLIGHTS, Legend, niceTicks, Swatch, useChartText, WIDTH } from "./chart-parts";
 
 export interface Series {
   label: string;
@@ -17,6 +19,7 @@ interface LineChartProps {
 const [LEFT, RIGHT, TOP, BOTTOM, HEIGHT] = [34, 12, 10, 34, 210];
 
 export function LineChart({ label, xLabels, top, rest, yTitle }: LineChartProps) {
+  const { text, small } = useChartText();
   const ticks = niceTicks(Math.max(0, ...[...top, ...rest].flatMap((s) => s.values)));
   const yMax = ticks[ticks.length - 1];
   const plotW = WIDTH - LEFT - RIGHT;
@@ -36,19 +39,21 @@ export function LineChart({ label, xLabels, top, rest, yTitle }: LineChartProps)
         aria-label={`${label}. ${summary.join("; ")}`}
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="block h-auto w-full"
-        style={{ maxWidth: WIDTH * 1.6 }}
+        style={{ maxWidth: WIDTH * 1.25 }}
       >
         {ticks.map((t) => (
           <g key={t}>
             <line x1={LEFT} x2={WIDTH - RIGHT} y1={y(t)} y2={y(t)} className={`${AXIS} opacity-50`} />
-            <text x={LEFT - 5} y={y(t) + 4} textAnchor="end" className={TEXT}>{t}</text>
+            <text x={LEFT - 5} y={y(t) + 4} textAnchor="end" className={text}>{t}</text>
           </g>
         ))}
         {xLabels.map((w, i) => (
-          <text key={w} x={x(i)} y={TOP + plotH + 14} textAnchor="middle" className={TEXT}>{w}</text>
+          <text key={w} x={x(i)} y={TOP + plotH + 14} textAnchor="middle" className={xLabels.length > 9 ? small : text}>
+            {w}
+          </text>
         ))}
-        <text x={LEFT + plotW / 2} y={HEIGHT - 3} textAnchor="middle" className={TEXT}>Week</text>
-        <text transform={`translate(10 ${TOP + plotH / 2}) rotate(-90)`} textAnchor="middle" className={TEXT}>
+        <text x={LEFT + plotW / 2} y={HEIGHT - 3} textAnchor="middle" className={text}>Week</text>
+        <text transform={`translate(10 ${TOP + plotH / 2}) rotate(-90)`} textAnchor="middle" className={text}>
           {yTitle}
         </text>
         {rest.map((s) => (

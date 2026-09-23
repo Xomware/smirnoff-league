@@ -1,9 +1,12 @@
+"use client";
+
 import type { ReactNode } from "react";
 
-// Every chart draws into a 360-wide viewBox, so it stays legible on a 390px
-// phone without a second layout.
+import { PHONE, useMediaQuery } from "@/lib/use-media-query";
+
+// Every chart draws into a 360-wide viewBox. A phone draws that at about 1:1,
+// so there the text is bigger and the rows make room for it.
 export const WIDTH = 360;
-export const TEXT = "fill-(--xp-text) text-[11px]";
 export const AXIS = "stroke-(--xp-face-shadow)";
 
 // The top three, in rank order. Dashes keep them apart without relying on colour.
@@ -12,6 +15,15 @@ export const HIGHLIGHTS = [
   { stroke: "stroke-(--ice-deep)", fill: "fill-(--ice-deep)", dash: "6 3" },
   { stroke: "stroke-(--xp-hill-dark)", fill: "fill-(--xp-hill-dark)", dash: "2 3" },
 ];
+
+export function useChartText() {
+  const phone = useMediaQuery(PHONE);
+  return {
+    phone,
+    text: `fill-(--xp-text) ${phone ? "text-[13px]" : "text-[11px]"}`,
+    small: `fill-(--xp-text) ${phone ? "text-[11px]" : "text-[9px]"}`,
+  };
+}
 
 export function niceTicks(max: number, count = 4) {
   const step = Math.max(1, Math.ceil(max / count));
