@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
+import { ControlPanelWindow } from "@/components/admin/ControlPanel";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { MyTeamView } from "@/components/views/my-team-view";
 import { PlayerView } from "@/components/views/player-view";
@@ -13,11 +14,14 @@ import { NewsWindow } from "@/components/windows/NewsWindow";
 import { RecapWindow } from "@/components/windows/RecapWindow";
 import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
+import { VideosWindow } from "@/components/windows/VideosWindow";
 import { WatchWindow } from "@/components/windows/WatchWindow";
 import { WriteupWindow } from "@/components/windows/WriteupWindow";
 import {
   BracketIcon,
+  CamcorderIcon,
   ChartIcon,
+  ControlPanelIcon,
   IceBottleIcon,
   IceStandingsIcon,
   MediaPlayerIcon,
@@ -70,6 +74,7 @@ const SPECS = {
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
   "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
+  videos: { title: "Chug Videos", Icon: CamcorderIcon, component: VideosWindow, defaultSize: { w: 720, h: 640 } },
   team: {
     title: (p, { data, teamFor }) => (data ? `Team Profile - ${teamFor(Number(p.rosterId)).name}` : "Team Profile"),
     Icon: ProfileIcon,
@@ -95,6 +100,7 @@ const SPECS = {
     component: WriteupWindow,
     defaultSize: { w: 760, h: 720 },
   },
+  admin: { title: "Control Panel", Icon: ControlPanelIcon, component: ControlPanelWindow, defaultSize: { w: 820, h: 620 } },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;

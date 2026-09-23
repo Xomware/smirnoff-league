@@ -1,17 +1,22 @@
 "use client";
 
+import { useState } from "react";
+import { createPortal } from "react-dom";
+
+import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
 import { LedgerWeek } from "@/components/views/ledger-week";
 import { WeekIces } from "@/components/views/week-ices";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
-import type { Ledger, LedgerSummary } from "@/lib/api/ledger";
+import type { Ledger, LedgerIce, LedgerSummary } from "@/lib/api/ledger";
 import type { RosterTally } from "@/lib/ices/tally";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { byRoster } from "@/lib/league/drill";
 import { type Team, useLeague } from "@/lib/league/use-league";
+import { useProfile } from "@/lib/profile/use-profile";
 
 interface BoardProps {
   owed: RosterTally[];
@@ -133,6 +138,8 @@ export function IcesWindow() {
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, error: icesError } = useSeasonIces(currentWeek);
   const ledgerState = useLedger();
+  const { myRosterId, me } = useProfile();
+  const [uploadFor, setUploadFor] = useState<string | null>(null);
   const error = leagueError ?? icesError;
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
@@ -142,6 +149,9 @@ export function IcesWindow() {
   const finalized = new Set(ledger?.weeks.filter((w) => w.finalizedAt).map((w) => w.week));
   const summary = ledger && summaryFor(ledger, tally.owed.map((t) => t.rosterId));
   const weeks = Array.from({ length: currentWeek }, (_, i) => currentWeek - i);
+  const uploadAction = (ice: LedgerIce) =>
+    ice.status === "owed" &&
+    canUpload(ice, myRosterId, me?.isAdmin ?? false) && <UploadChugButton onClick={() => setUploadFor(ice.iceId)} />;
 
   return (
     <div className="grid gap-3">
@@ -174,7 +184,12 @@ export function IcesWindow() {
           return (
             <section key={week} className="xp-group" aria-label={`Week ${week}`}>
               <h3 className="xp-group-title">Week {week}</h3>
-              <LedgerWeek ices={ledger.ices.filter((i) => i.week === week)} players={data.players} teamFor={teamFor} />
+              <LedgerWeek
+                ices={ledger.ices.filter((i) => i.week === week)}
+                players={data.players}
+                teamFor={teamFor}
+                action={uploadAction}
+              />
             </section>
           );
         }
@@ -193,6 +208,9 @@ export function IcesWindow() {
           </section>
         );
       })}
+      {ledger &&
+        uploadFor &&
+        createPortal(<UploadChug ices={ledger.ices} iceId={uploadFor} onClose={() => setUploadFor(null)} />, document.body)}
     </div>
   );
 }

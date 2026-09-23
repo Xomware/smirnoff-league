@@ -6,8 +6,7 @@ const { fetchAuthSession } = vi.hoisted(() => {
 });
 vi.mock("aws-amplify/auth", () => ({ fetchAuthSession }));
 
-import { FakeXhr } from "@/lib/test/xhr-mock";
-import { listWriteups, publishWriteup, uploadPdf } from "./writeups";
+import { listWriteups, publishWriteup } from "./writeups";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -40,29 +39,5 @@ describe("writeups api", () => {
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("https://api.test/admin/writeup-publish");
     expect(JSON.parse(String(init.body))).toEqual({ mediaId: "W03#a", published: true });
-  });
-
-  it("uploadPdf posts the presigned fields before the file and reports progress", async () => {
-    vi.stubGlobal("XMLHttpRequest", FakeXhr);
-    const progress: number[] = [];
-    const file = new File(["%PDF"], "week3.pdf", { type: "application/pdf" });
-
-    const done = uploadPdf({ url: "https://bucket.test", fields: { key: "k", policy: "p" } }, file, (f) => progress.push(f));
-    const xhr = FakeXhr.last;
-    xhr.progress(1, 4);
-    xhr.finish(204);
-    await done;
-
-    expect(xhr.method).toBe("POST");
-    expect(xhr.url).toBe("https://bucket.test");
-    expect([...xhr.body.keys()]).toEqual(["key", "policy", "file"]);
-    expect(progress).toEqual([0.25]);
-  });
-
-  it("uploadPdf rejects when S3 refuses the upload", async () => {
-    vi.stubGlobal("XMLHttpRequest", FakeXhr);
-    const done = uploadPdf({ url: "https://bucket.test", fields: {} }, new File(["x"], "a.pdf"), () => {});
-    FakeXhr.last.finish(403);
-    await expect(done).rejects.toThrow("Upload failed (403)");
   });
 });

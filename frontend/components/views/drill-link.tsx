@@ -2,11 +2,15 @@
 
 import { createContext, type MouseEvent, type ReactNode, useContext } from "react";
 
+import type { AdminPanel } from "@/components/admin/ControlPanel";
+
 export type DrillTarget =
   | { kind: "team"; rosterId: number }
   | { kind: "player"; playerId: string }
   | { kind: "week"; week: number }
   | { kind: "news" }
+  | { kind: "admin" }
+  | { kind: "admin"; panel: AdminPanel }
   | { kind: "writeup"; week: number };
 
 // The window manager provides the real opener; outside it a click does nothing.
