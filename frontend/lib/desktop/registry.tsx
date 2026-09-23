@@ -11,6 +11,7 @@ import { BracketsWindow } from "@/components/windows/BracketsWindow";
 import { HomeWindow } from "@/components/windows/HomeWindow";
 import { IcesWindow } from "@/components/windows/IcesWindow";
 import { NewsWindow } from "@/components/windows/NewsWindow";
+import { NotificationsWindow } from "@/components/windows/NotificationsWindow";
 import { RecapWindow } from "@/components/windows/RecapWindow";
 import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
@@ -18,6 +19,7 @@ import { VideosWindow } from "@/components/windows/VideosWindow";
 import { WatchWindow } from "@/components/windows/WatchWindow";
 import { WriteupWindow } from "@/components/windows/WriteupWindow";
 import {
+  BellIcon,
   BracketIcon,
   CamcorderIcon,
   ChartIcon,
@@ -74,6 +76,7 @@ const SPECS = {
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
   "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
+  notifications: { title: "Notifications", Icon: BellIcon, component: NotificationsWindow, defaultSize: { w: 440, h: 520 } },
   videos: { title: "Chug Videos", Icon: CamcorderIcon, component: VideosWindow, defaultSize: { w: 720, h: 640 } },
   team: {
     title: (p, { data, teamFor }) => (data ? `Team Profile - ${teamFor(Number(p.rosterId)).name}` : "Team Profile"),
