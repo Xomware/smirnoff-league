@@ -33,6 +33,8 @@ export type WindowAction =
 
 // Matches --taskbar-height; windows live in the viewport above it.
 export const TASKBAR_HEIGHT = 44;
+// Tall enough for the summary and the three latest headlines.
+export const HOME_H = 400;
 // Desktop icons take the left edge, so new windows open clear of them.
 const ICON_COLUMN = 112;
 
@@ -110,19 +112,20 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
 }
 
 // The mockup's arrangement: league summary top-center with the draft recap
-// under it, standings down the right and the news dialog below standings.
+// under it, standings down the right and the news feed below standings.
 export function defaultLayout(vw: number, vh: number): WindowState[] {
   const gap = 16;
   const height = vh - TASKBAR_HEIGHT;
   const mainW = Math.max(320, Math.min(680, Math.round((vw - ICON_COLUMN) * 0.52)));
   const sideX = ICON_COLUMN + mainW + gap * 2;
   const sideW = Math.max(280, Math.min(560, vw - sideX - gap));
-  const standingsH = Math.max(240, Math.round(height * 0.6));
+  const standingsH = Math.max(240, Math.round(height * 0.5));
+  const recapY = gap * 2 + HOME_H;
   const rects: [WindowKind, number, number, number, number, number][] = [
-    ["home", ICON_COLUMN + gap, gap, mainW, 240, 4],
-    ["recap", ICON_COLUMN + gap, 272, mainW, Math.max(240, height - 272 - gap), 1],
+    ["home", ICON_COLUMN + gap, gap, mainW, HOME_H, 4],
+    ["recap", ICON_COLUMN + gap, recapY, mainW, Math.max(240, height - recapY - gap), 1],
     ["standings", sideX, gap, sideW, standingsH, 2],
-    ["news", sideX + gap * 2, standingsH + gap * 2, Math.min(400, sideW - gap * 2), 180, 3],
+    ["news", sideX + gap * 2, standingsH + gap * 2, sideW - gap * 2, Math.max(180, height - standingsH - gap * 3), 3],
   ];
   return rects.map(([kind, x, y, w, h, z]) => ({
     id: kind,

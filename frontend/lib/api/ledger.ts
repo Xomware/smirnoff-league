@@ -16,6 +16,7 @@ export interface LedgerIce {
   completedAt?: string | null;
   parentIceId?: string;
   chugSeconds?: number;
+  videoId?: string;
   note?: string;
 }
 

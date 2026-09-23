@@ -6,6 +6,7 @@ export type DrillTarget =
   | { kind: "team"; rosterId: number }
   | { kind: "player"; playerId: string }
   | { kind: "week"; week: number }
+  | { kind: "news" }
   | { kind: "writeup"; week: number };
 
 // The window manager provides the real opener; outside it a click does nothing.
