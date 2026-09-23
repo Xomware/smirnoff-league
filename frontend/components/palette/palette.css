@@ -1,0 +1,321 @@
+/* The desktop's round search button, floating above the taskbar tray. */
+.palette-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(var(--taskbar-top) + 1rem);
+  z-index: 49;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px solid var(--xp-cream);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--xp-title-light), var(--xp-title) 55%, var(--xp-title-dark));
+  box-shadow:
+    inset 0 -3px 6px rgb(10 30 80 / 0.35),
+    2px 3px 8px rgb(10 30 80 / 0.45);
+  cursor: pointer;
+}
+
+.palette-fab:hover {
+  filter: brightness(1.12);
+}
+
+.palette-fab:active {
+  background: radial-gradient(circle at 50% 60%, var(--xp-title), var(--xp-title-dark));
+  box-shadow: inset 0 2px 6px rgb(10 30 80 / 0.5);
+}
+
+.palette-fab:focus-visible {
+  outline: 2px dotted var(--xp-text-inverse);
+  outline-offset: -6px;
+}
+
+/* Windows' Run box: title bar, a line of help, the field, and the results under it. */
+.palette-backdrop {
+  place-items: start center;
+  padding-top: 12vh;
+}
+
+.palette-run {
+  display: flex;
+  flex-direction: column;
+  width: min(34rem, 100%);
+  max-height: calc(88vh - var(--taskbar-top));
+  background: var(--xp-face);
+  box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
+}
+
+.palette-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.palette-run-body {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  min-height: 0;
+  padding: 0.75rem 0.75rem 0;
+  font-size: 0.8125rem;
+}
+
+.palette-intro {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.palette-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.palette-run .palette-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--xp-button-border);
+  font: inherit;
+  background: var(--xp-cream);
+}
+
+.palette-run .palette-input:focus-visible {
+  outline: 2px solid var(--xp-select);
+  outline-offset: 1px;
+}
+
+.palette-run .palette-list {
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid var(--xp-face-shadow);
+  box-shadow: inset 1px 1px var(--xp-face-shadow);
+  background: var(--xp-cream);
+}
+
+.palette-run .palette-list:empty {
+  display: none;
+}
+
+.palette-run .palette-group {
+  padding: 0.375rem 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--xp-face);
+  color: var(--xp-title-dark);
+  font-weight: bold;
+}
+
+.palette-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.palette-run .palette-option {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.palette-run .palette-option[aria-selected="true"] {
+  color: var(--xp-text-inverse);
+  background: var(--xp-select);
+}
+
+.palette-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+}
+
+.palette-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-hint {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+
+.palette-empty {
+  padding: 0.5rem;
+  border: 1px solid var(--xp-face-shadow);
+  background: var(--xp-cream);
+}
+
+.palette-buttons {
+  justify-content: flex-end;
+  padding: 0.75rem;
+}
+
+.palette-run .xp-button {
+  min-width: 5.5rem;
+  justify-content: center;
+}
+
+.palette-run .xp-button:disabled {
+  color: var(--xp-face-shadow);
+  background: var(--xp-face);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* The phone's search: a full-screen sheet under a blue bar with the field. */
+.palette-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  display: flex;
+  flex-direction: column;
+  background: var(--m-bg, var(--xp-face));
+  animation: m-sheet-in 200ms ease-out;
+}
+
+.palette-sheet-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: calc(3.5rem + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) var(--m-pad, 1rem) 0;
+  background: linear-gradient(var(--xp-title-light), var(--xp-title) 22%, var(--xp-title) 80%, var(--xp-title-dark));
+  box-shadow: 0 1px 0 var(--xp-frame);
+}
+
+.palette-sheet-field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--xp-frame);
+  border-radius: 1.25rem;
+  background: var(--xp-cream);
+  box-shadow: inset 1px 1px 2px rgb(10 30 80 / 0.25);
+}
+
+.palette-sheet-field:focus-within {
+  outline: 2px solid var(--xp-text-inverse);
+  outline-offset: 1px;
+}
+
+.palette-sheet .palette-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  /* 16px or iOS zooms the page when the field takes focus. */
+  font-size: 1rem;
+  background: transparent;
+}
+
+.palette-sheet .palette-input:focus-visible {
+  outline: none;
+}
+
+.palette-cancel {
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  color: var(--xp-text-inverse);
+  font-size: 1rem;
+  text-shadow: 1px 1px var(--xp-frame);
+  cursor: pointer;
+}
+
+.palette-cancel:active {
+  opacity: 0.7;
+}
+
+.palette-sheet .palette-cancel:focus-visible {
+  outline: 2px solid var(--xp-text-inverse);
+  outline-offset: 0;
+}
+
+.palette-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem var(--m-pad, 1rem) calc(1rem + env(safe-area-inset-bottom));
+}
+
+.palette-sheet .palette-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.palette-sheet .palette-group {
+  padding: 0.5rem 0.25rem 0.375rem;
+  color: var(--m-muted, var(--xp-text));
+  font-size: 0.8125rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.palette-sheet [role="group"] {
+  overflow: hidden;
+  border: 1px solid var(--m-line, var(--xp-face-shadow));
+  border-radius: 0.75rem;
+  background: var(--xp-cream);
+}
+
+.palette-sheet .palette-group {
+  border-bottom: 1px solid var(--m-line, var(--xp-face-shadow));
+  background: var(--m-bg, var(--xp-face));
+}
+
+.palette-sheet .palette-option {
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.875rem;
+  border-top: 1px solid var(--m-line, var(--xp-face-shadow));
+}
+
+.palette-sheet .palette-group + .palette-option {
+  border-top: 0;
+}
+
+.palette-sheet .palette-option[aria-selected="true"] {
+  box-shadow: inset 3px 0 var(--xp-select);
+}
+
+.palette-sheet .palette-option:active,
+.palette-sheet .palette-option[aria-selected="true"]:active {
+  background: color-mix(in srgb, var(--xp-select) 18%, var(--xp-cream));
+}
+
+.palette-sheet .palette-hint {
+  font-size: 0.875rem;
+  color: var(--m-muted, var(--xp-text));
+}
+
+.palette-sheet .palette-empty {
+  margin-top: 0.5rem;
+  border-radius: 0.75rem;
+  border-color: var(--m-line, var(--xp-face-shadow));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .palette-sheet {
+    animation: none;
+  }
+}
