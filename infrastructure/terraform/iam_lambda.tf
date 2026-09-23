@@ -47,6 +47,21 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = ["arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter/${var.app_name}/*"]
   }
 
+  # Put signs the browser's presigned POST; Get covers presigned GETs and HEAD.
+  statement {
+    sid       = "MediaVideos"
+    actions   = ["s3:PutObject", "s3:GetObject"]
+    resources = ["${aws_s3_bucket.media.arn}/videos/*"]
+  }
+
+  # Without ListBucket, HEAD on a missing key returns 403 instead of 404, and
+  # /videos/confirm could not tell "not uploaded yet" from a permissions fault.
+  statement {
+    sid       = "MediaList"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.media.arn]
+  }
+
   statement {
     sid       = "UseKey"
     actions   = ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey"]
