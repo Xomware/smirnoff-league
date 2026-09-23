@@ -9,6 +9,10 @@ locals {
 
   admin_lambdas = [
     { name = "finalize", description = "Finalize or re-finalize a week's ices", path_part = "finalize", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "ice_adjust", description = "Add an admin ice or void one", path_part = "ice-adjust", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "ice_complete", description = "Mark an ice completed or undo it", path_part = "ice-complete", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "chug_time", description = "Set an ice's chug time", path_part = "chug-time", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "settings", description = "Week ice settings and toilet bracket byes", path_part = "settings", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
   ledger_lambdas = [
