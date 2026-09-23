@@ -15,10 +15,12 @@ vi.mock("@/lib/api/ledger", async (importOriginal) => ({
 }));
 
 import { AppShell } from "@/components/AppShell";
+import { MobileShell } from "@/components/mobile/MobileShell";
 import { track } from "@/lib/activity/tracker";
 import { getLedger } from "@/lib/api/ledger";
 import { getMe } from "@/lib/api/users";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
+import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { golden, stubSleeper } from "@/lib/test/league-mock";
@@ -174,6 +176,53 @@ describe("shell choice", () => {
     expect(title()).toBe("League Standings");
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Menu"));
+  });
+});
+
+describe("Glacier", () => {
+  const renderGlacier = () =>
+    render(
+      <ProfileProvider>
+        <NotificationsProvider>
+          <MobileShell theme="glacier" />
+        </NotificationsProvider>
+      </ProfileProvider>,
+    );
+
+  it("themes its root and the document while mounted, with the pill tab bar and the snow", () => {
+    const { container, unmount } = renderGlacier();
+    const root = container.firstElementChild!;
+    expect(root.getAttribute("data-theme")).toBe("glacier");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("glacier");
+    expect(root.querySelector(".m-tabs-pill")).toBe(screen.getByRole("navigation", { name: "Tabs" }));
+    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
+    expect(root.querySelector(".glacier-effects")).not.toBeNull();
+
+    unmount();
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  });
+
+  it("opens with Glacier's home and still switches tabs", async () => {
+    renderGlacier();
+    expect(await top().findByRole("heading", { name: "Every zero is an ice." })).toBeTruthy();
+    expect(top().getByRole("region", { name: "Your ices" })).toBeTruthy();
+
+    fireEvent.click(tab("Games"));
+    expect(title()).toBe("Games");
+    expect(tab("Games").getAttribute("aria-current")).toBe("page");
+    expect(await top().findByRole("button", { name: "Previous week" })).toBeTruthy();
+
+    fireEvent.click(tab("Home"));
+    expect(title()).toBe("Smirnoff League");
+    expect(top().getByRole("heading", { name: "Every zero is an ice." })).toBeTruthy();
+  });
+
+  it("leaves the default XP phone untouched", () => {
+    const { container } = renderShell();
+    expect(container.querySelector("[data-theme]")).toBeNull();
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+    expect(container.querySelector(".m-tabs-pill, .glacier-effects")).toBeNull();
+    expect(container.querySelector(".m-hero")).not.toBeNull();
   });
 });
 
