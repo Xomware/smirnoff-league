@@ -38,7 +38,7 @@ query string (`lambda.tf`).
 | `GET /ledger/get` | `ledger_get` | signed in |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
-| `GET`/`POST /email/unsubscribe?token=` | `email_unsubscribe` | public; HMAC token from `common/unsubscribe.py` turns off one alert type or all email. Returns HTML; POST is RFC 8058 one-click |
+| `GET`/`POST /email/unsubscribe?token=` | `email_unsubscribe` | public; HMAC token from `common/unsubscribe.py` turns off one alert type or all email. GET only renders a confirmation form (scanners prefetch GETs); POST unsubscribes, from the form or RFC 8058 one-click. Returns HTML |
 | `POST /admin/finalize`, `/admin/ice-adjust`, `/admin/ice-complete`, `/admin/chug-time`, `/admin/settings`, `/admin/writeup-presign`, `/admin/writeup-publish` | `admin_*` | admins (`require_admin`) |
 
 Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py`).

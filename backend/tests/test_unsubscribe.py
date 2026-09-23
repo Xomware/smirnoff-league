@@ -1,6 +1,8 @@
+import base64
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlencode
 
 import pytest
 
@@ -71,14 +73,30 @@ def test_tampered_token_is_rejected(aws, tamper):
     assert verify(tamper(make_token(SUB, "iced"))) is None
 
 
-def test_get_flips_one_type_and_returns_a_page(opted_in):
-    res = unsubscribe(public_event(make_token(SUB, "due48h")), None)
+def test_get_confirms_without_changing_anything(opted_in):
+    token = make_token(SUB, "due48h")
+    res = unsubscribe(public_event(token), None)
     assert res["statusCode"] == 200
     assert res["headers"]["Content-Type"].startswith("text/html")
-    assert "unsubscribed" in res["body"]
-    assert "48 hours before an ice is due" in res["body"]
+    assert "Unsubscribe from &ldquo;48 hours before an ice is due&rdquo; emails?" in res["body"]
+    assert '<form method="post">' in res["body"]
+    assert f'name="token" value="{token}"' in res["body"]
     assert "smirnoff-league.com" in res["body"]
+    assert prefs() == {"optIn": True, "types": ALL_ON}
+
+
+def test_form_post_flips_one_type(opted_in):
+    res = unsubscribe(public_event(None, "POST", urlencode({"token": make_token(SUB, "due48h")})), None)
+    assert res["statusCode"] == 200
+    assert "unsubscribed from &ldquo;48 hours before an ice is due&rdquo; emails" in res["body"]
     assert prefs() == {"optIn": True, "types": {**ALL_ON, "due48h": False}}
+
+
+def test_form_post_reads_a_base64_body(opted_in):
+    event = public_event(None, "POST", base64.b64encode(urlencode({"token": make_token(SUB, "iced")}).encode()).decode())
+    event["isBase64Encoded"] = True
+    assert unsubscribe(event, None)["statusCode"] == 200
+    assert prefs()["types"]["iced"] is False
 
 
 def test_one_click_post_flips_all(opted_in):
@@ -87,9 +105,10 @@ def test_one_click_post_flips_all(opted_in):
     assert prefs() == {"optIn": False, "types": ALL_ON}
 
 
-def test_tampered_token_gets_a_400_page_and_changes_nothing(opted_in):
+@pytest.mark.parametrize("method", ["GET", "POST"])
+def test_tampered_token_gets_a_400_page_and_changes_nothing(opted_in, method):
     token = make_token(SUB, "all")
-    res = unsubscribe(public_event(token[:-4] + "AAAA"), None)
+    res = unsubscribe(public_event(token[:-4] + "AAAA", method), None)
     assert res["statusCode"] == 400
     assert res["headers"]["Content-Type"].startswith("text/html")
     assert prefs()["optIn"] is True
@@ -120,7 +139,13 @@ def test_scenario_opt_in_turn_off_6h_then_unsubscribe_all(aws):
     update({"email": {"optIn": True, "types": {**ALL_ON, "due6h": False}}})
     assert prefs() == {"optIn": True, "types": {**ALL_ON, "due6h": False}}
 
-    res = unsubscribe(public_event(make_token(SUB, "all")), None)
+    link = make_token(SUB, "all")
+    page = unsubscribe(public_event(link), None)
+    assert "Unsubscribe from all Smirnoff League emails?" in page["body"]
+    assert prefs()["optIn"] is True
+
+    # The page's form posts back to the same URL, token in the query and the body.
+    res = unsubscribe(public_event(link, "POST", urlencode({"token": link})), None)
     assert res["statusCode"] == 200
-    assert "all Smirnoff League emails" in res["body"]
+    assert "unsubscribed from all Smirnoff League emails" in res["body"]
     assert prefs() == {"optIn": False, "types": {**ALL_ON, "due6h": False}}
