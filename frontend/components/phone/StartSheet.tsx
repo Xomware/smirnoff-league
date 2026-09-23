@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 
-import { IceBottleIcon, ProfileIcon, SpeakerIcon } from "@/components/xp/icons";
+import { ControlPanelIcon, IceBottleIcon, ProfileIcon, SpeakerIcon } from "@/components/xp/icons";
 import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
+import { useProfile } from "@/lib/profile/use-profile";
 import { isMuted, play, setMuted, subscribeMuted } from "@/lib/sound/sound";
 
 const VIEWS: { kind: WindowKind; label: string }[] = [
@@ -31,6 +32,7 @@ interface StartSheetProps {
 export function StartSheet({ id, name, onOpen, onEditProfile, onSignOut }: StartSheetProps) {
   const first = useRef<HTMLButtonElement>(null);
   const muted = useSyncExternalStore(subscribeMuted, isMuted, serverMuted);
+  const isAdmin = useProfile().me?.isAdmin;
 
   useEffect(() => first.current?.focus(), []);
 
@@ -57,6 +59,14 @@ export function StartSheet({ id, name, onOpen, onEditProfile, onSignOut }: Start
           })}
         </ul>
         <ul className="phone-sheet-list phone-sheet-side">
+          {isAdmin && (
+            <li>
+              <button type="button" className="xp-start-menu-link w-full" onClick={() => onOpen("admin")}>
+                <ControlPanelIcon width={24} height={24} className="shrink-0" />
+                Control Panel
+              </button>
+            </li>
+          )}
           <li>
             <button type="button" className="xp-start-menu-link w-full" onClick={onEditProfile}>
               <ProfileIcon width={24} height={24} className="shrink-0" />

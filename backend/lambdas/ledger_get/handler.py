@@ -1,4 +1,4 @@
-"""GET /ledger/get - the season's non-voided ices, week settings and a per-roster summary."""
+"""GET /ledger/get - the season's non-voided ices, week settings, toilet byes and a per-roster summary."""
 
 from __future__ import annotations
 
@@ -6,6 +6,10 @@ from datetime import datetime, timezone
 
 from lambdas.common import ices_dynamo as db
 from lambdas.common.api import api_handler, caller_sub, ok
+from lambdas.common.dynamo import from_dynamo, table
+from lambdas.common.ices import default_week_settings
+
+DEFAULT_TOILET_BYES = [13, 14]
 
 
 def summarize(ices: list[dict], deadlines: dict[int, datetime], now: datetime) -> list[dict]:
@@ -33,9 +37,16 @@ def handler(event, context):
     caller_sub(event)
     ices = [i for i in db.season_ices() if i["status"] != "voided"]
     weeks = [
-        {"week": week, "finalizedAt": row.get("finalizedAt"), "deadlineUtc": row.get("deadlineUtc")}
+        {
+            "week": week,
+            "finalizedAt": row.get("finalizedAt"),
+            "deadlineUtc": row.get("deadlineUtc"),
+            **{k: row.get(k, v) for k, v in default_week_settings(week).items()},
+        }
         for week, row in sorted(db.week_rows().items())
     ]
+    toilet = table("SETTINGS_TABLE").get_item(Key={"season": db.SEASON, "key": "TOILET_BRACKET"}).get("Item")
     deadlines = {w["week"]: datetime.fromisoformat(w["deadlineUtc"]) for w in weeks if w["deadlineUtc"]}
     summary = summarize(ices, deadlines, datetime.now(timezone.utc))
-    return ok({"ices": ices, "weeks": weeks, "summary": summary})
+    byes = from_dynamo(toilet)["byes"] if toilet else DEFAULT_TOILET_BYES
+    return ok({"ices": ices, "weeks": weeks, "summary": summary, "toiletByes": byes})
