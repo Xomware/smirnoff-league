@@ -100,3 +100,21 @@ describe("scenario: Friday of W2, owing one ice", () => {
     await waitFor(() => expect(screen.queryByRole("button", { name: /^You owe/ })).toBeNull());
   });
 });
+
+describe("scenario: desktop Home with the tray warning and the Chug Board", () => {
+  it("fetches the ledger and the videos once each", async () => {
+    render(
+      <ProfileProvider>
+        <DesktopProvider>
+          <Desktop />
+          <Taskbar />
+        </DesktopProvider>
+      </ProfileProvider>,
+    );
+
+    await screen.findByRole("button", { name: /^You owe 1 ice/ });
+    await screen.findByRole("list", { name: "Team 12 chugs" });
+    expect(getLedger).toHaveBeenCalledTimes(1);
+    expect(listVideos).toHaveBeenCalledTimes(1);
+  });
+});

@@ -48,11 +48,12 @@ const LEDGER: Ledger = {
 
 // Stands in for smirnoff-users: updateMe writes here and getMe reads it back.
 let stored: string | null;
+let createdAt: string;
 const me = (): Me => ({
   sub: "s",
   email: "e",
   isAdmin: false,
-  profile: { name: "N", username: "u", rosterId: ME, notificationsSeenAt: stored, createdAt: "", updatedAt: "" },
+  profile: { name: "N", username: "u", rosterId: ME, notificationsSeenAt: stored, createdAt, updatedAt: "" },
 });
 
 function viewport(phone: boolean) {
@@ -92,6 +93,7 @@ beforeEach(() => {
   vi.setSystemTime(FRIDAY);
   window.sessionStorage.clear();
   stored = "2026-09-30T12:00:00+00:00";
+  createdAt = "";
   stubSleeper();
   viewport(false);
   vi.mocked(getMe).mockImplementation(async () => me());
@@ -121,6 +123,25 @@ describe("tray bell", () => {
     stored = null;
     renderApp();
     await bell("Notifications, 2 unread");
+  });
+
+  it("counts from signup when nothing has been seen", async () => {
+    stored = null;
+    createdAt = "2026-09-30T12:00:00+00:00";
+    renderApp();
+    await bell("Notifications, 1 unread");
+  });
+
+  it("starts a brand-new user at 0 unread", async () => {
+    stored = null;
+    createdAt = FRIDAY.toISOString();
+    renderApp();
+    await screen.findByRole("button", { name: /^You owe 1 ice/ });
+    fireEvent.click(await bell("Notifications"));
+    const items = within(await list()).getAllByRole("listitem");
+    expect(items).toHaveLength(2);
+    expect(items.filter((li) => li.textContent?.startsWith("New:"))).toEqual([]);
+    expect(screen.queryByRole("status", { name: /new notification/ })).toBeNull();
   });
 
   it("opening the window marks everything seen, optimistically", async () => {
