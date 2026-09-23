@@ -3,6 +3,7 @@
 import { PlayerRow } from "@/components/xp/PlayerRow";
 import { TeamName } from "@/components/xp/TeamName";
 import { SLOTS } from "@/lib/ices/compute";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { teamResults, weekSummary } from "@/lib/league/drill";
 import { DrillLink } from "./drill-link";
 import { IceCause, useSeason } from "./week-ices";
@@ -13,9 +14,10 @@ interface TeamViewProps {
 
 export function TeamView({ rosterId }: TeamViewProps) {
   const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
+  const shown = useDefaultWeek(data?.nfl);
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
-  if (!data || !tally || !weeks || !live || currentWeek === undefined) {
+  if (!data || !tally || !weeks || !live || currentWeek === undefined || shown === undefined) {
     return <p role="status">Loading the team...</p>;
   }
 
@@ -27,9 +29,9 @@ export function TeamView({ rosterId }: TeamViewProps) {
   const owed = tally.owed.find((t) => t.rosterId === rosterId);
   const results = teamResults(weeks, rosterId);
 
-  // Before kickoff the live week may have no matchups yet, so fall back to the latest finished week.
-  const lineup = [{ week: currentWeek, matchups: live }, ...[...weeks].reverse()].find((w) =>
-    w.matchups.some((m) => m.roster_id === rosterId),
+  // Until Thursday night the lineup worth showing is last week's; the live week may not even have matchups yet.
+  const lineup = [{ week: currentWeek, matchups: live }, ...[...weeks].reverse()].find(
+    (w) => w.week <= shown && w.matchups.some((m) => m.roster_id === rosterId),
   );
   const mine = lineup?.matchups.find((m) => m.roster_id === rosterId);
   const lineupIces = lineup
@@ -42,7 +44,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
   return (
     <div className="grid gap-3">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <TeamName name={team.name} avatarUrl={team.avatarUrl} iced={!!owed?.total} ices={owed?.total ?? 0} />
+        <TeamName name={team.name} avatarUrl={team.avatarUrl} iced={!!owed?.total} ices={owed?.total ?? 0} season />
         <span className="font-bold tabular-nums">
           {wins}-{losses}
           {ties > 0 && `-${ties}`}

@@ -140,6 +140,36 @@
     outline-color: var(--xp-text-inverse);
   }
 
+  /* Desktop: as tall as the select beside it, which WebKit draws natively short. */
+  .xp-step {
+    justify-content: center;
+    min-width: 1.75rem;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .xp-step:disabled {
+    color: var(--xp-face-shadow);
+    background: var(--xp-face);
+    box-shadow: none;
+    cursor: default;
+  }
+
+  /* Stacked so the caption costs no width in narrow name columns. */
+  .ice-badge-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .ice-badge-season {
+    font-size: 0.5rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .xp-drill {
     display: inline-flex;
     max-width: 100%;
@@ -994,6 +1024,11 @@
     .xp-game-chip,
     .ice-badge {
       font-size: 0.75rem;
+    }
+
+    .xp-step {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
     }
 
     /* Native iOS selects ignore min-height, so draw the chevron ourselves. */
