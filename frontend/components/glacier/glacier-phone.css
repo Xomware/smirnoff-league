@@ -6,7 +6,6 @@
   --m-bg: var(--g-sticky);
   --m-muted: var(--g-muted);
   --m-line: var(--g-line);
-  --gp-bar: calc(64px + env(safe-area-inset-bottom));
 
   /* .glacier is position: relative for the desktop page; the phone app stays pinned. */
   position: fixed;
@@ -14,48 +13,77 @@
   line-height: 1.45;
 }
 
-/* The bar: a red label band with icicles hanging into the page. */
+/* The bar: a red label band with icicles hanging into the page. It is the
+   only chrome, so it stays short, and shorter again once the page scrolls. */
 .m-app.glacier .m-bar {
   position: relative;
   z-index: 3;
-  gap: 4px;
-  min-height: calc(62px + env(safe-area-inset-top));
-  padding-left: max(12px, env(safe-area-inset-left));
+  gap: 0;
+  min-height: calc(56px + env(safe-area-inset-top));
+  padding-left: max(8px, env(safe-area-inset-left));
   color: var(--g-snow);
   background: var(--g-red);
   box-shadow: none;
+  transition: min-height 0.2s;
+}
+
+.m-app.glacier .m-bar[data-scrolled] {
+  min-height: calc(46px + env(safe-area-inset-top));
 }
 
 .m-bar-icicles {
   position: absolute;
-  inset: auto 0 -18px;
+  inset: auto 0 -14px;
   width: 100%;
-  height: 20px;
+  height: 16px;
   fill: var(--g-red);
   pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.m-bar[data-scrolled] .m-bar-icicles {
+  opacity: 0;
 }
 
 .m-crest {
   flex: none;
-  width: 32px;
-  height: 38px;
+  width: 26px;
+  height: 31px;
   margin-left: 4px;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgb(4 19 34 / 0.25));
 }
 
 .m-app.glacier .m-title {
-  font: 17px var(--g-display);
+  padding-inline: 8px 4px;
+  font: 16px var(--g-display);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   text-shadow: none;
+  transition: font-size 0.2s;
 }
 
-.m-app.glacier .m-bar :is(.m-back, .m-search, .notif-bell) {
+.m-app.glacier .m-bar[data-scrolled] .m-title {
+  font-size: 13px;
+}
+
+.m-burger {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.m-app.glacier .m-bar :is(.m-back, .m-search, .m-burger, .notif-bell) {
+  width: 40px;
+  height: 44px;
   color: inherit;
 }
 
-.m-app.glacier .m-bar :is(.m-back, .m-search, .notif-bell):active {
+.m-app.glacier .m-bar :is(.m-back, .m-search, .m-burger, .notif-bell):active {
   background: rgb(255 255 255 / 0.22);
 }
 
@@ -76,105 +104,106 @@
 }
 
 .m-app.glacier .m-screen {
-  padding-top: 26px;
-  padding-bottom: calc(var(--gp-bar) + 24px);
+  padding-top: 22px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
 
-/* The tab bar, docked to the bottom edge. Floating, it left a strip under it
-   where the page showed through; opaque, nothing reads through it. */
-.m-app.glacier .m-tabs-pill {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 3;
-  align-items: center;
-  height: var(--gp-bar);
-  padding-top: 6px;
-  padding-right: max(8px, env(safe-area-inset-right));
-  padding-bottom: calc(6px + env(safe-area-inset-bottom));
-  padding-left: max(8px, env(safe-area-inset-left));
-  border-top: 1px solid rgb(190 235 255 / 0.28);
-  border-radius: 0;
-  background: #081e34;
-  box-shadow: 0 -8px 24px rgb(2 12 24 / 0.45);
+/* Home: GlacierHome, made short. Sections scroll sideways instead of down. */
+.m-app.glacier .gh {
+  gap: 16px;
 }
 
-.m-app.glacier .m-tab {
-  gap: 2px;
-  min-height: 50px;
-  border-radius: 999px;
-  color: #bfd3e2;
-  font: 800 12px var(--g-body);
-  transition: background-color 0.15s;
+.m-app.glacier .gh-hero {
+  gap: 12px;
 }
 
-.m-app.glacier .m-tab:active {
-  background: var(--g-press);
+.m-app.glacier .gh-hero-copy {
+  gap: 6px;
 }
 
-.m-app.glacier .m-tab[aria-current="page"] {
-  color: var(--g-snow);
-  background: var(--g-red);
-  box-shadow: none;
+.m-app.glacier .gh-week {
+  padding: 3px 10px;
+  font-size: 11px;
 }
 
-.m-app.glacier .m-tabs :focus-visible {
-  outline-color: var(--g-focus);
-  outline-offset: 2px;
+.m-app.glacier .gh-title {
+  font-size: 30px;
 }
 
-/* Home: GlacierHome's panels, stacked. */
-.gp-home {
-  gap: 20px;
+.m-app.glacier .gh-title span {
+  display: block;
 }
 
-.gp-hero {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-inline: 4px;
+.m-app.glacier .gh-lede {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 14px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-.gp-hero .gh-week {
-  padding: 5px 12px;
-  font-size: 12px;
+.m-app.glacier .gh-mascot {
+  width: 76px;
+  height: 84px;
 }
 
-.gp-hero-row {
-  display: flex;
-  align-items: flex-end;
+.m-app.glacier .gh-strip ul {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
-/* "Every zero" is 5.56em wide in Archivo Black. Sized to the room the mascot
-   and page padding leave (160px), each line stays on one line beside it. */
-.gp-hero .gh-title {
-  flex-grow: 1;
-  font-size: min(46px, calc((100vw - 160px) / 5.6));
-  white-space: nowrap;
+.m-app.glacier .gh-strip li:first-child {
+  grid-column: 1 / -1;
 }
 
-.gp-hero img {
-  flex: none;
-  width: 110px;
-  height: 120px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 18px rgb(150 220 255 / 0.45));
+.m-app.glacier .gh-tile {
+  padding: 9px 12px;
+  border-radius: 16px;
+}
+
+.m-app.glacier .gh-tile-label {
+  font-size: 11px;
+}
+
+.m-app.glacier .gh-tile-value {
+  font-size: 17px;
+}
+
+.m-app.glacier .gh-tile-sub {
+  font-size: 13px;
+}
+
+/* One row of chips that scrolls, rather than three that wrap. */
+.m-app.glacier .gh-jump {
+  flex-wrap: nowrap;
+  margin-inline: calc(-1 * var(--m-pad));
+  padding-inline: var(--m-pad);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.m-app.glacier .gh-chip {
+  min-height: 44px;
+}
+
+.m-app.glacier .gh-grid {
+  gap: 22px;
 }
 
 .m-app.glacier .gh-panel {
-  gap: 12px;
-  padding: 20px 18px 18px;
-  border-radius: 24px;
+  gap: 8px;
 }
 
-.m-app.glacier .gh-head h2,
-.m-app.glacier .gh-chugs .xp-group-title {
-  font-size: 19px;
+.m-app.glacier .gh-head h2 {
+  font-size: 16px;
+}
+
+.m-app.glacier .gh-link {
+  min-height: 44px;
 }
 
 .m-app.glacier .gh-owe-count {
-  font-size: 64px;
+  font-size: 44px;
 }
 
 .m-app.glacier .gh-button {
@@ -183,18 +212,49 @@
 
 .m-app.glacier .gh-button-go {
   align-self: stretch;
-  min-height: 54px;
   font-size: 17px;
   box-shadow: 0 5px 0 #a8121d;
 }
 
-.m-app.glacier .gh-chugs-grid,
-.m-app.glacier .gh-game-list {
-  grid-template-columns: minmax(0, 1fr);
+/* Each card is 82% wide so the next one peeks in from the edge. */
+.m-app.glacier .gh-carousel {
+  flex-direction: row;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
 
-.m-app.glacier .gh-game {
-  min-height: 44px;
+.m-app.glacier .gh-carousel > li {
+  display: flex;
+  flex: 0 0 82%;
+  scroll-snap-align: start;
+}
+
+.m-app.glacier .gh-carousel :is(.gh-card, .gh-game) {
+  flex-wrap: wrap;
+  min-height: 64px;
+}
+
+.m-app.glacier .gh-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.m-app.glacier .gh-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(190 235 255 / 0.35);
+  transition: width 0.2s;
+}
+
+.m-app.glacier .gh-dots span[data-on] {
+  width: 18px;
+  background: var(--g-snow);
 }
 
 /* The m-* surfaces, in frost. */
@@ -307,30 +367,15 @@
 /* Toasts hang under the red bar, as the desktop's hang under its header. */
 @media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   :root[data-theme="glacier"] .xp-balloon {
-    top: calc(62px + env(safe-area-inset-top) + 20px);
+    top: calc(56px + env(safe-area-inset-top) + 16px);
     right: 0.75rem;
   }
 }
 
 /* A phone on its side: a slimmer bar. */
 @media (max-height: 500px) {
-  .m-app.glacier {
-    --gp-bar: calc(52px + env(safe-area-inset-bottom));
-  }
-
   .m-app.glacier .m-bar {
-    min-height: calc(48px + env(safe-area-inset-top));
-  }
-
-  .m-app.glacier .m-tabs-pill {
-    padding-top: 4px;
-    padding-right: max(25%, env(safe-area-inset-right));
-    padding-bottom: calc(4px + env(safe-area-inset-bottom));
-    padding-left: max(25%, env(safe-area-inset-left));
-  }
-
-  .m-app.glacier .m-tab {
-    min-height: 44px;
+    min-height: calc(46px + env(safe-area-inset-top));
   }
 }
 
@@ -422,8 +467,49 @@
   padding: 20px 16px 24px;
 }
 
+/* The drawer's first row: the places the tab bar used to hold. */
+.gp-quick {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.gp-quick button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 18px;
+  color: var(--g-text-strong);
+  background: rgb(170 225 255 / 0.1);
+  font: 800 13px var(--g-body);
+  cursor: pointer;
+}
+
+.gp-quick button:active {
+  background: var(--g-press);
+}
+
+.gp-quick button[aria-current="page"] {
+  border-color: var(--g-red);
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+.gp-quick :focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .m-app.glacier .m-tab,
+  .m-app.glacier .gh-dots span,
+  .m-app.glacier .m-bar,
+  .m-app.glacier .m-title,
+  .m-bar-icicles,
   .gp-drawer,
   .gp-drawer-scrim,
   .gp-drawer-panel {

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { Effects } from "@/components/glacier/Effects";
 import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "@/components/glacier/Frost";
+import { LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
@@ -13,6 +14,13 @@ import { Details, Skeleton, useOverview } from "./league-status";
 
 import "@/components/glacier/glacier.css";
 import "./glacier-landing.css";
+
+const FEATURES: { title: string; body: string; icon: keyof typeof LINE_ICONS }[] = [
+  { title: "Live scores", body: "Every matchup, updated while the games are on.", icon: "games" },
+  { title: "The ice ledger", body: "Who owes, what for, and when it goes late.", icon: "ices" },
+  { title: "Ice Watch", body: "A heads-up the moment a starter hits zero.", icon: "search" },
+  { title: "Brackets", body: "The playoffs up top, the toilet bowl below.", icon: "league" },
+];
 
 interface GlacierLandingProps {
   onSignIn?: () => void;
@@ -47,22 +55,28 @@ export function GlacierLanding({ onSignIn, headerAction }: GlacierLandingProps) 
             </p>
             <SignIn onSignIn={onSignIn} />
           </div>
-          <div className="gl-orb">
-            <Image
-              src="/brand/mascot.png"
-              alt="The league mascot, a robot chugging a Smirnoff Ice"
-              width={365}
-              height={400}
-              priority
-            />
-          </div>
+          <Image
+            src="/brand/mascot.png"
+            alt="The league mascot, a robot chugging a Smirnoff Ice"
+            width={219}
+            height={240}
+            priority
+            className="gl-mascot"
+          />
         </section>
 
-        <div className="gl-grid">
-          <Status />
-          <Panel label="Ice Watch" kicker="Sundays, 1 PM onward" className="gl-watch">
-            <Watch animate={!reduced} />
-          </Panel>
+        <ul aria-label="What the site does" className="gl-features">
+          {FEATURES.map((f) => (
+            <li key={f.title}>
+              <LineIcon d={LINE_ICONS[f.icon]} size={26} />
+              <h3>{f.title}</h3>
+              <p>{f.body}</p>
+            </li>
+          ))}
+        </ul>
+
+        {/* One row on a desktop; a phone swipes through it. */}
+        <section aria-label="The rules" className="gl-rules">
           <Panel label="Zero means ice" kicker="Rule 1" className="gl-rule">
             <p>Any starter who scores 0.0 or less is an ice.</p>
             <p>An empty slot or a player on bye counts. You set the lineup.</p>
@@ -78,6 +92,13 @@ export function GlacierLanding({ onSignIn, headerAction }: GlacierLandingProps) 
             <p className="gl-strong">Smirnoff League has encountered a problem: you.</p>
             <p>Lose every toilet bowl game and you finish dead last, with the league punishment to match.</p>
             <p>We are sorry for the inconvenience. We are not sorry.</p>
+          </Panel>
+        </section>
+
+        <div className="gl-grid">
+          <Status />
+          <Panel label="Ice Watch" kicker="Sundays, 1 PM onward" className="gl-watch">
+            <Watch animate={!reduced} />
           </Panel>
         </div>
       </main>

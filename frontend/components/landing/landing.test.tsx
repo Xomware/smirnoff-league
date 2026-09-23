@@ -170,6 +170,26 @@ describe("Landing themes", () => {
     expect(onSignIn).toHaveBeenCalledTimes(buttons.length);
   });
 
+  it("leads Glacier with the sign-in, a strip of what the site does, and the rules in one row", () => {
+    render(<Landing theme="glacier" onSignIn={() => {}} />);
+
+    const welcome = within(screen.getByRole("region", { name: "Welcome" }));
+    expect(welcome.getByRole("button", { name: /sign in with google/i })).toBeTruthy();
+
+    const features = within(screen.getByRole("list", { name: "What the site does" }));
+    expect(features.getAllByRole("listitem").map((li) => li.querySelector("h3")!.textContent)).toEqual([
+      "Live scores",
+      "The ice ledger",
+      "Ice Watch",
+      "Brackets",
+    ]);
+
+    const rules = within(screen.getByRole("region", { name: "The rules" }));
+    for (const name of [/zero means ice/i, /lowest score/i, /deadline/i, /toilet bowl/i]) {
+      expect(rules.getByRole("region", { name })).toBeTruthy();
+    }
+  });
+
   it("disables the Glacier sign-in when there is no handler", () => {
     render(<Landing theme="glacier" />);
     for (const b of screen.getAllByRole("button", { name: /sign in with google/i })) {
