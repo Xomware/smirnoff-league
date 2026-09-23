@@ -97,7 +97,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     });
   }, [ready, myRosterId, ledger, writeups, videos, transactions, teamFor, now]);
 
-  const seenAt = me?.profile?.notificationsSeenAt ?? null;
+  // Everything before signup is history, not news, for someone who has never opened the list.
+  const seenAt = me?.profile?.notificationsSeenAt ?? me?.profile?.createdAt ?? null;
   const unread = unreadCount(items, seenAt);
 
   useEffect(() => {

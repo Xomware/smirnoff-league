@@ -91,8 +91,7 @@ function IceLeaders({ rows, teamFor }: IceLeadersProps) {
 }
 
 
-// Opens a window of its own on the desktop rather than navigating the small
-// Home window in place; on the phone the drill context pushes a screen.
+// Phone only: the desktop's default layout already opens the News Drop window.
 function EditionPanel() {
   const { state, onPageError } = useWriteups();
   const open = useContext(DrillContext);
@@ -226,7 +225,6 @@ export function HomeWindow() {
             </>
           )}
         </div>
-        {!phone && <EditionPanel />}
       </div>
       {leaders && <IceLeaders rows={leaders} teamFor={teamFor} />}
       {tally && ledger.status !== "loading" && (
