@@ -62,6 +62,7 @@ export function StandingsWindow() {
                         iced={owed(s.rosterId) > 0}
                         ices={owed(s.rosterId)}
                         isMine={s.rosterId === myRosterId}
+                        season
                       />
                     </DrillLink>
                   </td>

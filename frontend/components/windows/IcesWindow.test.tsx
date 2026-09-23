@@ -27,6 +27,7 @@ describe("Ice Ledger window", () => {
     const board = await screen.findByRole("table", { name: /owed — provisional/i });
     expect(within(board).getByText("Team 6").closest("tr")?.textContent).toContain("x2");
     expect(within(board).getAllByRole("row")[1].textContent).toContain("x2");
+    expect(within(board).getByText("Team 13").closest("tr")?.textContent).toContain("2 ices this season");
     expect(screen.getByRole("note").textContent).toMatch(/ledger unavailable \(internal error\)/i);
 
     const week1 = screen.getByRole("region", { name: "Week 1 — provisional" });

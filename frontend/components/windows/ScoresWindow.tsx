@@ -11,6 +11,7 @@ import {
   SLOTS,
   weekIces,
 } from "@/lib/ices/compute";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 
@@ -112,11 +113,21 @@ function MatchupCard({ id, sides, ices, players, teamFor }: MatchupCardProps) {
   );
 }
 
+function StepIcon({ d }: { d: string }) {
+  return (
+    <svg viewBox="0 0 16 16" width={12} height={12} aria-hidden focusable="false">
+      <path d={d} className="fill-current" />
+    </svg>
+  );
+}
+
 export function ScoresWindow() {
   const [week, setWeek] = useState<number>();
+  const picker = useId();
   const { data, matchups, error, teamFor } = useLeague(week);
   const current = data ? Math.max(1, data.nfl.week) : undefined;
-  if (week === undefined && current !== undefined) setWeek(current);
+  const initial = useDefaultWeek(data?.nfl);
+  if (week === undefined && initial !== undefined) setWeek(initial);
 
   const ices = useMemo<IceIndex>(() => {
     const index: IceIndex = { byRoster: new Map(), slots: new Set() };
@@ -151,14 +162,26 @@ export function ScoresWindow() {
         Could not reach Sleeper ({error}). Refresh to try again.
       </p>
     );
-  if (!data || current === undefined)
+  if (!data || current === undefined || week === undefined)
     return <p role="status">Loading the league...</p>;
 
   return (
     <div className="grid gap-3">
-      <label className="flex items-center gap-2 font-bold">
-        Week
+      <div className="flex items-center gap-2">
+        <label htmlFor={picker} className="font-bold">
+          Week
+        </label>
+        <button
+          type="button"
+          className="xp-button xp-step"
+          aria-label="Previous week"
+          disabled={week <= 1}
+          onClick={() => setWeek(week - 1)}
+        >
+          <StepIcon d="M10 3L5 8l5 5z" />
+        </button>
         <select
+          id={picker}
           className="xp-select"
           value={week}
           onChange={(e) => setWeek(Number(e.target.value))}
@@ -169,7 +192,16 @@ export function ScoresWindow() {
             </option>
           ))}
         </select>
-      </label>
+        <button
+          type="button"
+          className="xp-button xp-step"
+          aria-label="Next week"
+          disabled={week >= current}
+          onClick={() => setWeek(week + 1)}
+        >
+          <StepIcon d="M6 3l5 5-5 5z" />
+        </button>
+      </div>
       <div aria-live="polite" className="grid gap-3">
         {!matchups ? (
           <p role="status">Loading week {week}...</p>

@@ -8,6 +8,7 @@ import { useIceWatch } from "@/lib/ices/use-ice-watch";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { watchStates } from "@/lib/ices/watch";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 
 export function HomeWindow() {
@@ -22,11 +23,15 @@ export function HomeWindow() {
       ? watchStates(currentWeek, live.matchups, live.games, data.players).reduce((n, t) => n + t.locked + t.watch + t.finalIce, 0)
       : null;
 
-  const liveByRoster = new Map<number, number>();
-  for (const ice of tally?.live?.ices ?? []) {
-    liveByRoster.set(ice.rosterId, (liveByRoster.get(ice.rosterId) ?? 0) + 1);
+  const week = useDefaultWeek(data?.nfl);
+  const started = week === currentWeek;
+  const weekIces = started ? tally?.live?.ices : tally?.weeks.find((w) => w.week === week)?.ices;
+
+  const byRoster = new Map<number, number>();
+  for (const ice of weekIces ?? []) {
+    byRoster.set(ice.rosterId, (byRoster.get(ice.rosterId) ?? 0) + 1);
   }
-  const watch = [...liveByRoster].sort(([, a], [, b]) => b - a);
+  const watch = [...byRoster].sort(([, a], [, b]) => b - a);
 
   return (
     <div className="flex h-full gap-3">
@@ -36,7 +41,7 @@ export function HomeWindow() {
       <div aria-live="polite" className="xp-inset min-w-0 flex-1 p-2">
         {error ? (
           <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>
-        ) : !data || !tally || ledger.status === "loading" ? (
+        ) : !data || !tally || week === undefined || ledger.status === "loading" ? (
           <p role="status">Tallying the ices...</p>
         ) : (
           <>
@@ -55,14 +60,25 @@ export function HomeWindow() {
                 </>
               )}
               <dt>Week</dt>
-              <dd>{currentWeek}</dd>
-              <dt>Ice Watch this week (live)</dt>
-              <dd>{onWatch ?? tally.live?.ices.length ?? 0}</dd>
+              <dd>{week}</dd>
+              {started ? (
+                <>
+                  <dt>Ice Watch this week (live)</dt>
+                  <dd>{onWatch ?? tally.live?.ices.length ?? 0}</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Ices in week {week}</dt>
+                  <dd>{weekIces?.length ?? 0}</dd>
+                </>
+              )}
             </dl>
             {watch.length === 0 ? (
-              <p className="mt-2 text-(--xp-select) italic">Nobody is iced yet this week.</p>
+              <p className="mt-2 text-(--xp-select) italic">
+                {started ? "Nobody is iced yet this week." : `Nobody was iced in week ${week}.`}
+              </p>
             ) : (
-              <ul aria-label="Ice Watch this week" className="mt-2 grid gap-1">
+              <ul aria-label={started ? "Ice Watch this week" : `Ices in week ${week}`} className="mt-2 grid gap-1">
                 {watch.map(([rosterId, count]) => (
                   <li key={rosterId} className="flex items-center justify-between gap-2">
                     <DrillLink to={{ kind: "team", rosterId }}>

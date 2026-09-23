@@ -146,6 +146,27 @@
     outline-color: var(--xp-text-inverse);
   }
 
+  .xp-step {
+    justify-content: center;
+    min-width: 2.75rem;
+    padding: 0;
+  }
+
+  .xp-step:disabled {
+    color: var(--xp-face-shadow);
+    background: var(--xp-face);
+    box-shadow: none;
+    cursor: default;
+  }
+
+  .ice-badge-season {
+    margin-left: 0.125rem;
+    font-size: 0.5625rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .xp-drill {
     display: inline-flex;
     max-width: 100%;
