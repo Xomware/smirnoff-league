@@ -33,12 +33,12 @@ describe("videos api", () => {
     expect(new Headers(init.headers).get("Authorization")).toBe("id-token");
   });
 
-  it("presignVideo posts the ice, type and size", async () => {
+  it("presignVideo posts the ices, type and size", async () => {
     const call = stubFetch(envelope({ mediaId: "W02#a", url: "https://bucket.test", fields: {} }));
-    await presignVideo({ iceId: "W02#R13#LOWEST", contentType: "video/mp4", bytes: 1024 });
+    await presignVideo({ iceIds: ["W02#R13#LOWEST", "W02#R12#S1"], contentType: "video/mp4", bytes: 1024 });
     const [url, init] = call();
     expect(url).toBe("https://api.test/videos/presign");
-    expect(JSON.parse(String(init.body))).toEqual({ iceId: "W02#R13#LOWEST", contentType: "video/mp4", bytes: 1024 });
+    expect(JSON.parse(String(init.body))).toEqual({ iceIds: ["W02#R13#LOWEST", "W02#R12#S1"], contentType: "video/mp4", bytes: 1024 });
   });
 
   it("confirmVideo surfaces a 409 with its status", async () => {

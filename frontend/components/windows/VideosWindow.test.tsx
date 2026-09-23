@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/api/ledger", async (importOriginal) => ({
@@ -30,24 +30,26 @@ import { play } from "@/lib/sound/sound";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { FakeXhr } from "@/lib/test/xhr-mock";
+import { TeamView } from "@/components/views/team-view";
 import { IcesWindow } from "./IcesWindow";
 import { VideosWindow } from "./VideosWindow";
 
 const W1_FIRST = SCENARIO_LEDGER.ices.find((i) => i.week === 1)!;
 const W1_VIDEO: Video = {
   mediaId: "W01#v1",
-  iceId: W1_FIRST.iceId,
+  iceIds: [W1_FIRST.iceId],
   week: 1,
-  rosterId: W1_FIRST.rosterId,
+  rosterIds: [W1_FIRST.rosterId],
   uploaderName: "Commish",
   createdAt: "2026-09-20T12:00:00+00:00",
   bytes: 5_000_000,
   url: "https://media.test/v1.mp4",
 };
-const withVideo = (ledger: Ledger, iceId: string, videoId: string): Ledger => ({
+const withVideo = (ledger: Ledger, iceIds: string | string[], videoId: string): Ledger => ({
   ...ledger,
-  ices: ledger.ices.map((i) => (i.iceId === iceId ? { ...i, status: "completed", videoId } : i)),
+  ices: ledger.ices.map((i) => ([iceIds].flat().includes(i.iceId) ? { ...i, status: "completed", videoId } : i)),
 });
+const W2_OWED = (rosterId: number) => SCENARIO_LEDGER.ices.filter((i) => i.week === 2 && i.rosterId === rosterId && i.reason !== "late");
 const LEDGER = withVideo(SCENARIO_LEDGER, W1_FIRST.iceId, W1_VIDEO.mediaId);
 
 function me(isAdmin: boolean, rosterId = 13): Me {
@@ -73,7 +75,10 @@ async function openUpload() {
   return screen.getByRole("dialog", { name: "Upload chug" });
 }
 
+const myBoxes = (dialog: HTMLElement) => within(within(dialog).getByRole("group", { name: "Your ices" })).getAllByRole("checkbox") as HTMLInputElement[];
+
 async function submit(dialog: HTMLElement, file = mp4()) {
+  if (!within(dialog).queryAllByRole("checkbox").some((c) => (c as HTMLInputElement).checked)) fireEvent.click(myBoxes(dialog)[0]);
   fireEvent.change(within(dialog).getByLabelText("Video file"), { target: { files: [file] } });
   fireEvent.click(within(dialog).getByRole("button", { name: "Upload" }));
 }
@@ -132,18 +137,86 @@ describe("Chug Videos window", () => {
     await waitFor(() => expect(listVideos).toHaveBeenCalledTimes(2));
   });
 
-  it("offers only my team's owed ices in the picker", async () => {
+  it("offers my team's owed ices as checkboxes, none ticked", async () => {
     renderWindow();
     const dialog = await openUpload();
-    const options = within(within(dialog).getByLabelText("Ice")).getAllByRole("option");
-    expect(options).toHaveLength(4);
-    for (const o of options) expect(o.textContent).toMatch(/^Week 2 · Team 13 · /);
+    const boxes = myBoxes(dialog);
+    expect(boxes).toHaveLength(4);
+    for (const b of boxes) expect(b.closest("label")!.textContent).toMatch(/^Week 2 · Team 13 · /);
+    expect(boxes.some((b) => b.checked)).toBe(false);
   });
 
-  it("offers every ice to an admin", async () => {
+  it("offers every ice to an admin, one week at a time", async () => {
     renderWindow(true);
     const dialog = await openUpload();
-    expect(within(within(dialog).getByLabelText("Ice")).getAllByRole("option")).toHaveLength(LEDGER.ices.length);
+    const boxes = myBoxes(dialog);
+    expect(boxes).toHaveLength(LEDGER.ices.length);
+    fireEvent.click(boxes.find((b) => b.value === W2_OWED(13)[0].iceId)!);
+    const w1 = boxes.filter((b) => b.value.startsWith("W01#"));
+    expect(w1.length).toBeGreaterThan(0);
+    expect(w1.every((b) => b.disabled)).toBe(true);
+  });
+
+  it("presigns every ticked ice in one upload", async () => {
+    renderWindow();
+    const dialog = await openUpload();
+    const [a, b] = W2_OWED(13);
+    for (const ice of [a, b]) fireEvent.click(myBoxes(dialog).find((c) => c.value === ice.iceId)!);
+    const file = mp4();
+    await submit(dialog, file);
+    expect(presignVideo).toHaveBeenCalledWith({ iceIds: [a.iceId, b.iceId], contentType: "video/mp4", bytes: file.size });
+  });
+
+  it("refuses to upload with no ice ticked", async () => {
+    renderWindow();
+    const dialog = await openUpload();
+    fireEvent.change(within(dialog).getByLabelText("Video file"), { target: { files: [mp4()] } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Upload" }));
+    expect(within(dialog).getByRole("alert").textContent).toMatch(/tick at least one ice/i);
+    expect(presignVideo).not.toHaveBeenCalled();
+  });
+
+  it("adds another team's owed ices for the same week and names both teams when done", async () => {
+    renderWindow();
+    const dialog = await openUpload();
+    fireEvent.click(myBoxes(dialog)[0]);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Chugged with someone?" }));
+    const team = within(dialog).getByLabelText("Team") as HTMLSelectElement;
+    expect([...team.options].map((o) => o.textContent)).toEqual(["Pick a team", "Team 12"]);
+    fireEvent.change(team, { target: { value: "12" } });
+    const theirs = within(within(dialog).getByRole("group", { name: "Team 12 ices" })).getAllByRole("checkbox") as HTMLInputElement[];
+    expect(theirs).toHaveLength(2);
+    fireEvent.click(theirs[0]);
+    expect(within(dialog).getByText(/covers team 13 and team 12/i)).toBeTruthy();
+
+    const expected = [myBoxes(dialog)[0].value, theirs[0].value];
+    await submit(dialog);
+    expect(presignVideo).toHaveBeenCalledWith(expect.objectContaining({ iceIds: expected }));
+    await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
+    act(() => FakeXhr.last.finish(204));
+    expect(await within(dialog).findByText("ICE.EXE completed successfully")).toBeTruthy();
+    expect(within(dialog).getByText("Chug logged for Team 13 and Team 12.")).toBeTruthy();
+  });
+
+  it("shows one card for a video covering two teams, under either team's filter", async () => {
+    const others = LEDGER.ices.filter((i) => i.week === 1 && i.rosterId !== W1_FIRST.rosterId);
+    const a = others[0];
+    const b = others.find((i) => i.rosterId !== a.rosterId)!;
+    const shared: Video = { ...W1_VIDEO, mediaId: "W01#both", iceIds: [a.iceId, b.iceId], rosterIds: [a.rosterId, b.rosterId], url: "https://media.test/both.mp4" };
+    vi.mocked(getLedger).mockResolvedValue(withVideo(LEDGER, [a.iceId, b.iceId], shared.mediaId));
+    vi.mocked(listVideos).mockResolvedValue([shared, W1_VIDEO]);
+    renderWindow();
+    const completed = await screen.findByRole("region", { name: "Completed" });
+    await waitFor(() => expect(within(completed).getAllByRole("listitem", { name: /chug video/i })).toHaveLength(2));
+    const card = within(completed).getByRole("listitem", { name: `Team ${a.rosterId} and Team ${b.rosterId} chug video` });
+    expect(within(card).getByRole("button", { name: new RegExp(`Team ${a.rosterId}`) })).toBeTruthy();
+    expect(within(card).getByRole("button", { name: new RegExp(`Team ${b.rosterId}`) })).toBeTruthy();
+
+    for (const rosterId of [a.rosterId, b.rosterId]) {
+      fireEvent.change(screen.getByLabelText("Team"), { target: { value: String(rosterId) } });
+      const cards = within(section("Completed")).getAllByRole("listitem", { name: /chug video/i });
+      expect(cards.map((c) => c.getAttribute("aria-label"))).toEqual([`Team ${a.rosterId} and Team ${b.rosterId} chug video`]);
+    }
   });
 
   it("rejects a non-video file before asking the server", async () => {
@@ -160,7 +233,7 @@ describe("Chug Videos window", () => {
     const file = mp4();
     await submit(dialog, file);
     await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
-    expect(presignVideo).toHaveBeenCalledWith({ iceId: expect.stringMatching(/^W02#R13#/), contentType: "video/mp4", bytes: file.size });
+    expect(presignVideo).toHaveBeenCalledWith({ iceIds: [expect.stringMatching(/^W02#R13#/)], contentType: "video/mp4", bytes: file.size });
     expect([...FakeXhr.last.body.keys()]).toEqual(["key", "policy", "file"]);
 
     act(() => FakeXhr.last.progress(1, 4));
@@ -170,7 +243,7 @@ describe("Chug Videos window", () => {
   });
 
   it.each([
-    [403, "That ice belongs to another roster", /only upload chugs for your own team's ices/i],
+    [403, "None of those ices belong to your roster", /tick at least one of your own team's ices/i],
     [400, "That ice was voided", /server refused this upload \(that ice was voided\)/i],
   ])("explains a %i from presign", async (status, message, copy) => {
     vi.mocked(presignVideo).mockRejectedValue(new ApiError(status, message));
@@ -200,7 +273,7 @@ describe("Chug Videos window", () => {
 });
 
 describe("Ice Ledger upload action", () => {
-  it("sits next to my team's owed ices only and preselects the ice", async () => {
+  it("sits next to my team's owed ices only and preselects just that ice", async () => {
     vi.mocked(getMe).mockResolvedValue(me(false));
     render(
       <ProfileProvider>
@@ -214,8 +287,9 @@ describe("Ice Ledger upload action", () => {
 
     const row = within(mine).getAllByRole("listitem")[0];
     fireEvent.click(within(row).getByRole("button", { name: "Upload chug" }));
-    const picker = within(screen.getByRole("dialog", { name: "Upload chug" })).getByLabelText("Ice") as HTMLSelectElement;
-    expect(picker.selectedOptions[0].textContent).toMatch(/lowest score/i);
+    const ticked = myBoxes(screen.getByRole("dialog", { name: "Upload chug" })).filter((c) => c.checked);
+    expect(ticked).toHaveLength(1);
+    expect(ticked[0].closest("label")!.textContent).toMatch(/lowest score/i);
   });
 });
 
@@ -223,7 +297,7 @@ describe("scenario: uploading a chug", () => {
   it("a signed-in user uploads for an owed ice and it moves to Completed, playable", async () => {
     vi.mocked(getMe).mockResolvedValue(me(false));
     const target = LEDGER.ices.find((i) => i.iceId === "W02#R13#LOWEST")!;
-    const uploaded: Video = { ...W1_VIDEO, mediaId: "W02#new", iceId: target.iceId, week: 2, rosterId: 13, url: "https://media.test/new.mp4" };
+    const uploaded: Video = { ...W1_VIDEO, mediaId: "W02#new", iceIds: [target.iceId], week: 2, rosterIds: [13], url: "https://media.test/new.mp4" };
     render(
       <ProfileProvider>
         <DesktopProvider>
@@ -243,9 +317,9 @@ describe("scenario: uploading a chug", () => {
     fireEvent.click(upload[0]);
 
     const dialog = screen.getByRole("dialog", { name: "Upload chug" });
-    const picker = within(dialog).getByLabelText("Ice") as HTMLSelectElement;
-    fireEvent.change(picker, { target: { value: target.iceId } });
+    for (const box of myBoxes(dialog)) if (box.checked !== (box.value === target.iceId)) fireEvent.click(box);
     await submit(dialog);
+    expect(presignVideo).toHaveBeenCalledWith(expect.objectContaining({ iceIds: [target.iceId] }));
     await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
     act(() => FakeXhr.last.progress(2, 2));
 
@@ -262,5 +336,45 @@ describe("scenario: uploading a chug", () => {
     await waitFor(() => expect(completed.querySelectorAll("video")).toHaveLength(2));
     expect(completed.querySelector("video")!.getAttribute("src")).toBe(`${uploaded.url}#t=0.1`);
     expect(within(within(win).getByRole("region", { name: "Owes" }).querySelector("ul")!).getAllByRole("listitem")).toHaveLength(5);
+  });
+});
+
+describe("scenario: two teams chug together", () => {
+  it("one upload covering both teams' W2 ices completes both, and both profiles show the same video", async () => {
+    const [ours] = W2_OWED(13);
+    const [theirs] = W2_OWED(12);
+    const shared: Video = { ...W1_VIDEO, mediaId: "W02#new", iceIds: [ours.iceId, theirs.iceId], week: 2, rosterIds: [13, 12], url: "https://media.test/both.mp4" };
+    renderWindow();
+    const dialog = await openUpload();
+    fireEvent.click(myBoxes(dialog).find((c) => c.value === ours.iceId)!);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Chugged with someone?" }));
+    fireEvent.change(within(dialog).getByLabelText("Team"), { target: { value: "12" } });
+    fireEvent.click(within(within(dialog).getByRole("group", { name: "Team 12 ices" })).getAllByRole("checkbox").find((c) => (c as HTMLInputElement).value === theirs.iceId)!);
+    await submit(dialog);
+    expect(presignVideo).toHaveBeenCalledWith(expect.objectContaining({ iceIds: [ours.iceId, theirs.iceId] }));
+
+    vi.mocked(getLedger).mockResolvedValue(withVideo(LEDGER, [ours.iceId, theirs.iceId], shared.mediaId));
+    vi.mocked(listVideos).mockResolvedValue([shared, W1_VIDEO]);
+    await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
+    act(() => FakeXhr.last.finish(204));
+    expect(await within(dialog).findByText("Chug logged for Team 13 and Team 12.")).toBeTruthy();
+    expect(confirmVideo).toHaveBeenCalledWith("W02#new");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+    cleanup();
+
+    for (const rosterId of [13, 12]) {
+      const { unmount } = render(
+        <ProfileProvider>
+          <TeamView rosterId={rosterId} />
+        </ProfileProvider>,
+      );
+      await screen.findByRole("table", { name: "Weekly results" });
+      fireEvent.click(screen.getByRole("tab", { name: "Ices" }));
+      const table = await screen.findByRole("table", { name: "Season ices" });
+      const [play] = await within(table).findAllByRole("button", { name: /^Play Week 2/ });
+      fireEvent.click(play);
+      expect(screen.getByRole("dialog").querySelector("video")!.getAttribute("src")).toBe(`${shared.url}#t=0.1`);
+      unmount();
+    }
   });
 });

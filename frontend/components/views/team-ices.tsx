@@ -130,7 +130,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
         )}
       {uploadFor &&
         !provisional &&
-        createPortal(<UploadChug ices={ledger.ledger.ices} iceId={uploadFor} onClose={() => setUploadFor(null)} />, document.body)}
+        createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
     </div>
   );
 }

@@ -3,9 +3,9 @@ import { ApiError, request } from "./users";
 
 export interface Video {
   mediaId: string;
-  iceId: string;
+  iceIds: string[];
   week: number;
-  rosterId: number;
+  rosterIds: number[];
   uploaderName?: string | null;
   createdAt: string;
   bytes: number;
@@ -21,7 +21,7 @@ export async function listVideos(): Promise<Video[]> {
   return request<Video[]>("/videos/list", { method: "GET" });
 }
 
-export const presignVideo = (input: { iceId: string; contentType: string; bytes: number }) =>
+export const presignVideo = (input: { iceIds: string[]; contentType: string; bytes: number }) =>
   request<PresignedPost & { mediaId: string }>("/videos/presign", { method: "POST", body: JSON.stringify(input) });
 
 export const confirmVideo = async (mediaId: string): Promise<void> => {

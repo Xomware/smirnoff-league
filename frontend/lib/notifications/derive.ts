@@ -124,7 +124,7 @@ export function deriveNotifications(s: NotificationSources): Notification[] {
     (w): Notification => ({ id: `edition:${w.mediaId}`, kind: "edition", at: Date.parse(w.publishedAt), title: "New edition posted", body: w.title, target: { kind: "writeup", week: w.week } }),
   );
   const videos = s.videos.map((v): Notification => {
-    const who = v.rosterId === s.myRosterId ? "You" : (v.uploaderName ?? s.teamName(v.rosterId));
+    const who = v.rosterIds.includes(s.myRosterId) ? "You" : (v.uploaderName ?? s.teamName(v.rosterIds[0]));
     return { id: `video:${v.mediaId}`, kind: "video", at: Date.parse(v.createdAt), title: "New chug video", body: `${who} chugged for Week ${v.week}`, target: { kind: "videos" } };
   });
   const trades = s.transactions

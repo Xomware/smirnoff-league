@@ -40,6 +40,14 @@ def get_video(media_id: str) -> dict | None:
     return from_dynamo(item) if item else None
 
 
+def covered(video: dict) -> tuple[list[str], list[int]]:
+    """The ice ids and roster ids a video row covers."""
+    # Rows written before #118 hold a single iceId and rosterId.
+    if "iceIds" in video:
+        return video["iceIds"], video["rosterIds"]
+    return [video["iceId"]], [video["rosterId"]]
+
+
 def mark_ready(media_id: str, size: int) -> None:
     table("MEDIA_TABLE").update_item(
         Key={"kind": "video", "mediaId": media_id},
