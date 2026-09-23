@@ -28,7 +28,7 @@ VIDEO = {"iceId": OWN_ICE, "contentType": "video/mp4", "bytes": 1024}
 
 @pytest.fixture
 def league(aws):
-    save_profile(SUB, "Player One", "player.one", 6)
+    save_profile(SUB, "Player One", "player.one", 6, "player@example.com")
     ices.put_ice({"id": OWN_ICE, "week": 1, "rosterId": 6, "reason": "zero"}, NOW)
     ices.put_ice({"id": OTHER_ICE, "week": 1, "rosterId": 2, "reason": "zero"}, NOW)
     ices.put_ice({"id": OWN_W2, "week": 2, "rosterId": 6, "reason": "lowest"}, NOW)
@@ -307,7 +307,7 @@ def test_list_reads_rows_written_with_a_single_ice(league):
 
 def test_scenario_two_teams_chug_together(league):
     """One upload covering both teams' W2 ices completes both, and each team's ledger rows point at it."""
-    save_profile(OTHER_SUB, "Player Nine", "player.nine", 9)
+    save_profile(OTHER_SUB, "Player Nine", "player.nine", 9, "nine@example.com")
     media_id = upload([OWN_W2, THIRD_W2])
     assert confirm(media_id)[0] == 200
 
