@@ -99,7 +99,7 @@ const bottomSix = ["Team 11", "Team 6", "Team 13", "Team 4", "Team 10", "Team 8"
 const teams = (el: HTMLElement) => within(el).queryAllByText(/^Team \d+$/).map((n) => n.textContent);
 
 describe("Brackets window", () => {
-  it("shows projected seeds and the closet watch list in week 3", async () => {
+  it("shows projected seeds and the last place watch list in week 3", async () => {
     render(
       <AuthGate>
         <BracketsWindow />
@@ -118,7 +118,7 @@ describe("Brackets window", () => {
     const byes = within(toilet).getByRole("list", { name: "Round 1 byes" });
     expect(teams(byes)).toEqual(["Team 10", "Team 8"]);
 
-    const watch = screen.getByRole("list", { name: "At risk of the closet" });
+    const watch = screen.getByRole("list", { name: "At risk of last place" });
     expect(teams(watch)).toEqual(bottomSix);
   });
 });
