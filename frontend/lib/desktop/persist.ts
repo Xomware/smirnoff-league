@@ -1,7 +1,9 @@
 import { REGISTRY } from "./registry";
 import type { WindowState } from "./windows";
 
-const key = (sub: string) => `smirnoff.desktop.v1:${sub}`;
+// Bumped when the default layout changes, so every saved layout resets to it
+// once: v2 is the ice-first desktop.
+const key = (sub: string) => `smirnoff.desktop.v2:${sub}`;
 
 // Storage can be missing, full, or blocked (private mode, disabled cookies),
 // and a saved layout can be corrupt or name a window kind that no longer

@@ -56,6 +56,11 @@
   --ice-heat-3: #acd9f7;
   --ice-heat-4: #7fc2ee;
 
+  --xp-folder: #f6d774;
+  --xp-folder-back: #e2b84e;
+  --xp-folder-light: #fff3c4;
+  --xp-folder-edge: #a97c22;
+
   --xp-button-border: #003c74;
   --xp-balloon: #ffffe1;
 
@@ -635,9 +640,20 @@
   }
 
   .xp-start-menu-link:hover,
-  .xp-start-menu-link:focus-visible {
+  .xp-start-menu-link:focus-visible,
+  .xp-start-menu-link[aria-expanded="true"] {
     color: var(--xp-text-inverse);
     background: var(--xp-select);
+  }
+
+  .xp-start-submenu {
+    position: fixed;
+    z-index: 51;
+    min-width: 12rem;
+    padding: 0.25rem;
+    border: 1px solid var(--xp-face-shadow);
+    background: var(--xp-cream);
+    box-shadow: 2px 2px 6px rgb(10 30 80 / 0.4);
   }
 
   .xp-team {

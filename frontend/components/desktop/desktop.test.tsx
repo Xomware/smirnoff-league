@@ -24,6 +24,11 @@ function renderDesktop() {
 // Hidden windows drop out of the accessibility tree, so find them by label.
 const windowNamed = (name: string) => document.querySelector<HTMLElement>(`section[aria-label="${name}"]`)!;
 const tab = (name: string) => within(screen.getByRole("list", { name: "Open windows" })).getByRole("button", { name });
+// League Standings is off the default layout, so the tests that drill from it open it first.
+const openStandings = () => {
+  fireEvent.doubleClick(screen.getByRole("button", { name: "Standings" }));
+  return windowNamed("League Standings");
+};
 
 beforeEach(() => {
   stubSleeper();
@@ -39,7 +44,7 @@ afterEach(() => {
 describe("DesktopWindow", () => {
   it("drags by the title bar and stays inside the viewport", () => {
     renderDesktop();
-    const standings = windowNamed("League Standings");
+    const standings = openStandings();
     const bar = within(standings).getByRole("heading", { name: "League Standings" }).parentElement!;
     const { left, top } = standings.style;
 
@@ -71,7 +76,7 @@ describe("a window that crashes", () => {
     fireEvent.doubleClick(screen.getByRole("button", { name: "Scores" }));
 
     expect(within(windowNamed("Scores")).getByRole("alert").textContent).toMatch(/hit an error/);
-    expect(windowNamed("League Standings")).toBeTruthy();
+    expect(windowNamed("Ice Standings")).toBeTruthy();
     expect(tab("Scores").getAttribute("aria-pressed")).toBe("true");
   });
 });
@@ -81,8 +86,8 @@ describe("drill-down", () => {
 
   it("navigates the window in place on a plain click", async () => {
     renderDesktop();
+    const standings = openStandings();
     const before = sectionCount();
-    const standings = windowNamed("League Standings");
 
     fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
 
@@ -93,7 +98,7 @@ describe("drill-down", () => {
 
   it("opens a new window on Ctrl-click or middle-click, once per team", async () => {
     renderDesktop();
-    const standings = windowNamed("League Standings");
+    const standings = openStandings();
     const team6 = (await within(standings).findByText("Team 6")).closest("button")!;
 
     fireEvent.click(team6, { ctrlKey: true });
@@ -110,7 +115,7 @@ describe("drill-down", () => {
 
   it("goes back on Alt+Left in the focused window", async () => {
     renderDesktop();
-    const standings = windowNamed("League Standings");
+    const standings = openStandings();
     fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
 
     const handled = !fireEvent.keyDown(document.body, { key: "ArrowLeft", altKey: true });
@@ -123,7 +128,7 @@ describe("drill-down", () => {
 
   it("walks Standings to a team to a zeroed player, and Back twice returns to Standings", async () => {
     renderDesktop();
-    const win = windowNamed("League Standings");
+    const win = openStandings();
 
     fireEvent.click((await within(win).findByText("Team 6")).closest("button")!);
     const results = await within(win).findByRole("table", { name: "Weekly results" });
@@ -148,7 +153,7 @@ describe("drill-down", () => {
 describe("shared league data", () => {
   it("fetches the league once for Standings and two Team windows, titled by team name", async () => {
     renderDesktop();
-    const standings = windowNamed("League Standings");
+    const standings = openStandings();
     fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!, { ctrlKey: true });
     fireEvent.click(within(standings).getByText("Team 9").closest("button")!, { ctrlKey: true });
 
@@ -184,10 +189,50 @@ describe("Taskbar tabs", () => {
 
   it("focuses a background window instead of minimizing it", () => {
     renderDesktop();
-    fireEvent.click(tab("League Standings"));
+    fireEvent.click(tab("Ice Standings"));
 
-    expect(tab("League Standings").getAttribute("aria-pressed")).toBe("true");
+    expect(tab("Ice Standings").getAttribute("aria-pressed")).toBe("true");
     expect(tab("Smirnoff Fantasy Football League").getAttribute("aria-pressed")).toBe("false");
     expect(windowNamed("Smirnoff Fantasy Football League").hidden).toBe(false);
+  });
+});
+
+describe("Start menu", () => {
+  it("cascades the five ice apps under Ices and opens one", () => {
+    renderDesktop();
+    fireEvent.click(screen.getByRole("button", { name: "start" }));
+    const menu = within(screen.getByRole("navigation", { name: "Start menu" }));
+    expect(menu.queryByRole("button", { name: "Ice Stats" })).toBeNull();
+
+    const ices = menu.getByRole("button", { name: "Ices" });
+    fireEvent.pointerEnter(ices.parentElement!, { pointerType: "mouse" });
+    expect(ices.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.pointerLeave(ices.parentElement!, { pointerType: "mouse" });
+    expect(ices.getAttribute("aria-expanded")).toBe("false");
+
+    fireEvent.click(ices);
+    const submenu = within(menu.getByRole("list", { name: "Ices" }));
+    expect(submenu.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "Ice Ledger",
+      "Ice Standings",
+      "Ice Stats",
+      "Ice Watch",
+      "Chug Videos",
+    ]);
+    fireEvent.click(submenu.getByRole("button", { name: "Ice Stats" }));
+
+    expect(screen.queryByRole("navigation", { name: "Start menu" })).toBeNull();
+    expect(tab("Ice Stats").getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
+describe("desktop icons", () => {
+  it("files the ice apps in the Ices folder and keeps the rest on the desktop", () => {
+    renderDesktop();
+    const icons = within(screen.getByRole("list", { name: "Desktop" }));
+    const names = icons.getAllByRole("button").map((b) => b.textContent);
+
+    expect(names).toEqual(expect.arrayContaining(["Ices", "Scores", "Standings", "Brackets", "League News", "News Drop", "My Team"]));
+    for (const app of ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"]) expect(names).not.toContain(app);
   });
 });

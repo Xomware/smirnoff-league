@@ -8,6 +8,7 @@ import { StatsView } from "@/components/views/stats-view";
 import { TeamView } from "@/components/views/team-view";
 import { WeekView } from "@/components/views/week-view";
 import { BracketsWindow } from "@/components/windows/BracketsWindow";
+import { FolderWindow } from "@/components/windows/FolderWindow";
 import { HomeWindow } from "@/components/windows/HomeWindow";
 import { IcesWindow } from "@/components/windows/IcesWindow";
 import { NewsWindow } from "@/components/windows/NewsWindow";
@@ -24,6 +25,7 @@ import {
   CamcorderIcon,
   ChartIcon,
   ControlPanelIcon,
+  FolderIcon,
   IceBottleIcon,
   IceStandingsIcon,
   MediaPlayerIcon,
@@ -76,6 +78,8 @@ const SPECS = {
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
   "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
+  // Only the Ices folder exists; its id is what a `folder:ices` link names.
+  folder: { title: "Ices", Icon: FolderIcon, component: FolderWindow, defaultSize: { w: 720, h: 560 } },
   notifications: { title: "Notifications", Icon: BellIcon, component: NotificationsWindow, defaultSize: { w: 440, h: 520 } },
   videos: { title: "Chug Videos", Icon: CamcorderIcon, component: VideosWindow, defaultSize: { w: 720, h: 640 } },
   team: {

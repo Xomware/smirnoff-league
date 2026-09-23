@@ -1,0 +1,89 @@
+.xp-explorer {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100% + 1.5rem);
+  margin: -0.75rem;
+}
+
+.xp-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3px 6px;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  color: var(--xp-face-shadow);
+  background: linear-gradient(var(--xp-cream), var(--xp-face));
+}
+
+.xp-address-field {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--xp-title-inactive);
+  background: var(--xp-cream);
+}
+
+.xp-address-field input {
+  flex: 1;
+  min-width: 0;
+  color: var(--xp-text);
+  background: none;
+  outline: none;
+}
+
+.xp-address-field:focus-within {
+  border-color: var(--xp-select);
+}
+
+.xp-folder-icons {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, 6.5rem);
+  align-content: start;
+  gap: 0.75rem 0.5rem;
+  padding: 1rem;
+  background: var(--xp-cream);
+}
+
+/* Explorer's icon view sits on a light pane, so labels are dark with no shadow. */
+.xp-folder-icons .xp-desktop-icon {
+  width: 6.5rem;
+  color: var(--xp-text);
+}
+
+.xp-folder-icons .xp-desktop-icon-label {
+  text-shadow: none;
+}
+
+.xp-folder-icons .xp-desktop-icon:focus .xp-desktop-icon-label {
+  color: var(--xp-text-inverse);
+}
+
+.xp-folder-icons .xp-desktop-icon:focus-visible .xp-desktop-icon-label {
+  outline-color: var(--xp-text);
+}
+
+.xp-statusbar {
+  padding: 2px 8px;
+  border-top: 1px solid var(--xp-face-shadow);
+  font-size: 0.75rem;
+  background: var(--xp-face);
+}
+
+.phone-screen .xp-explorer {
+  min-height: calc(100% + 1.75rem);
+  margin: -0.75rem -0.75rem -1rem;
+}
+
+.phone-screen .xp-folder-icons {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.phone-screen .xp-folder-icons .xp-desktop-icon {
+  width: 100%;
+  min-height: 5.5rem;
+  font-size: 0.875rem;
+}

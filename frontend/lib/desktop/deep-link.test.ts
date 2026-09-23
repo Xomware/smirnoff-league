@@ -29,6 +29,10 @@ describe("parseOpen", () => {
     expect(parseOpen(`?open=${bad},ices`)).toEqual([{ kind: "ices", params: {} }]);
   });
 
+  it("opens a folder by id", () => {
+    expect(parseOpen("?open=folder:ices,folder,folder:system32")).toEqual([{ kind: "folder", params: { id: "ices" } }]);
+  });
+
   it("opens the Control Panel home or one of its panels", () => {
     expect(parseOpen("?open=admin,admin:rules,admin:users")).toEqual([
       { kind: "admin", params: {} },
@@ -70,36 +74,36 @@ describe("openLinks", () => {
   const base = defaultLayout(1440, 900);
 
   it("opens only the linked windows, keeping saved geometry, and focuses the last", () => {
-    const saved = base.find((w) => w.id === "standings")!;
+    const saved = base.find((w) => w.id === "ice-standings")!;
 
-    const state = openLinks(base, parseOpen("?open=standings,team:6"), 1440, 900);
+    const state = openLinks(base, parseOpen("?open=ice-standings,team:6"), 1440, 900);
 
-    expect(state.map((w) => w.id)).toEqual(["standings", "team:6"]);
+    expect(state.map((w) => w.id)).toEqual(["ice-standings", "team:6"]);
     expect(state[0]).toMatchObject({ x: saved.x, y: saved.y, w: saved.w, h: saved.h });
     expect(activeWindow(state)?.id).toBe("team:6");
   });
 
   it("finds a saved window by the view it shows, keeping its history", () => {
-    const navigated = desktopReducer(base, { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
+    const navigated = desktopReducer(base, { type: "navigate", id: "ice-standings", kind: "team", params: { rosterId: 6 } });
 
     const [team] = openLinks(navigated, parseOpen("?open=team:6"), 1440, 900);
 
-    expect(team).toMatchObject({ id: "standings", kind: "team", params: { rosterId: 6 } });
+    expect(team).toMatchObject({ id: "ice-standings", kind: "team", params: { rosterId: 6 } });
     expect(team.history?.views).toHaveLength(2);
   });
 
   it("does not reuse a saved window's id already taken by an earlier link", () => {
-    const navigated = desktopReducer(base, { type: "navigate", id: "standings", kind: "team", params: { rosterId: 6 } });
+    const navigated = desktopReducer(base, { type: "navigate", id: "ice-standings", kind: "team", params: { rosterId: 6 } });
 
-    const state = openLinks(navigated, parseOpen("?open=standings,team:6"), 1440, 900);
+    const state = openLinks(navigated, parseOpen("?open=ice-standings,team:6"), 1440, 900);
 
     expect(new Set(state.map((w) => w.id)).size).toBe(2);
-    expect(state.map((w) => w.kind)).toEqual(["standings", "team"]);
+    expect(state.map((w) => w.kind)).toEqual(["ice-standings", "team"]);
   });
 
   it("restores a minimized saved window", () => {
-    const minimized = base.map((w) => (w.id === "news" ? { ...w, minimized: true } : w));
-    expect(openLinks(minimized, parseOpen("?open=news"), 1440, 900)[0].minimized).toBe(false);
+    const minimized = base.map((w) => (w.id === "writeup" ? { ...w, minimized: true } : w));
+    expect(openLinks(minimized, parseOpen("?open=writeup"), 1440, 900)[0].minimized).toBe(false);
   });
 
   it("returns the base layout when nothing is linked", () => {

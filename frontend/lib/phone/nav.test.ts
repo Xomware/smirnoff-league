@@ -17,6 +17,13 @@ describe("navFromLinks", () => {
     expect(stackOf(nav)).toEqual([{ kind: "scores", params: {} }, team, player]);
   });
 
+  it("opens the Ices tab on its folder", () => {
+    const nav = navFromLinks(parseOpen("?open=folder:ices,stats"));
+    expect(nav.tab).toBe("ices");
+    expect(stackOf(nav).map((v) => v.kind)).toEqual(["folder", "stats"]);
+    expect(stackOf(navReducer(nav, { type: "tab", tab: "ices" }))).toEqual([{ kind: "folder", params: { id: "ices" } }]);
+  });
+
   it("stacks links that are not a tab on Home", () => {
     const nav = navFromLinks(parseOpen("?open=brackets,team:3"));
     expect(nav.tab).toBe("home");

@@ -33,8 +33,8 @@ export type WindowAction =
 
 // Matches --taskbar-height; windows live in the viewport above it.
 export const TASKBAR_HEIGHT = 44;
-// Tall enough for the summary and the three latest headlines.
-export const HOME_H = 400;
+// Tall enough for the week's ices and who owes, without scrolling.
+export const HOME_H = 420;
 // Desktop icons take the left edge, so new windows open clear of them.
 const ICON_COLUMN = 112;
 
@@ -111,21 +111,21 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
   }
 }
 
-// The mockup's arrangement: league summary top-center with the draft recap
-// under it, standings down the right and the news feed below standings.
+// The mockup's arrangement, ice-first: the league summary top-left with the
+// latest News Drop under it, Ice Standings down the right where League
+// Standings sat, and the draft recap minimized to the taskbar.
 export function defaultLayout(vw: number, vh: number): WindowState[] {
   const gap = 16;
   const height = vh - TASKBAR_HEIGHT;
   const mainW = Math.max(320, Math.min(680, Math.round((vw - ICON_COLUMN) * 0.52)));
   const sideX = ICON_COLUMN + mainW + gap * 2;
-  const sideW = Math.max(280, Math.min(560, vw - sideX - gap));
-  const standingsH = Math.max(240, Math.round(height * 0.5));
-  const recapY = gap * 2 + HOME_H;
+  const sideW = Math.max(280, Math.min(640, vw - sideX - gap));
+  const lowerY = gap * 2 + HOME_H;
   const rects: [WindowKind, number, number, number, number, number][] = [
     ["home", ICON_COLUMN + gap, gap, mainW, HOME_H, 4],
-    ["recap", ICON_COLUMN + gap, recapY, mainW, Math.max(240, height - recapY - gap), 1],
-    ["standings", sideX, gap, sideW, standingsH, 2],
-    ["news", sideX + gap * 2, standingsH + gap * 2, sideW - gap * 2, Math.max(180, height - standingsH - gap * 3), 3],
+    ["writeup", ICON_COLUMN + gap, lowerY, mainW, Math.max(240, height - lowerY - gap), 2],
+    ["ice-standings", sideX, gap, sideW, height - gap * 2, 3],
+    ["recap", ICON_COLUMN + gap * 3, gap * 3, mainW, Math.round((mainW * 9) / 16) + 40, 1],
   ];
   return rects.map(([kind, x, y, w, h, z]) => ({
     id: kind,
@@ -136,7 +136,7 @@ export function defaultLayout(vw: number, vh: number): WindowState[] {
     w,
     h,
     z,
-    minimized: false,
+    minimized: kind === "recap",
     maximized: false,
   }));
 }

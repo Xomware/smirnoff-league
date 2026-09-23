@@ -4,41 +4,89 @@ import Image from "next/image";
 import { useContext } from "react";
 
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
-import { NewsList } from "@/components/views/news-list";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
+import { type IceStanding, iceStandings } from "@/lib/ices/standings";
 import { useIceWatch } from "@/lib/ices/use-ice-watch";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { watchStates } from "@/lib/ices/watch";
 import { useDefaultWeek } from "@/lib/league/default-week";
-import { useLeague } from "@/lib/league/use-league";
-import { useNews } from "@/lib/news/use-news";
+import { sortStandings } from "@/lib/league/standings";
+import { type Team, useLeague } from "@/lib/league/use-league";
+import { PHONE, useMediaQuery } from "@/lib/use-media-query";
 import { useWriteups } from "@/lib/writeups/use-writeups";
 
-function LatestNews() {
-  const { data, teamFor, feed, error } = useNews();
+import "./home.css";
+
+interface TeamsProps {
+  teamFor: (rosterId: number) => Team;
+}
+
+interface WhoOwesProps extends TeamsProps {
+  owed: [rosterId: number, count: number][];
+  provisional: boolean;
+}
+
+function WhoOwes({ owed, provisional, teamFor }: WhoOwesProps) {
   return (
-    <section className="xp-group" aria-labelledby="latest-news">
-      <h3 id="latest-news" className="xp-group-title flex items-baseline justify-between gap-2">
-        Latest news
-        <DrillLink to={{ kind: "news" }}>
-          <span className="text-sm font-normal underline">All news</span>
+    <section className="xp-group" aria-labelledby="home-owes">
+      <h3 id="home-owes" className="xp-group-title flex items-baseline justify-between gap-2">
+        {provisional ? "Who owes (provisional)" : "Who owes"}
+        <DrillLink to={{ kind: "ices" }}>
+          <span className="text-sm font-normal underline">Ice Ledger</span>
         </DrillLink>
       </h3>
-      {error ? (
-        <p>News is unavailable right now.</p>
-      ) : !data || !feed ? (
-        <p role="status">Rolling the presses...</p>
-      ) : feed.length === 0 ? (
-        <p>No news yet.</p>
+      {owed.length === 0 ? (
+        <p className="italic">Nobody owes an ice. Enjoy it while it lasts.</p>
       ) : (
-        <NewsList label="Latest news" items={feed.slice(0, 3)} players={data.players} teamFor={teamFor} />
+        <ul aria-label="Who owes" className="home-owes">
+          {owed.map(([rosterId, count]) => (
+            <li key={rosterId}>
+              <DrillLink to={{ kind: "team", rosterId }}>
+                <TeamName name={teamFor(rosterId).name} iced ices={0} />
+              </DrillLink>
+              <span className="home-owed">
+                {count}
+                <span className="sr-only"> owed</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );
 }
+
+interface IceLeadersProps extends TeamsProps {
+  rows: IceStanding[];
+}
+
+// The phone has no Ice Standings window beside Home, so Home carries its top five.
+function IceLeaders({ rows, teamFor }: IceLeadersProps) {
+  return (
+    <section className="xp-group" aria-labelledby="home-leaders">
+      <h3 id="home-leaders" className="xp-group-title flex items-baseline justify-between gap-2">
+        Ice Standings
+        <DrillLink to={{ kind: "ice-standings" }}>
+          <span className="text-sm font-normal underline">Full standings</span>
+        </DrillLink>
+      </h3>
+      <ol aria-label="Ice Standings leaders" className="grid gap-1">
+        {rows.slice(0, 5).map((r) => (
+          <li key={r.rosterId} className="flex items-center gap-2">
+            <span className="w-5 shrink-0 text-right tabular-nums">{r.rank}</span>
+            <DrillLink to={{ kind: "team", rosterId: r.rosterId }}>
+              <TeamName name={teamFor(r.rosterId).name} iced={r.total > 0} ices={r.total} season />
+            </DrillLink>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 
 // Opens a window of its own on the desktop rather than navigating the small
 // Home window in place; on the phone the drill context pushes a screen.
@@ -71,14 +119,18 @@ function EditionPanel() {
 export function HomeWindow() {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
-  const { tally, error: icesError } = useSeasonIces(currentWeek);
+  const { tally, finishedWeeks, error: icesError } = useSeasonIces(currentWeek);
   const ledger = useLedger();
+  const phone = useMediaQuery(PHONE);
   const error = leagueError ?? icesError;
   const live = useIceWatch(currentWeek);
-  const onWatch =
+  const watching =
     data && currentWeek && live.matchups && live.games?.some((g) => g.state === "in")
-      ? watchStates(currentWeek, live.matchups, live.games, data.players).reduce((n, t) => n + t.locked + t.watch + t.finalIce, 0)
+      ? watchStates(currentWeek, live.matchups, live.games, data.players).map(
+          (t): [number, number] => [t.rosterId, t.locked + t.watch + t.finalIce],
+        )
       : null;
+  const onWatch = watching?.reduce((n, [, count]) => n + count, 0);
 
   const week = useDefaultWeek(data?.nfl);
   const started = week === currentWeek;
@@ -88,7 +140,19 @@ export function HomeWindow() {
   for (const ice of weekIces ?? []) {
     byRoster.set(ice.rosterId, (byRoster.get(ice.rosterId) ?? 0) + 1);
   }
-  const watch = [...byRoster].sort(([, a], [, b]) => b - a);
+  // During live games the list is Ice Watch's count per team, not only the ices already locked in.
+  const watch = (watching ?? [...byRoster]).filter(([, n]) => n > 0).sort(([, a], [, b]) => b - a);
+
+  const owed: [number, number][] =
+    ledger.status === "ok"
+      ? ledger.ledger.summary.map((s) => [s.rosterId, s.owed + s.lateOwed])
+      : (tally?.owed.map((t) => [t.rosterId, t.total]) ?? []);
+  const owing = owed.filter(([, n]) => n > 0).sort(([a, x], [b, y]) => y - x || a - b);
+  const pf = data && Object.fromEntries(sortStandings(data.rosters).map((s) => [s.rosterId, s.pf]));
+  const leaders =
+    phone && pf && tally && finishedWeeks && ledger.status !== "loading"
+      ? iceStandings(tally, finishedWeeks, pf, ledger.status === "ok" ? ledger.ledger.summary : null)
+      : null;
 
   return (
     <div className="grid gap-3">
@@ -150,9 +214,13 @@ export function HomeWindow() {
             </>
           )}
         </div>
-        <EditionPanel />
+        {!phone && <EditionPanel />}
       </div>
-      <LatestNews />
+      {leaders && <IceLeaders rows={leaders} teamFor={teamFor} />}
+      {tally && ledger.status !== "loading" && (
+        <WhoOwes owed={owing} provisional={ledger.status !== "ok"} teamFor={teamFor} />
+      )}
+      {phone && <EditionPanel />}
     </div>
   );
 }

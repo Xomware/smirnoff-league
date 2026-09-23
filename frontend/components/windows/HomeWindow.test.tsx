@@ -35,3 +35,14 @@ describe("Home before Thursday night", () => {
     expect(screen.getByText("Ices in week 2").nextElementSibling?.textContent).toBe("3");
   });
 });
+
+describe("Home is ice-first", () => {
+  it("lists who owes and leaves the news feed to League News", async () => {
+    render(<HomeWindow />);
+
+    const owes = await screen.findByRole("list", { name: "Who owes" });
+    expect(within(owes).getByText("Team 13")).toBeTruthy();
+    expect(screen.queryByText("Latest news")).toBeNull();
+    expect(screen.queryByRole("region", { name: /news/i })).toBeNull();
+  });
+});

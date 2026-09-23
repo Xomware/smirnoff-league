@@ -217,6 +217,17 @@ export function CamcorderIcon(props: IconProps) {
   );
 }
 
+// XP's yellow folder: the back panel with its tab, and the front flap leaning forward.
+export function FolderIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M1.5 2.5h4.5l1.5 1.5h7v9.5h-13z" className="fill-(--xp-folder-back) stroke-(--xp-folder-edge)" />
+      <path d="M2.5 6h12.5l-1 7.5h-13z" className="fill-(--xp-folder) stroke-(--xp-folder-edge)" />
+      <path d="M3.3 7h11" className="stroke-(--xp-folder-light)" />
+    </Icon>
+  );
+}
+
 // The League News feed: an Outlook Express inbox tray with a letter in it.
 export function NewsFeedIcon(props: IconProps) {
   return (

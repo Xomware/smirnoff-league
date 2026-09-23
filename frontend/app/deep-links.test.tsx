@@ -73,7 +73,8 @@ function renderAt(url: string) {
 const tabs = () => within(screen.getByRole("list", { name: "Open windows" }));
 const tabNames = () => tabs().getAllByRole("button").map((b) => b.textContent);
 const focusedTab = () => tabs().getAllByRole("button").find((b) => b.getAttribute("aria-pressed") === "true");
-const LAYOUT_DEFAULT = ["Smirnoff Fantasy Football League", "Now Playing - Draft Recap", "League Standings", "League News"];
+// The draft recap starts minimized, so it has a taskbar tab but no visible region.
+const LAYOUT_DEFAULT = ["Smirnoff Fantasy Football League", "Ice Standings", "Smirnoff League - Latest Edition"];
 
 describe("old routes", () => {
   it("redirects /standings to the desktop with Standings focused", async () => {
@@ -140,15 +141,15 @@ describe("?open=", () => {
 
 describe("saved layout", () => {
   const saved = () =>
-    defaultLayout(1440, 900).map((w) => (w.id === "standings" ? { ...w, x: 5 } : w)).filter((w) => w.id !== "news");
+    defaultLayout(1440, 900).map((w) => (w.id === "ice-standings" ? { ...w, x: 5 } : w)).filter((w) => w.id !== "writeup");
 
   it("restores the user's layout, and saves changes to it", async () => {
     saveLayout("u", saved());
     renderAt("/");
 
-    const standings = await screen.findByRole("region", { name: "League Standings" });
-    expect(standings.style.left).toBe("5px");
-    expect(screen.queryByRole("region", { name: "League News" })).toBeNull();
+    const iceStandings = await screen.findByRole("region", { name: "Ice Standings" });
+    expect(iceStandings.style.left).toBe("5px");
+    expect(screen.queryByRole("region", { name: "Smirnoff League - Latest Edition" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Scores" }), { detail: 0 });
     await screen.findByRole("region", { name: "Scores" });
@@ -157,11 +158,11 @@ describe("saved layout", () => {
 
   it("lets ?open= pick the windows, keeping their saved position", async () => {
     saveLayout("u", saved());
-    renderAt("/?open=standings");
+    renderAt("/?open=ice-standings");
 
-    const standings = await screen.findByRole("region", { name: "League Standings" });
-    expect(standings.style.left).toBe("5px");
-    expect(tabNames()).toEqual(["League Standings"]);
+    const iceStandings = await screen.findByRole("region", { name: "Ice Standings" });
+    expect(iceStandings.style.left).toBe("5px");
+    expect(tabNames()).toEqual(["Ice Standings"]);
   });
 
   it("falls back to the default layout when storage throws", async () => {
@@ -175,14 +176,36 @@ describe("saved layout", () => {
   });
 
   it("resets to the default layout from the Start menu", async () => {
-    saveLayout("u", saved().filter((w) => w.id === "standings"));
+    saveLayout("u", saved().filter((w) => w.id === "ice-standings"));
     renderAt("/");
-    await screen.findByRole("region", { name: "League Standings" });
+    await screen.findByRole("region", { name: "Ice Standings" });
 
     fireEvent.click(screen.getByRole("button", { name: /start/i }));
     fireEvent.click(screen.getByRole("button", { name: "Reset desktop" }));
 
     for (const name of LAYOUT_DEFAULT) expect(await screen.findByRole("region", { name })).toBeTruthy();
-    await waitFor(() => expect(loadLayout("u")?.map((w) => w.id).sort()).toEqual(["home", "news", "recap", "standings"]));
+    await waitFor(() => expect(loadLayout("u")?.map((w) => w.id).sort()).toEqual(["home", "ice-standings", "recap", "writeup"]));
+  });
+});
+
+describe("first sign-in on the desktop", () => {
+  it("shows Ice Standings and this week's ices, and the Ices folder opens Ice Stats with Back to the folder", async () => {
+    renderAt("/");
+
+    expect(await screen.findByRole("region", { name: "Ice Standings" })).toBeTruthy();
+    const home = screen.getByRole("region", { name: "Smirnoff Fantasy Football League" });
+    expect(await within(home).findByText(/^(Ices in week \d+|Ice Watch this week \(live\))$/)).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "League Standings" })).toBeNull();
+
+    fireEvent.doubleClick(within(screen.getByRole("list", { name: "Desktop" })).getByRole("button", { name: "Ices" }));
+    const folder = await screen.findByRole("region", { name: "Ices" });
+    fireEvent.doubleClick(within(folder).getByRole("button", { name: "Ice Stats" }));
+
+    expect(folder.getAttribute("aria-label")).toBe("Ice Stats");
+    await waitFor(() => expect(window.location.search).toMatch(/,stats$/));
+    fireEvent.click(within(folder).getByRole("button", { name: "Back" }));
+    expect(folder.getAttribute("aria-label")).toBe("Ices");
+    expect(within(folder).getByRole("list", { name: "Ices" })).toBeTruthy();
+    await waitFor(() => expect(window.location.search).toMatch(/,folder:ices$/));
   });
 });

@@ -211,6 +211,15 @@
   padding: 0.25rem;
 }
 
+.phone-sheet-heading {
+  margin: 0.25rem 0.5rem 0.125rem;
+  padding-bottom: 0.125rem;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--xp-title-dark);
+}
+
 .phone-sheet-side {
   border-left: 1px solid var(--xp-face-shadow);
   background: var(--xp-menu-side);

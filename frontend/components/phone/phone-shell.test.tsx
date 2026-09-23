@@ -223,6 +223,35 @@ describe("phone stack", () => {
   });
 });
 
+describe("ices on the phone", () => {
+  const APPS = ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"];
+
+  it("opens the Ices tab on the folder grid and drills into an app, Back returning to the grid", async () => {
+    renderShell();
+    fireEvent.click(tab("Ices"));
+
+    expect(title()).toBe("Ices");
+    const grid = within(top().getByRole("list", { name: "Ices" }));
+    expect(grid.getAllByRole("button").map((b) => b.textContent)).toEqual(APPS);
+
+    fireEvent.click(grid.getByRole("button", { name: "Ice Stats" }));
+    await waitFor(() => expect(title()).toBe("Ice Stats"));
+    expect(window.location.search).toBe("?open=folder:ices,stats");
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Ices"));
+  });
+
+  it("groups the ice apps under an Ices heading in the Start sheet", () => {
+    renderShell();
+    fireEvent.click(tabBar().getByRole("button", { name: "start" }));
+
+    const ices = within(within(sheet()).getByRole("list", { name: "Ices" }));
+    expect(ices.getAllByRole("button").map((b) => b.textContent)).toEqual(APPS);
+    fireEvent.click(ices.getByRole("button", { name: "Ice Watch" }));
+    expect(title()).toBe("Ice Watch");
+  });
+});
+
 describe("at 390px", () => {
   it("Home, Scores, a matchup, a team, a player, Back twice lands on Scores with the matchup still open", async () => {
     renderShell();
