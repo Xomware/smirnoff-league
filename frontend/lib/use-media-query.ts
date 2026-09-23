@@ -2,8 +2,9 @@
 
 import { useCallback, useSyncExternalStore } from "react";
 
-// Matches the phone breakpoint in the CSS.
-export const PHONE = "(max-width: 767.98px)";
+// Matches the phone query in the CSS. A phone held sideways is wide but short,
+// and touch-first; a short desktop window with a mouse keeps the desktop.
+export const PHONE = "(max-width: 767.98px), (max-height: 500px) and (pointer: coarse)";
 
 // The server snapshot is false, but the app shell only renders once a user is
 // signed in on the client, so the prerendered HTML never holds a guess.

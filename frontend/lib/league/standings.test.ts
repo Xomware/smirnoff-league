@@ -47,6 +47,14 @@ describe("sortStandings", () => {
     delete r.settings.fpts_decimal;
     expect(sortStandings([r])[0].pf).toBe(100);
   });
+
+  it("carries points-against with its decimal, and zero before Sleeper reports any", () => {
+    const r = roster(1, 0, 0);
+    expect(sortStandings([r])[0].pa).toBe(0);
+    r.settings.fpts_against = 250;
+    r.settings.fpts_against_decimal = 42;
+    expect(sortStandings([r])[0].pa).toBe(250.42);
+  });
 });
 
 // 14 teams, wins listed in rank order, so roster id == rank.

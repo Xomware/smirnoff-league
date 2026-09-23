@@ -220,7 +220,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
   };
 
   return (
-    <div className="grid gap-3">
+    <div className="profile grid gap-3">
       <section aria-label={team.name} className="profile-head">
         <span className={`profile-avatar${provisional ? " ice" : ""}`} aria-hidden>
           {team.avatarUrl ? <Image src={team.avatarUrl} alt="" width={56} height={56} className="size-full object-cover" /> : team.name.charAt(0).toUpperCase()}

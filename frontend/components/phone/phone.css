@@ -1,5 +1,5 @@
 /* The phone shell: one Luna window filling the screen, the taskbar as a tab bar. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   :root {
     --taskbar-height: 3.5rem;
   }
@@ -283,6 +283,143 @@
   width: 3.25rem;
 }
 
-.phone-screen .xp-standings th:last-child {
+.phone-screen .xp-standings th:nth-child(4) {
   width: 4.5rem;
+}
+
+/* Upright, PA doesn't fit. Zero width rather than display: none, because the
+   playoff-cut row still spans five columns, and a column without cells takes
+   half the free width in a fixed layout. */
+@media (height > 500px) {
+  .phone-screen .xp-standings .standings-pa {
+    width: 0;
+    padding: 0;
+    border: 0;
+    visibility: hidden;
+  }
+}
+
+/* A phone on its side. A bottom tab bar plus a full title bar would take a
+   third of a 390px-tall screen, so the taskbar docks to the left as a rail,
+   as XP's could, and the width it costs is width a landscape phone has spare. */
+@media (max-height: 500px) and (pointer: coarse), (max-height: 500px) and (max-width: 767.98px) {
+  :root {
+    --taskbar-height: 0px;
+    --phone-rail: calc(5.25rem + env(safe-area-inset-left));
+  }
+
+  .xp-balloon {
+    left: auto;
+    right: max(0.5rem, env(safe-area-inset-right));
+    width: min(22rem, calc(100vw - var(--phone-rail) - 1rem));
+  }
+
+  .phone {
+    display: grid;
+    grid-template: "tabs bar" auto "tabs screens" 1fr / var(--phone-rail) minmax(0, 1fr);
+  }
+
+  .phone-bar {
+    grid-area: bar;
+    min-height: 2.5rem;
+    padding: 0 max(0.75rem, env(safe-area-inset-right)) 0 0.25rem;
+  }
+
+  .phone-bar-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .phone-title {
+    font-size: 0.9375rem;
+  }
+
+  .phone-back {
+    height: 2.5rem;
+  }
+
+  .phone-screens {
+    grid-area: screens;
+  }
+
+  .phone-screen {
+    padding: 0.625rem max(0.75rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) 0.75rem;
+  }
+
+  .phone-tabs {
+    grid-area: tabs;
+    flex-direction: column;
+    height: auto;
+    padding: 0 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: linear-gradient(90deg, var(--xp-taskbar-light), var(--xp-taskbar) 10%, var(--xp-taskbar) 90%, var(--xp-taskbar-dark));
+  }
+
+  .phone-start {
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 0.5rem;
+    border-radius: 0 0 12px 0;
+    font-size: 1.0625rem;
+  }
+
+  .phone-tab-list {
+    flex-direction: column;
+    padding: 6px 4px 4px;
+  }
+
+  .phone-sheet-backdrop {
+    inset: 0 0 0 var(--phone-rail);
+  }
+
+  .phone-sheet.xp-start-menu {
+    top: 0;
+    bottom: 0;
+    left: var(--phone-rail);
+    right: auto;
+    width: min(34rem, calc(100vw - var(--phone-rail) - env(safe-area-inset-right)));
+    max-height: none;
+    border-radius: 0 8px 8px 0;
+    animation-name: phone-sheet-in-side;
+  }
+
+  .phone-screen .scores-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  /* An open matchup takes the full row, so both lineups sit side by side
+     without truncating every name. */
+  .phone-screen .scores-list > p,
+  .phone-screen .scores-list > :has([aria-expanded="true"]) {
+    grid-column: 1 / -1;
+  }
+
+  /* A phone on its side is past Tailwind's md breakpoint, whose max-w-0 cells
+     truncate names to "Na..." for desktop windows. Scroll them, as in portrait. */
+  .phone-screen .xp-table td {
+    max-width: none;
+  }
+
+  /* The header becomes a sidebar beside the tabs, so the panel keeps the height. */
+  .phone-screen .profile {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .phone-screen .profile-head {
+    position: sticky;
+    top: 0;
+  }
+
+  .phone-screen .profile-stats {
+    flex-direction: column;
+    flex-basis: 100%;
+  }
+}
+
+@keyframes phone-sheet-in-side {
+  from {
+    transform: translateX(-1.5rem);
+    opacity: 0;
+  }
 }
