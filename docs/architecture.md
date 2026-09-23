@@ -18,7 +18,7 @@ Operational steps live in [`runbook.md`](runbook.md).
 | Media bucket | Private `smirnoff-media-<account id>`, SSE-KMS, public access blocked. `videos/` holds chug videos, `writeups/` holds write-up PDFs and their rendered page WebPs | `infrastructure/terraform/s3_media.tf` |
 | Cron | EventBridge rule, `rate(15 minutes)`, invoking `smirnoff-cron-tick` | `infrastructure/terraform/lambdas_cron.tf`, `backend/lambdas/cron_tick/handler.py` |
 | Write-up renderer | `smirnoff-writeup-render`, invoked by S3 `ObjectCreated` on `writeups/*source.pdf`; rasterizes pages with pypdfium2 and Pillow | `infrastructure/terraform/lambda_writeup_render.tf`, `backend/lambdas/writeup_render/handler.py` |
-| Config | SSM `/smirnoff/admin-emails` (StringList) and `/smirnoff/api-url` | `infrastructure/terraform/ssm.tf` |
+| Config | SSM `/smirnoff/admin-emails` (StringList), `/smirnoff/api-url`, and `/smirnoff/email-unsubscribe-secret` (SecureString, random, never rewritten by Terraform) | `infrastructure/terraform/ssm.tf` |
 | Sleeper | Public API, no auth. The browser reads scores, rosters, matchups, brackets and transactions directly; the backend reads `/state/nfl` and matchups for finalization. The build trims `/players/nfl` into `public/data/players.json` | `frontend/lib/sleeper/client.ts`, `backend/lambdas/common/sleeper.py`, `frontend/scripts/build-players.mjs` |
 | ESPN | Public NFL scoreboard, no auth. The browser reads it for game clocks (Ice Watch); the backend reads it to decide a week is final and to find its last kickoff | `frontend/lib/espn.ts`, `backend/lambdas/common/espn.py` |
 
@@ -27,16 +27,18 @@ Region is `us-east-1` (`variables.tf`). Terraform state is in S3 bucket
 
 ### API surface
 
-Every route is `COGNITO_USER_POOLS`. The module supports two path levels, so ids
-travel in the body or query string (`lambda.tf`).
+Every route is `COGNITO_USER_POOLS` except `/email/unsubscribe`, whose signed token is
+the credential. The module supports two path levels, so ids travel in the body or
+query string (`lambda.tf`).
 
 | Route | Lambda folder | Who |
 |---|---|---|
 | `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin` |
-| `POST /users/update` | `users_update` | signed in; saves the profile, or `notificationsSeenAt` alone to mark notifications read |
+| `POST /users/update` | `users_update` | signed in; saves the profile, `notificationsSeenAt` alone to mark notifications read, or `email` (alert prefs) alone |
 | `GET /ledger/get` | `ledger_get` | signed in |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
+| `GET`/`POST /email/unsubscribe?token=` | `email_unsubscribe` | public; HMAC token from `common/unsubscribe.py` turns off one alert type or all email. GET only renders a confirmation form (scanners prefetch GETs); POST unsubscribes, from the form or RFC 8058 one-click. Returns HTML |
 | `POST /admin/finalize`, `/admin/ice-adjust`, `/admin/ice-complete`, `/admin/chug-time`, `/admin/settings`, `/admin/writeup-presign`, `/admin/writeup-publish` | `admin_*` | admins (`require_admin`) |
 
 Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py`).
@@ -45,7 +47,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 
 | Table | Key | Holds | Access code |
 |---|---|---|---|
-| `smirnoff-users` | `sub` | name, username, rosterId, notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
+| `smirnoff-users` | `sub` | name, username, rosterId, emailAddress (from the ID token), email (`optIn` + per-type toggles), notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes` | `common/ices_dynamo.py`, `ledger_get/handler.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |

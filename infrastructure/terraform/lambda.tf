@@ -31,12 +31,21 @@ locals {
     { name = "list", description = "Published write-ups with presigned page GETs", path_part = "list", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
   ]
 
+  # The one public route: the signed token is the credential, since the link is
+  # opened from an email by someone who may not be signed in. ANY because the
+  # module gives each path a single method, and RFC 8058 one-click needs POST
+  # on the same URL the footer link GETs.
+  email_lambdas = [
+    { name = "unsubscribe", description = "Unsubscribe from alert emails by signed token", path_part = "unsubscribe", http_method = "ANY", authorization = "NONE" },
+  ]
+
   all_api_lambdas = merge(
     { for l in local.users_lambdas : "users_${l.name}" => l },
     { for l in local.admin_lambdas : "admin_${l.name}" => l },
     { for l in local.ledger_lambdas : "ledger_${l.name}" => l },
     { for l in local.videos_lambdas : "videos_${l.name}" => l },
     { for l in local.writeups_lambdas : "writeups_${l.name}" => l },
+    { for l in local.email_lambdas : "email_${l.name}" => l },
   )
 }
 

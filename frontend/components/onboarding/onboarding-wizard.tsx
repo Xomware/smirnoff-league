@@ -9,15 +9,18 @@ import { Window } from "@/components/xp/Window";
 import { ApiError, updateMe, type Profile } from "@/lib/api/users";
 import { useLeague } from "@/lib/league/use-league";
 
+import { DEFAULT_EMAIL, EmailAlerts } from "./email-alerts";
 import "./onboarding.css";
 
-type Field = "name" | "username" | "rosterId";
+type Field = "name" | "username" | "rosterId" | "email";
 
-const STEPS: { field: Field; title: string }[] = [
+const SETUP_STEPS: { field: Field; title: string }[] = [
   { field: "name", title: "Your name" },
   { field: "username", title: "Pick a username" },
   { field: "rosterId", title: "Pick your team" },
 ];
+// Email alerts wait for My Profile, so first-time setup stays three steps.
+const PROFILE_STEPS: { field: Field; title: string }[] = [...SETUP_STEPS, { field: "email", title: "Email alerts" }];
 
 // Mirrors the users_update handler, so most mistakes never reach the server.
 function nameError(name: string) {
@@ -33,12 +36,15 @@ function usernameError(username: string) {
 
 interface OnboardingWizardProps {
   initial?: Profile | null;
+  /** The ID token's email, where alerts go. */
+  address?: string;
   onDone: () => void | Promise<void>;
   onCancel?: () => void;
 }
 
-export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizardProps) {
+export function OnboardingWizard({ initial, address = "", onDone, onCancel }: OnboardingWizardProps) {
   const id = useId();
+  const steps = initial ? PROFILE_STEPS : SETUP_STEPS;
   const { data, error: leagueError, teamFor } = useLeague();
   const [step, setStep] = useState(0);
   const [name, setName] = useState(initial?.name ?? "");
@@ -53,12 +59,13 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
     name: nameError(name),
     username: usernameError(username),
     rosterId: rosterId === null ? "Pick your team." : null,
+    email: null,
   };
   const errorFor = (f: Field) => serverErrors[f] ?? (touched[f] ? clientErrors[f] : null);
   const touch = (f: Field) => setTouched((t) => ({ ...t, [f]: true }));
   const edit = (f: Field) => setServerErrors((e) => ({ ...e, [f]: undefined }));
 
-  const last = step === STEPS.length - 1;
+  const last = step === steps.length - 1;
 
   async function save(roster: number) {
     setSaving(true);
@@ -71,15 +78,15 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
     if (!err) return onDone();
 
     const field = err instanceof ApiError && err.status === 400 ? err.detail?.field : undefined;
-    const back = STEPS.findIndex((s) => s.field === field);
+    const back = steps.findIndex((s) => s.field === field);
     if (back === -1) return setFailure(err.message);
-    setServerErrors({ [STEPS[back].field]: err.message });
+    setServerErrors({ [steps[back].field]: err.message });
     setStep(back);
   }
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const field = STEPS[step].field;
+    const field = steps[step].field;
     if (serverErrors[field] || clientErrors[field]) return touch(field);
     if (!last) return setStep(step + 1);
     if (rosterId !== null) void save(rosterId);
@@ -130,7 +137,7 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
             <Image src="/brand/mascot.png" alt="" width={120} height={132} className="xp-wizard-mascot" />
             <p className="xp-wizard-banner-title">Welcome to the Smirnoff League</p>
             <ol className="xp-wizard-steps">
-              {STEPS.map((s, i) => (
+              {steps.map((s, i) => (
                 <li key={s.field} aria-current={i === step ? "step" : undefined}>
                   {s.title}
                 </li>
@@ -140,10 +147,10 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
 
           <div className="xp-wizard-page">
             <p className="text-xs">
-              Step {step + 1} of {STEPS.length}
+              Step {step + 1} of {steps.length}
             </p>
             <h3 id={headingId} className="xp-wizard-heading">
-              {STEPS[step].title}
+              {steps[step].title}
             </h3>
 
             {step === 0 && textField("name", "Full name", name, "How the league sees you on the site.")}
@@ -197,6 +204,10 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
                   </p>
                 )}
               </fieldset>
+            )}
+
+            {steps[step].field === "email" && (
+              <EmailAlerts address={address} initial={initial?.email ?? DEFAULT_EMAIL} />
             )}
 
             {failure && (

@@ -45,11 +45,20 @@ export function ProfileGate({ children }: ProfileGateProps) {
     return (
       <OnboardingWizard
         initial={me.profile}
+        address={me.email}
         onDone={async () => {
           await refresh();
           setEditing(false);
         }}
-        onCancel={me.profile ? () => setEditing(false) : undefined}
+        // Email alerts save as they are clicked, so Cancel still has news to fetch.
+        onCancel={
+          me.profile
+            ? () => {
+                setEditing(false);
+                void refresh();
+              }
+            : undefined
+        }
       />
     );
   }
