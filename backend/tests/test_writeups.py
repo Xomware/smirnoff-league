@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import os
+import re
 
 import boto3
 import pypdfium2 as pdfium
@@ -145,6 +146,41 @@ def test_render_of_a_broken_pdf_marks_the_row_failed(admin):
     media_id = upload_and_render(pdf=b"%PDF-1.7 not really")
     row = media_row(media_id)
     assert (row["status"], row["pageKeys"]) == ("failed", [])
+
+
+def test_render_of_a_41_page_pdf_fails_without_rendering(admin):
+    pdf = pdfium.PdfDocument.new()
+    for _ in range(41):
+        pdf.new_page(612, 792)
+    buf = io.BytesIO()
+    pdf.save(buf)
+    row = media_row(upload_and_render(pdf=buf.getvalue()))
+    assert (row["status"], row["failReason"], row["pageKeys"]) == ("failed", "too many pages", [])
+
+
+def with_media_box(box: bytes) -> bytes:
+    return re.sub(rb"/MediaBox\s*\[[^\]]*\]", b"/MediaBox " + box, make_pdf(), count=1)
+
+
+def test_render_of_a_zero_width_page_does_not_crash(admin):
+    # PDFium swaps an exactly-zero box for US Letter, so this one renders.
+    row = media_row(upload_and_render(pdf=with_media_box(b"[0 0 0 792]")))
+    assert row["status"] == "rendered"
+
+
+def test_render_of_a_sliver_page_fails_instead_of_allocating(admin):
+    # At 1400px wide this page would render about 11 billion pixels tall.
+    row = media_row(upload_and_render(pdf=with_media_box(b"[0 0 0.0001 792]")))
+    assert (row["status"], row["failReason"], row["pageKeys"]) == ("failed", "bad page size", [])
+
+
+def test_a_page_render_error_marks_the_row_failed(admin, monkeypatch):
+    def boom(*args, **kwargs):
+        raise RuntimeError("pdfium fell over")
+
+    monkeypatch.setattr(pdfium.PdfPage, "render", boom)
+    row = media_row(upload_and_render())
+    assert (row["status"], row["failReason"], row["pageKeys"]) == ("failed", "render error", [])
 
 
 def test_render_ignores_a_pdf_with_no_row(admin):

@@ -5,7 +5,7 @@ resource "aws_lambda_function" "writeup_render" {
   # deploy-backend.yml maps every underscore to a dash.
   function_name = "${var.app_name}-writeup-render"
   description   = "Render write-up PDF pages to WebP"
-  role          = aws_iam_role.lambda_role.arn
+  role          = aws_iam_role.writeup_render.arn
   handler       = "handler.handler"
   runtime       = var.lambda_runtime
   # Lambda CPU scales with memory, and a 10-page issue at 1400px is roughly
@@ -22,6 +22,9 @@ resource "aws_lambda_function" "writeup_render" {
   lifecycle {
     ignore_changes = [description, filename, source_code_hash, layers]
   }
+
+  # Otherwise the role swap can land before its policy and fail a render.
+  depends_on = [aws_iam_role_policy.writeup_render]
 }
 
 resource "aws_lambda_permission" "writeup_render_s3" {

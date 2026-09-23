@@ -3,6 +3,7 @@ import os
 
 import boto3
 
+from lambdas.common import ice_admin
 from lambdas.common import ices_dynamo as db
 from lambdas.ledger_get.handler import handler
 from tests.events import authorized_event
@@ -95,3 +96,13 @@ def test_missing_claims_is_401(aws):
 
     assert status == 401
     assert payload["data"] is None
+
+
+def test_ledger_never_carries_an_email(aws):
+    seed()
+    ice_admin.set_chug("W01#R02#S5", 4.2, "admin@example.com")
+    ice_admin.set_completed("W01#R06#S4", True, None, "admin@example.com", "paid up")
+    res = handler(authorized_event(path="/ledger/get"), None)
+
+    assert "@" not in res["body"]
+    assert all("updatedBy" not in i for i in json.loads(res["body"])["data"]["ices"])

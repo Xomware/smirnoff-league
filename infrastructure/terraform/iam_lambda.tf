@@ -23,20 +23,15 @@ data "aws_iam_policy_document" "lambda_policy" {
     ]
   }
 
-  # Table-prefix grant: a new smirnoff-* table needs no IAM change.
+  # Table-prefix grant: a new smirnoff-* table needs no IAM change. Only the
+  # calls lambdas/ makes: no handler deletes, scans, batches or transacts.
   statement {
     sid = "DynamoDB"
     actions = [
       "dynamodb:GetItem",
-      "dynamodb:BatchGetItem",
       "dynamodb:PutItem",
-      "dynamodb:BatchWriteItem",
       "dynamodb:UpdateItem",
-      "dynamodb:DeleteItem",
       "dynamodb:Query",
-      "dynamodb:Scan",
-      "dynamodb:TransactWriteItems",
-      "dynamodb:TransactGetItems",
     ]
     resources = ["arn:aws:dynamodb:${var.aws_region}:${local.account_id}:table/${var.app_name}-*"]
   }
@@ -54,11 +49,17 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = ["${aws_s3_bucket.media.arn}/videos/*"]
   }
 
-  # Presign signs the PDF POST, writeup_render reads it and writes the pages,
-  # and /writeups/list signs page GETs.
+  # Presign signs the PDF POST and /writeups/list signs page GETs. Only
+  # writeup_render (iam_writeup_render.tf) writes pages.
   statement {
-    sid       = "MediaWriteups"
-    actions   = ["s3:PutObject", "s3:GetObject"]
+    sid       = "MediaWriteupSource"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.media.arn}/writeups/*/source.pdf"]
+  }
+
+  statement {
+    sid       = "MediaWriteupPages"
+    actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.media.arn}/writeups/*"]
   }
 
