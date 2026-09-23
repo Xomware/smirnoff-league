@@ -6,6 +6,8 @@ export interface Profile {
   name: string;
   username: string;
   rosterId: number;
+  // Optional until the backend that sends it is deployed.
+  notificationsSeenAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,5 +65,6 @@ export async function request<T>(path: string, init: RequestInit): Promise<T> {
 
 export const getMe = () => request<Me>("/users/me", { method: "GET" });
 
-export const updateMe = (input: ProfileInput) =>
+/** The profile fields, or `notificationsSeenAt` alone to mark notifications read. */
+export const updateMe = (input: ProfileInput | { notificationsSeenAt: string }) =>
   request<Profile>("/users/update", { method: "POST", body: JSON.stringify(input) });

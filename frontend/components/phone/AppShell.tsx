@@ -2,15 +2,22 @@
 
 import { Desktop } from "@/components/desktop/Desktop";
 import { Taskbar } from "@/components/xp/Taskbar";
+import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
 import { PhoneShell } from "./PhoneShell";
 
 export function AppShell() {
-  if (useMediaQuery(PHONE)) return <PhoneShell />;
+  const phone = useMediaQuery(PHONE);
   return (
-    <>
-      <Desktop />
-      <Taskbar />
-    </>
+    <NotificationsProvider>
+      {phone ? (
+        <PhoneShell />
+      ) : (
+        <>
+          <Desktop />
+          <Taskbar />
+        </>
+      )}
+    </NotificationsProvider>
   );
 }

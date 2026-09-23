@@ -6,8 +6,10 @@ import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { defaultLayout } from "@/lib/desktop/windows";
+import { useNotifications } from "@/lib/notifications/use-notifications";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IceBottleIcon } from "./icons";
+import { NotificationBell } from "./NotificationBell";
 import { SpeakerToggle } from "./SpeakerToggle";
 import { StartMenu } from "./StartMenu";
 
@@ -36,6 +38,7 @@ export function Taskbar() {
   const start = useRef<HTMLButtonElement>(null);
   const time = useSyncExternalStore(subscribeToClock, readClock, readServerClock);
   const windowTitle = useWindowTitle();
+  const { unread } = useNotifications();
 
   useEffect(() => {
     if (!open) return;
@@ -108,6 +111,14 @@ export function Taskbar() {
           })}
         </ul>
         <div className="xp-tray">
+          <NotificationBell
+            onOpen={() => {
+              // Open would only focus a window already showing, and marking seen happens on mount.
+              const shown = windows.find((w) => w.kind === "notifications");
+              if (shown && unread) dispatch({ type: "close", id: shown.id });
+              openWindow("notifications");
+            }}
+          />
           <SpeakerToggle />
           <time>{time}</time>
         </div>

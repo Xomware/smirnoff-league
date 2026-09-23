@@ -270,6 +270,16 @@ export function SpeakerIcon({ muted, ...props }: IconProps & { muted: boolean })
   );
 }
 
+export function BellIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M8 1.5a1 1 0 0 1 1 1v.6a4.5 4.5 0 0 1 3.5 4.4v3l1.5 2v.5H2v-.5l1.5-2v-3A4.5 4.5 0 0 1 7 3.1v-.6a1 1 0 0 1 1-1z" className="fill-(--xp-gold) stroke-(--xp-text)" />
+      <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0" className="fill-(--xp-wood) stroke-(--xp-text)" />
+      <path d="M5 6.5a3 3 0 0 1 1.5-2" className="fill-none stroke-(--xp-cream)" />
+    </Icon>
+  );
+}
+
 export const ALERT_ICONS = {
   ice: IceBottleIcon,
   info: InfoIcon,
