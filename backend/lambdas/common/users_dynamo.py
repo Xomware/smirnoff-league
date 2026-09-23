@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from botocore.exceptions import ClientError
 
@@ -19,6 +19,10 @@ PROFILE_FIELDS = (
     "createdAt",
     "updatedAt",
 )
+
+
+# A visit after this long away counts as a new sign-in.
+SESSION_GAP = timedelta(minutes=30)
 
 
 def _profile(item: dict) -> dict:
@@ -44,7 +48,51 @@ def list_profiles() -> list[dict]:
     while "LastEvaluatedKey" in page:
         page = tbl.scan(ExclusiveStartKey=page["LastEvaluatedKey"])
         items += page["Items"]
-    return [{"sub": i["sub"], **_profile(i)} for i in items]
+    # The visit stats stay off the profile a user sees; only admins read them.
+    return [
+        {
+            "sub": i["sub"],
+            **_profile(i),
+            "lastSeenAt": i.get("lastSeenAt"),
+            "lastUa": i.get("lastUa"),
+            "signInCount": from_dynamo(i.get("signInCount", 0)),
+        }
+        for i in items
+    ]
+
+
+def touch_seen(sub: str, ua: str) -> None:
+    """
+    Stamps lastSeenAt and lastUa on an existing profile, adding a sign-in when
+    the last visit was over SESSION_GAP ago. The gap check is the write's own
+    condition, so two tabs loading at once cannot both count.
+    """
+    now = datetime.now(timezone.utc)
+    values = {":now": now.isoformat(timespec="seconds"), ":ua": ua}
+    common = {"Key": {"sub": sub}, "ExpressionAttributeNames": {"#sub": "sub"}}
+    try:
+        table("USERS_TABLE").update_item(
+            **common,
+            UpdateExpression="SET lastSeenAt = :now, lastUa = :ua ADD signInCount :one",
+            ConditionExpression=(
+                "attribute_exists(#sub) AND "
+                "(attribute_not_exists(lastSeenAt) OR lastSeenAt < :cutoff)"
+            ),
+            ExpressionAttributeValues={
+                **values,
+                ":one": 1,
+                ":cutoff": (now - SESSION_GAP).isoformat(timespec="seconds"),
+            },
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
+            raise
+        table("USERS_TABLE").update_item(
+            **common,
+            UpdateExpression="SET lastSeenAt = :now, lastUa = :ua",
+            ConditionExpression="attribute_exists(#sub)",
+            ExpressionAttributeValues=values,
+        )
 
 
 def save_profile(

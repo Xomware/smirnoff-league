@@ -3,6 +3,7 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { ErrorIcon, IceBottleIcon } from "@/components/xp/icons";
+import { track } from "@/lib/activity/tracker";
 import type { LedgerIce } from "@/lib/api/ledger";
 import { uploadFile } from "@/lib/api/upload";
 import { ApiError } from "@/lib/api/users";
@@ -159,6 +160,7 @@ export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProp
       return setPhase({ step: "failed", error: failureCopy(stage, err as Error) });
     }
     setPhase({ step: "done" });
+    track("upload", `chug:${picked.join(",")}`);
     play("chord");
     refreshLedger();
     refreshVideos();

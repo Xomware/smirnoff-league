@@ -17,7 +17,7 @@ export type NavAction =
 
 // Each tab's root screen is the window kind of the same name, except Ices,
 // which opens on the Ices folder.
-const rootView = (tab: Tab): WindowView => (tab === "ices" ? { kind: "folder", params: { id: "ices" } } : { kind: tab, params: {} });
+export const rootView = (tab: Tab): WindowView => (tab === "ices" ? { kind: "folder", params: { id: "ices" } } : { kind: tab, params: {} });
 const root = (tab: Tab): WindowView[] => [rootView(tab)];
 const rootedAt = ({ kind, params }: WindowLink) =>
   TABS.find((tab) => windowId(kind, params) === windowId(rootView(tab).kind, rootView(tab).params));

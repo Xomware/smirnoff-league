@@ -1,3 +1,4 @@
+import type { ActivityKind } from "@/lib/activity/tracker";
 import type { WeekSettings } from "@/lib/ices/compute";
 import type { LedgerIce } from "./ledger";
 import { request } from "./users";
@@ -22,3 +23,30 @@ export const setToiletByes = (byes: [number, number]) => post<unknown>("/admin/s
 
 export const finalizeWeek = (week: number, refinalize = false) =>
   post<unknown>("/admin/finalize", refinalize ? { week, refinalize } : { week });
+
+export interface AdminUser {
+  sub: string;
+  name: string;
+  username: string;
+  emailAddress: string | null;
+  rosterId: number;
+  createdAt: string;
+  lastSeenAt: string | null;
+  signInCount: number;
+  /** "<device> <browser>", e.g. "iPhone Safari". */
+  lastUa: string | null;
+  emailOptIn: boolean;
+}
+
+export interface ActivityRow {
+  at: string;
+  kind: ActivityKind;
+  target: string;
+  ua: string;
+}
+
+export const listUsers = () => request<AdminUser[]>("/admin/users", { method: "GET" });
+
+/** Newest first; the server caps `limit` at 200. */
+export const listActivity = (sub: string, limit = 100) =>
+  request<ActivityRow[]>(`/admin/activity?${new URLSearchParams({ sub, limit: String(limit) })}`, { method: "GET" });

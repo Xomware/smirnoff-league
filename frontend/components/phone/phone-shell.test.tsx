@@ -1,6 +1,12 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/activity/tracker", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/activity/tracker")>();
+  return { ...real, track: vi.fn(real.track) };
+});
+
+import { track } from "@/lib/activity/tracker";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { AppShell } from "./AppShell";
@@ -232,6 +238,18 @@ describe("phone stack", () => {
 
 describe("ices on the phone", () => {
   const APPS = ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"];
+
+  it("tracks each tab and each pushed screen as an open", async () => {
+    vi.mocked(track).mockClear();
+    renderShell();
+    fireEvent.click(tab("Ices"));
+    fireEvent.click(within(top().getByRole("list", { name: "Ices" })).getByRole("button", { name: "Ice Stats" }));
+    await waitFor(() => expect(title()).toBe("Ice Stats"));
+    expect(vi.mocked(track).mock.calls).toEqual([
+      ["open", "folder:ices"],
+      ["open", "stats"],
+    ]);
+  });
 
   it("opens the Ices tab on the folder grid and drills into an app, Back returning to the grid", async () => {
     renderShell();

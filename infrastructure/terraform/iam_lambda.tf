@@ -24,7 +24,8 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 
   # Table-prefix grant: a new smirnoff-* table needs no IAM change. Only the
-  # calls lambdas/ makes: no handler deletes, batches or transacts.
+  # calls lambdas/ makes: no handler deletes or transacts, and only
+  # BatchWriteActivity below batches.
   statement {
     sid = "DynamoDB"
     actions = [
@@ -42,6 +43,13 @@ data "aws_iam_policy_document" "lambda_policy" {
     sid       = "ScanUsers"
     actions   = ["dynamodb:Scan"]
     resources = [aws_dynamodb_table.users.arn]
+  }
+
+  # /activity/track writes a batch of up to 50 events in one call.
+  statement {
+    sid       = "BatchWriteActivity"
+    actions   = ["dynamodb:BatchWriteItem"]
+    resources = [aws_dynamodb_table.activity.arn]
   }
 
   statement {

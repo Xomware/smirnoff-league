@@ -34,9 +34,10 @@ describe("parseOpen", () => {
   });
 
   it("opens the Control Panel home or one of its panels", () => {
-    expect(parseOpen("?open=admin,admin:rules,admin:users")).toEqual([
+    expect(parseOpen("?open=admin,admin:rules,admin:users,admin:system")).toEqual([
       { kind: "admin", params: {} },
       { kind: "admin", params: { panel: "rules" } },
+      { kind: "admin", params: { panel: "users" } },
     ]);
   });
 

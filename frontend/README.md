@@ -29,6 +29,7 @@ vars are in the [root README](../README.md); how it fits together is in
 | `desktop/` | Window reducer, `REGISTRY` of window kinds, Ices folder apps, deep links, layout persistence (`smirnoff.desktop.v2:<sub>`) |
 | `phone/` | Phone tab stacks and browser-history sync |
 | `sound/` | XP sounds and mute |
+| `activity/` | Signed-in activity tracker (batched, flushed every 30 s and on hide) and the admin timeline's wording |
 | `use-media-query.ts`, `use-reduced-motion.ts` | `PHONE` query and reduced-motion hook |
 | `test/` | Mocks for Sleeper, ESPN, the ledger, audio and XHR |
 
@@ -36,7 +37,7 @@ vars are in the [root README](../README.md); how it fits together is in
 
 | Path | What |
 |---|---|
-| `auth/` | `AuthGate` (UX only, not security) and the sign-in callback |
+| `auth/` | `AuthGate` (UX only, not security; starts the activity tracker when signed in) and the sign-in callback |
 | `onboarding/` | `ProfileGate` and the first-run wizard |
 | `landing/` | Signed-out landing page |
 | `phone/` | `AppShell` (desktop or phone), `PhoneShell`, Start sheet |
@@ -46,7 +47,7 @@ vars are in the [root README](../README.md); how it fits together is in
 | `views/` | Views and parts shared across windows: team, player, week, stats, Ice Standings, charts, `DrillLink` |
 | `home/` | Chug Board, Chug Reel, due warning |
 | `videos/` | Chug upload dialog and player |
-| `admin/` | Control Panel: ices, week rules and finalize, toilet bowl |
+| `admin/` | Control Panel: ices, week rules and finalize, toilet bowl, users |
 
 ## Data hooks
 

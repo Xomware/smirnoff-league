@@ -9,6 +9,7 @@ import {
   useReducer,
 } from "react";
 
+import { track, viewTarget } from "@/lib/activity/tracker";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
@@ -42,6 +43,7 @@ export function DesktopProvider({ children }: { children: ReactNode }) {
     const { w, h } = REGISTRY[kind].defaultSize;
     const size = { w: Math.min(w, window.innerWidth), h: Math.min(h, window.innerHeight - TASKBAR_HEIGHT) };
     dispatch({ type: "open", kind, params, size });
+    track("open", viewTarget({ kind, params }));
   }, []);
 
   return (

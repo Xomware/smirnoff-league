@@ -14,7 +14,7 @@ Operational steps live in [`runbook.md`](runbook.md).
 | Auth | The shared Xomware Cognito pool, Google as the only identity provider. This stack creates no pool and no client: the pool and the `smirnoff-client` app client live in `Xomware/xomware-infrastructure` (`terraform/cognito.tf`). It reads the pool ARN from SSM `/xomware/shared/cognito/user-pool-arn` | `infrastructure/terraform/data_cognito.tf`, `frontend/lib/auth/amplify.ts` |
 | API | API Gateway (module `api-gateway-service` v2.8.0) at `api.<domain_name>`, one Python Lambda per endpoint, every route on the native `COGNITO_USER_POOLS` authorizer | `infrastructure/terraform/api_gateway.tf`, `lambda.tf`, `acm.tf`, `route53.tf` |
 | Shared code | One Lambda layer, `smirnoff-shared-packages`: `backend/lambdas/common/` plus `backend/requirements.txt` | `infrastructure/terraform/lambda_layers.tf`, `.github/workflows/deploy-backend.yml` |
-| Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
+| Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`, `smirnoff-activity`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
 | Media bucket | Private `smirnoff-media-<account id>`, SSE-KMS, public access blocked. `videos/` holds chug videos, `writeups/` holds write-up PDFs and their rendered page WebPs | `infrastructure/terraform/s3_media.tf` |
 | Cron | EventBridge rule, `rate(15 minutes)`, invoking `smirnoff-cron-tick`: finalize, reconcile late ices, then alert emails | `infrastructure/terraform/lambdas_cron.tf`, `backend/lambdas/cron_tick/handler.py` |
 | Write-up renderer | `smirnoff-writeup-render`, invoked by S3 `ObjectCreated` on `writeups/*source.pdf`; rasterizes pages with pypdfium2 and Pillow | `infrastructure/terraform/lambda_writeup_render.tf`, `backend/lambdas/writeup_render/handler.py` |
@@ -33,13 +33,15 @@ query string (`lambda.tf`).
 
 | Route | Lambda folder | Who |
 |---|---|---|
-| `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin` |
+| `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin`, and stamps `lastSeenAt`, `lastUa` and `signInCount` on the profile |
 | `POST /users/update` | `users_update` | signed in; saves the profile, `notificationsSeenAt` alone to mark notifications read, or `email` (alert prefs) alone |
 | `GET /ledger/get` | `ledger_get` | signed in |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
+| `POST /activity/track` | `activity_track` | signed in; a batch of 1-50 `{ kind, target, at }` events. sub, email and device come from the token and User-Agent, never the body |
 | `GET`/`POST /email/unsubscribe?token=` | `email_unsubscribe` | public; HMAC token from `common/unsubscribe.py` turns off one alert type or all email. GET only renders a confirmation form (scanners prefetch GETs); POST unsubscribes, from the form or RFC 8058 one-click. Returns HTML |
 | `POST /admin/finalize`, `/admin/ice-adjust`, `/admin/ice-complete`, `/admin/chug-time`, `/admin/settings`, `/admin/writeup-presign`, `/admin/writeup-publish` | `admin_*` | admins (`require_admin`) |
+| `GET /admin/users`, `GET /admin/activity?sub=&limit=` | `admin_users`, `admin_activity` | admins; every profile with sign-in stats, and one user's events newest first (limit 1-200, default 100) |
 
 Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py`).
 
@@ -47,10 +49,11 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 
 | Table | Key | Holds | Access code |
 |---|---|---|---|
-| `smirnoff-users` | `sub` | name, username, rosterId, emailAddress (from the ID token), email (`optIn` + per-type toggles), notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
+| `smirnoff-users` | `sub` | name, username, rosterId, emailAddress (from the ID token), email (`optIn` + per-type toggles), notificationsSeenAt, createdAt, updatedAt, lastSeenAt, lastUa, signInCount | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`, `MAIL#<sub>#<eventId>`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes`; the alert-email sent log (`status` `sent`/`failed`, `at`) | `common/ices_dynamo.py`, `ledger_get/handler.py`, `common/mailer.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |
+| `smirnoff-activity` | `sub`, `at` (`{UTC ISO time}#{8 hex}`) | kind (`signin`/`open`/`drill`/`upload`/`publish`), target (a window id such as `team:6`), email, ua, expiresAt (TTL, 90 days) | `common/activity_dynamo.py` |
 
 The season is hard-coded as `SEASON = "2026"` in `common/ices_dynamo.py`.
 
@@ -411,10 +414,18 @@ the same component in either shell.
   Without the API the feed goes out with Sleeper items only and names what is
   missing (`use-news.ts`).
 - **Control Panel.** Admin-only window (`components/admin/ControlPanel.tsx`) with
-  three panels: Ices (add, void, complete, chug times), Week Rules (rules, lowest
-  scope, finalize and re-finalize) and Toilet Bowl (the two round-one byes). Each
-  calls an `/admin/*` route through `lib/api/admin.ts`. The icon shows only when
+  four panels: Ices (add, void, complete, chug times), Week Rules (rules, lowest
+  scope, finalize and re-finalize), Toilet Bowl (the two round-one byes) and Users
+  (a sortable table of every member, then one member's activity timeline,
+  `UsersPanel.tsx`). Each calls an `/admin/*` route through `lib/api/admin.ts`. The icon shows only when
   `/users/me` says `isAdmin`; the server re-checks every call.
+- **Activity tracking.** `lib/activity/tracker.ts` queues `signin` (once per browser
+  session), `open` (a desktop window open, a phone tab or pushed screen), `drill` (a
+  desktop window navigating), `upload` (a chug or an edition) and `publish` (an
+  edition). It flushes every 30 seconds and when the tab hides, as a `keepalive`
+  fetch to `/activity/track`, and drops a failed batch. `AuthGate` starts it only in
+  the signed-in branch, so the landing is never tracked. `lib/activity/describe.ts`
+  turns an event into timeline text.
 - **Chug videos.** `components/videos/UploadChug.tsx` uploads through
   `/videos/presign` and `/videos/confirm` (see Ledger lifecycle). A manager can
   upload for their own team's owed ices, adding other teams' same-week owed ices
@@ -462,7 +473,8 @@ the same component in either shell.
 - **Least-privilege Lambda roles.** Every API and cron Lambda shares
   `smirnoff-lambda-exec`. On DynamoDB it gets only `GetItem`, `PutItem`,
   `UpdateItem` and `Query` on `smirnoff-*` tables, plus `Scan` on `smirnoff-users`
-  for the mailer; no handler deletes, batches or transacts. SES `SendEmail` and
+  for the mailer and `/admin/users`, and `BatchWriteItem` on `smirnoff-activity`
+  for `/activity/track`; no handler deletes or transacts. SES `SendEmail` and
   `SendRawEmail` on the domain identity and config set only. On the media bucket it
   may put and get `videos/*`, put `writeups/*/source.pdf` (to sign the upload), get
   `writeups/*`, and list the bucket so a HEAD on a missing key is a 404, not a 403 (`iam_lambda.tf`).
@@ -513,7 +525,8 @@ the same component in either shell.
 | `frontend/components/phone/` | Phone shell, start sheet |
 | `frontend/components/landing/` | Signed-out landing page |
 | `frontend/components/windows/`, `frontend/components/views/` | Window and view bodies |
-| `frontend/components/admin/` | Control Panel (ices, week rules and finalize, toilet bowl) |
+| `frontend/components/admin/` | Control Panel (ices, week rules and finalize, toilet bowl, users) |
+| `frontend/lib/activity/` | Activity tracker and timeline wording |
 | `frontend/components/videos/` | Chug video upload and player |
 | `frontend/components/home/` | Chug Board, Chug Reel, due warning |
 | `frontend/lib/desktop/` | Window reducer, registry, Ices folder apps, deep links, layout persistence |
@@ -549,7 +562,7 @@ Recheck a section when a file matching its globs changes.
 | Ledger lifecycle, upload sequence | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo,media_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**`, `frontend/components/videos/UploadChug.tsx`, `frontend/lib/api/{videos,upload}.ts` |
 | Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `backend/lambdas/common/media_dynamo.py`, `infrastructure/terraform/{lambda,iam}_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
 | Alert emails | `backend/lambdas/common/{mailer,email_templates,email_prefs,unsubscribe}.py`, `backend/lambdas/{cron_tick,admin_writeup_publish}/**`, `infrastructure/terraform/{ses,iam_lambda}.tf`, `frontend/lib/desktop/deep-link.ts` |
-| Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news,videos,writeups,profile}/**`, `frontend/lib/ices/{stats,analysis,chug-board,use-*}.ts`, `frontend/lib/shared-resource.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
+| Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news,videos,writeups,profile,activity}/**`, `frontend/lib/ices/{stats,analysis,chug-board,use-*}.ts`, `frontend/lib/shared-resource.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
 | Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `backend/lambdas/ledger_get/handler.py`, `backend/lambdas/writeup_render/handler.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals,iam_lambda,iam_writeup_render}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
 | File index | any new top-level folder under `frontend/`, `backend/` or `infrastructure/` |
 | `README.md` diagrams and features | `infrastructure/terraform/*.tf`, `backend/lambdas/common/{finalize,late,ice_admin}.py`, `frontend/lib/desktop/registry.tsx` |

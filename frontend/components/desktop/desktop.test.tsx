@@ -7,7 +7,13 @@ vi.mock("@/components/windows/ScoresWindow", () => ({
   },
 }));
 
+vi.mock("@/lib/activity/tracker", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/activity/tracker")>();
+  return { ...real, track: vi.fn(real.track) };
+});
+
 import { Taskbar } from "@/components/xp/Taskbar";
+import { track } from "@/lib/activity/tracker";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { Desktop } from "./Desktop";
@@ -94,6 +100,17 @@ describe("drill-down", () => {
     expect(sectionCount()).toBe(before);
     expect(standings.getAttribute("aria-label")).toBe("Team Profile - Team 6");
     expect(within(standings).getByRole("heading", { name: "Team Profile - Team 6" })).toBeTruthy();
+  });
+
+  it("tracks the window open and the drill inside it", async () => {
+    vi.mocked(track).mockClear();
+    renderDesktop();
+    const standings = openStandings();
+    fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
+    expect(vi.mocked(track).mock.calls).toEqual([
+      ["open", "standings"],
+      ["drill", "team:6"],
+    ]);
   });
 
   it("opens a new window on Ctrl-click or middle-click, once per team", async () => {

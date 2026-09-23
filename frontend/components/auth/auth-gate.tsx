@@ -1,14 +1,21 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import { Landing } from "@/components/landing/landing";
 import { ProfileGate } from "@/components/onboarding/profile-gate";
+import { startTracking } from "@/lib/activity/tracker";
 import { AlertsProvider } from "@/lib/alerts/alerts";
 import { authConfigured, CALLBACK_PATH } from "@/lib/auth/amplify";
 import { useAuth } from "@/lib/auth/use-auth";
 import { ProfileProvider } from "@/lib/profile/use-profile";
+
+// Mounted only in the signed-in branch, so the landing is never tracked.
+function ActivityTracking() {
+  useEffect(startTracking, []);
+  return null;
+}
 
 interface AuthGateProps {
   children: ReactNode;
@@ -34,6 +41,7 @@ export function AuthGate({ children }: AuthGateProps) {
   if (status === "signedIn") {
     return (
       <ProfileProvider>
+        <ActivityTracking />
         <AlertsProvider>
           <ProfileGate>{children}</ProfileGate>
         </AlertsProvider>
