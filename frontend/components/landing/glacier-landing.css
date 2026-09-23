@@ -55,13 +55,14 @@
 .gl-main {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   max-width: 1344px;
   margin: 0 auto;
-  padding: 48px 48px 64px;
+  padding: 32px 48px 48px;
 }
 
 .gl-hero {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -72,8 +73,11 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
-  max-width: 700px;
+  gap: 14px;
+}
+
+.gl-hero .gl-signin-wrap {
+  align-items: flex-start;
 }
 
 .gl-season {
@@ -90,49 +94,28 @@
 
 .gl-title {
   font-family: var(--g-display);
-  font-size: clamp(44px, 12vw, 104px);
+  font-size: 64px;
   line-height: 0.92;
   letter-spacing: -0.02em;
   color: var(--g-text-strong);
 }
 
 .gl-title span {
-  display: block;
   color: var(--g-red);
 }
 
 .gl-lede {
-  max-width: 34rem;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.5;
   color: var(--gl-muted);
 }
 
-.gl-orb {
-  position: relative;
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 480px;
-  height: 460px;
-}
-
-.gl-orb::before {
-  content: "";
-  position: absolute;
-  width: 80%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, rgb(200 240 255 / 0.55) 0%, rgb(110 190 235 / 0.25) 50%, rgb(60 140 200 / 0.05) 75%);
-  box-shadow: 0 0 120px rgb(120 210 250 / 0.35);
-}
-
-.gl-orb img {
-  position: relative;
-  width: 88%;
-  height: 100%;
+.gl-mascot {
+  flex: none;
+  width: 200px;
+  height: 220px;
   object-fit: contain;
-  filter: drop-shadow(0 0 30px rgb(150 220 255 / 0.45));
+  filter: drop-shadow(0 0 30px rgb(150 220 255 / 0.5));
 }
 
 .gl-signin-wrap {
@@ -177,6 +160,50 @@
   opacity: 0.55;
 }
 
+.gl-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gl-features li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 18px;
+  background: rgb(170 225 255 / 0.08);
+}
+
+.gl-features svg {
+  grid-row: span 2;
+  color: var(--gl-link);
+}
+
+.gl-features h3 {
+  font-family: var(--g-display);
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--g-text-strong);
+}
+
+.gl-features p {
+  color: var(--gl-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.gl-rules {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
 .gl-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -187,8 +214,8 @@
 .gl-panel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 28px 24px 24px;
+  gap: 10px;
+  padding: 24px 20px 20px;
   line-height: 1.5;
 }
 
@@ -206,7 +233,7 @@
 
 .gl-panel-title {
   font-family: var(--g-display);
-  font-size: 26px;
+  font-size: 21px;
   line-height: 1.1;
   color: var(--g-text-strong);
 }
@@ -220,13 +247,8 @@
 }
 
 /* With the status hidden, the watch takes the whole row. */
-.gl-watch:first-child,
-.gl-bowl {
+.gl-watch:first-child {
   grid-column: 1 / -1;
-}
-
-.gl-rule {
-  grid-column: span 4;
 }
 
 .gl-bowl {
@@ -322,8 +344,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 48px 24px 32px;
+  gap: 14px;
+  padding: 32px 24px 24px;
   border-top: 1px solid var(--gl-row-edge);
   text-align: center;
 }
@@ -363,15 +385,18 @@
     padding: 0 20px;
   }
 
-  .gl-hero {
-    flex-direction: column;
-    align-items: flex-start;
+  .gl-title {
+    font-size: 48px;
   }
 
-  .gl-orb {
-    align-self: center;
-    width: min(100%, 340px);
-    height: 320px;
+  .gl-mascot {
+    width: 150px;
+    height: 165px;
+  }
+
+  .gl-features,
+  .gl-rules {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .gl-grid > * {
@@ -395,25 +420,87 @@
     height: 38px;
   }
 
-  .gl-lede {
-    font-size: 17px;
+  .gl-main {
+    gap: 20px;
+    padding-top: 20px;
   }
 
-  .gl-orb {
-    height: 280px;
+  /* The mascot sits beside the title, so the sign-in stays above the fold. */
+  .gl-mascot {
+    position: absolute;
+    top: 34px;
+    right: 0;
+    width: 92px;
+    height: 101px;
+  }
+
+  .gl-title {
+    font-size: 38px;
+  }
+
+  .gl-title span {
+    display: block;
+  }
+
+  .gl-lede {
+    font-size: 16px;
+  }
+
+  .gl-features {
+    gap: 8px;
+  }
+
+  .gl-features li {
+    gap: 4px 8px;
+    padding: 12px;
+  }
+
+  .gl-features svg {
+    grid-row: auto;
+    width: 20px;
+    height: 20px;
+  }
+
+  .gl-features p {
+    grid-column: 1 / -1;
+  }
+
+  .gl-season {
+    font-size: 12px;
+  }
+
+  .gl-features h3 {
+    font-size: 15px;
+  }
+
+  .gl-features p {
+    font-size: 13px;
+  }
+
+  /* Swipe through the rules; the next card peeks in to say so. */
+  .gl-rules {
+    display: flex;
+    gap: 12px;
+    margin-inline: -20px;
+    padding: 10px 20px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 20px;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .gl-rules > * {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
   }
 
   .gl-panel {
-    padding: 26px 18px 20px;
+    padding: 22px 18px 18px;
   }
 
   .gl-status .xp-summary {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-
-  .gl-status .xp-summary dd {
-    margin-bottom: 8px;
+    gap: 4px 14px;
   }
 }
 

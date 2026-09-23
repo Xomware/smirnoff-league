@@ -189,26 +189,30 @@ describe("Glacier", () => {
       </ProfileProvider>,
     );
 
-  it("themes its root, with the pill tab bar and the snow", () => {
+  // Glacier's tabs sit at the top of its Menu drawer rather than in a bar.
+  const drawerTab = (name: string) => {
+    fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Menu" }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Main" })).getByRole("button", { name }));
+  };
+
+  it("themes its root, with the snow and no tab bar", () => {
     const { container } = renderGlacier();
     const root = container.firstElementChild!;
     expect(root.getAttribute("data-theme")).toBe("glacier");
-    expect(root.querySelector(".m-tabs-pill")).toBe(screen.getByRole("navigation", { name: "Tabs" }));
-    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
+    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
     expect(root.querySelector(".glacier-effects")).not.toBeNull();
   });
 
-  it("opens with Glacier's home and still switches tabs", async () => {
+  it("opens with Glacier's home and still switches tabs from the drawer", async () => {
     renderGlacier();
     expect(await top().findByRole("heading", { name: "Every zero is an ice." })).toBeTruthy();
     expect(top().getByRole("region", { name: "Your ices" })).toBeTruthy();
 
-    fireEvent.click(tab("Games"));
+    drawerTab("Games");
     expect(title()).toBe("Games");
-    expect(tab("Games").getAttribute("aria-current")).toBe("page");
     expect(await top().findByRole("button", { name: "Previous week" })).toBeTruthy();
 
-    fireEvent.click(tab("Home"));
+    drawerTab("Home");
     expect(title()).toBe("Smirnoff League");
     expect(top().getByRole("heading", { name: "Every zero is an ice." })).toBeTruthy();
   });
@@ -216,7 +220,8 @@ describe("Glacier", () => {
   it("leaves the default XP phone untouched", () => {
     const { container } = renderShell();
     expect(container.querySelector("[data-theme]")).toBeNull();
-    expect(container.querySelector(".m-tabs-pill, .glacier-effects")).toBeNull();
+    expect(container.querySelector(".glacier-effects")).toBeNull();
+    expect(tabBar().getAllByRole("button")).toHaveLength(4);
     expect(container.querySelector(".m-hero")).not.toBeNull();
   });
 });

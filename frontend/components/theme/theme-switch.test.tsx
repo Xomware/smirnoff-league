@@ -136,8 +136,8 @@ describe("switching themes in the app", () => {
     media({ phone: true });
     vi.mocked(updateMe).mockImplementation(async (input) => profile("theme" in input ? input.theme : null));
     const { container } = renderApp(null);
-    const tabs = await screen.findByRole("navigation", { name: "Tabs" });
-    expect(tabs.classList.contains("m-tabs-pill")).toBe(true);
+    expect(await screen.findByRole("button", { name: "Menu" })).toBeTruthy();
+    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
     expect(container.querySelector(".m-app")!.getAttribute("data-theme")).toBe("glacier");
 
     const home = within(screen.getByRole("region", { name: "Smirnoff League" }));

@@ -1,12 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { type ComponentType, useEffect, useId, useRef, useState } from "react";
+import { type ComponentType, type UIEvent, useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
-import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
+import { GlacierHome } from "@/components/glacier/GlacierHome";
+import { LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
 import { GlacierTrouble } from "@/components/glacier/GlacierTrouble";
 import { MenuDrawer } from "@/components/glacier/MenuDrawer";
 import { FONTS } from "@/components/glacier/Frost";
@@ -74,6 +75,16 @@ const TAB_BAR: Record<Tab, { label: string; Icon: typeof HomeIcon }> = {
   menu: { label: "Menu", Icon: MenuIcon },
 };
 
+const GlacierPhoneHome = () => <GlacierHome phone />;
+
+// Glacier has no tab bar: these lead its drawer instead.
+const QUICK: { label: string; icon: keyof typeof LINE_ICONS; to: Tab | Screen }[] = [
+  { label: "Home", icon: "home", to: "home" },
+  { label: "Games", icon: "games", to: "games" },
+  { label: "Ices", icon: "ices", to: "ices" },
+  { label: "League", icon: "league", to: { kind: "standings", params: {} } },
+];
+
 function useScreenTitle(): (screen: Screen) => string {
   const windowTitle = useWindowTitle();
   const { data, teamFor } = useLeague();
@@ -117,6 +128,8 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const shown = useRef(topKey);
   const [searching, setSearching] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const screens = useRef<HTMLElement>(null);
   const drawerId = useId();
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
@@ -124,7 +137,14 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     if (shown.current === topKey) return;
     shown.current = topKey;
     heading.current?.focus({ preventScroll: true });
+    setScrolled((screens.current?.querySelector(".m-screen:not([hidden])")?.scrollTop ?? 0) > 24);
   }, [topKey]);
+
+  // Scroll doesn't bubble, so this listens in the capture phase; a carousel's sideways scroll isn't the page's.
+  const onScroll = (e: UIEvent<HTMLElement>) => {
+    const el = e.target as HTMLElement;
+    if (el.classList.contains("m-screen")) setScrolled(el.scrollTop > 24);
+  };
 
   const go = ({ kind, params }: Screen) => {
     const tab = foldedInto(kind);
@@ -132,9 +152,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     push({ kind, params });
   };
   const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
-  // Glacier's Menu is a drawer over the current screen, not a tab of its own.
-  const onTab = (tab: Tab) => {
-    if (!glacier || tab !== "menu") return selectTab(tab);
+  const openMenu = () => {
     setMenuOpen(true);
     track("open", "tab:menu");
   };
@@ -142,11 +160,17 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     setMenuOpen(false);
     go(screen);
   };
+  const quick = (to: Tab | Screen) => {
+    if (typeof to !== "string") return goFromMenu(to);
+    setMenuOpen(false);
+    selectTab(to);
+  };
+  const isHere = (to: Tab | Screen) => (typeof to === "string" ? to === nav.tab && stack.length === 1 : top.kind === to.kind);
 
   return (
     <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
       {glacier && <link rel="stylesheet" href={FONTS} precedence="default" />}
-      <header className="m-bar">
+      <header className="m-bar" data-scrolled={(glacier && scrolled) || undefined}>
         {glacier && <Icicles className="m-bar-icicles" d={HEADER_ICICLES} />}
         {stack.length > 1 ? (
           <button type="button" className="m-back" aria-label="Back" onClick={back}>
@@ -163,11 +187,24 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
         </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
+        {glacier && (
+          <button
+            type="button"
+            className="m-burger"
+            aria-label="Menu"
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            aria-controls={drawerId}
+            onClick={openMenu}
+          >
+            <LineIcon d={LINE_ICONS.menu} />
+          </button>
+        )}
       </header>
       <PushContext value={go}>
         <DrillContext.Provider value={open}>
           <NavigateContext value={open}>
-            <main className="m-screens">
+            <main ref={screens} className="m-screens" onScrollCapture={glacier ? onScroll : undefined}>
               {TABS.flatMap((tab) =>
                 (nav.stacks[tab] ?? []).map((screen, i, all) => {
                   const Body = glacier && screen.kind === "home" ? GlacierPhoneHome : bodyOf(screen.kind);
@@ -196,27 +233,25 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           </NavigateContext>
         </DrillContext.Provider>
       </PushContext>
-      <nav className={glacier ? "m-tabs m-tabs-pill" : "m-tabs"} aria-label="Tabs">
-        {TABS.map((tab) => {
-          const { label, Icon } = TAB_BAR[tab];
-          const drawer = glacier && tab === "menu";
-          return (
-            <button
-              key={tab}
-              type="button"
-              className="m-tab"
-              aria-current={tab === nav.tab ? "page" : undefined}
-              aria-haspopup={drawer ? "dialog" : undefined}
-              aria-expanded={drawer ? menuOpen : undefined}
-              aria-controls={drawer ? drawerId : undefined}
-              onClick={() => onTab(tab)}
-            >
-              {glacier ? <LineIcon d={LINE_ICONS[tab]} /> : <Icon width={24} height={24} />}
-              {label}
-            </button>
-          );
-        })}
-      </nav>
+      {!glacier && (
+        <nav className="m-tabs" aria-label="Tabs">
+          {TABS.map((tab) => {
+            const { label, Icon } = TAB_BAR[tab];
+            return (
+              <button
+                key={tab}
+                type="button"
+                className="m-tab"
+                aria-current={tab === nav.tab ? "page" : undefined}
+                onClick={() => selectTab(tab)}
+              >
+                <Icon width={24} height={24} />
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+      )}
       <CommandPalette
         phone
         open={searching}
@@ -226,6 +261,14 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
       {glacier && (
         <PushContext value={goFromMenu}>
           <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
+            <nav aria-label="Main" className="gp-quick">
+              {QUICK.map(({ label, icon, to }) => (
+                <button key={label} type="button" aria-current={isHere(to) ? "page" : undefined} onClick={() => quick(to)}>
+                  <LineIcon d={LINE_ICONS[icon]} size={26} />
+                  {label}
+                </button>
+              ))}
+            </nav>
             <MenuScreen />
           </MenuDrawer>
         </PushContext>

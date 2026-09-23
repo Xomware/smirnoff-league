@@ -120,8 +120,7 @@ describe("?open=", () => {
     renderAt("/?open=standings,team:6");
 
     expect(await screen.findByRole("heading", { level: 1, name: "Team 6" })).toBeTruthy();
-    const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    expect(tabs.getByRole("button", { name: "Menu" }).getAttribute("aria-current")).toBe("page");
+    expect(within(screen.getByRole("banner")).getByRole("button", { name: "Menu" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
     expect(await screen.findByRole("heading", { level: 1, name: "League Standings" })).toBeTruthy();
     expect(document.querySelector(".xp-desktop")).toBeNull();
