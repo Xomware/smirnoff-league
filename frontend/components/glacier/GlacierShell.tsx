@@ -17,6 +17,7 @@ import { windowId, type WindowParams } from "@/lib/desktop/windows";
 import { Effects } from "./Effects";
 import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
+import { GlacierTrouble } from "./GlacierTrouble";
 import { ProfileMenu } from "./ProfileMenu";
 
 import "./glacier.css";
@@ -122,6 +123,7 @@ export function GlacierShell() {
           Search
           <kbd aria-hidden="true">⌘K</kbd>
         </button>
+        <GlacierTrouble />
         <ThemeToggle />
         <NotificationBell onOpen={() => go({ kind: "notifications", params: {} })} />
         <ProfileMenu urlOf={urlOf} onNav={onNav} />
