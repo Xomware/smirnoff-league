@@ -6,7 +6,7 @@
   --m-bg: var(--g-sticky);
   --m-muted: var(--g-muted);
   --m-line: var(--g-line);
-  --gp-bar: calc(68px + 16px + env(safe-area-inset-bottom));
+  --gp-bar: calc(64px + env(safe-area-inset-bottom));
 
   /* .glacier is position: relative for the desktop page; the phone app stays pinned. */
   position: fixed;
@@ -80,29 +80,29 @@
   padding-bottom: calc(var(--gp-bar) + 24px);
 }
 
-/* The floating pill tab bar. */
+/* The tab bar, docked to the bottom edge. Floating, it left a strip under it
+   where the page showed through; opaque, nothing reads through it. */
 .m-app.glacier .m-tabs-pill {
   position: absolute;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  left: max(12px, env(safe-area-inset-left));
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 3;
   align-items: center;
-  height: 68px;
-  padding: 0 8px;
-  border: 1px solid rgb(190 235 255 / 0.35);
-  border-radius: 999px;
-  /* Nearly opaque: at 0.92 the page's text read through the bar. */
-  background: rgb(8 30 52 / 0.97);
-  box-shadow:
-    0 10px 30px rgb(2 12 24 / 0.5),
-    inset 0 1px 0 rgb(255 255 255 / 0.3);
-  backdrop-filter: blur(10px);
+  height: var(--gp-bar);
+  padding-top: 6px;
+  padding-right: max(8px, env(safe-area-inset-right));
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  padding-left: max(8px, env(safe-area-inset-left));
+  border-top: 1px solid rgb(190 235 255 / 0.28);
+  border-radius: 0;
+  background: #081e34;
+  box-shadow: 0 -8px 24px rgb(2 12 24 / 0.45);
 }
 
 .m-app.glacier .m-tab {
   gap: 2px;
-  min-height: 52px;
+  min-height: 50px;
   border-radius: 999px;
   color: #bfd3e2;
   font: 800 12px var(--g-body);
@@ -312,10 +312,10 @@
   }
 }
 
-/* A phone on its side: a slimmer pill, icons beside their labels. */
+/* A phone on its side: a slimmer bar. */
 @media (max-height: 500px) {
   .m-app.glacier {
-    --gp-bar: calc(52px + 10px + env(safe-area-inset-bottom));
+    --gp-bar: calc(52px + env(safe-area-inset-bottom));
   }
 
   .m-app.glacier .m-bar {
@@ -323,11 +323,10 @@
   }
 
   .m-app.glacier .m-tabs-pill {
-    right: max(25%, env(safe-area-inset-right));
-    bottom: calc(10px + env(safe-area-inset-bottom));
-    left: max(25%, env(safe-area-inset-left));
-    height: 52px;
-    padding: 0 4px;
+    padding-top: 4px;
+    padding-right: max(25%, env(safe-area-inset-right));
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+    padding-left: max(25%, env(safe-area-inset-left));
   }
 
   .m-app.glacier .m-tab {
@@ -335,8 +334,99 @@
   }
 }
 
+/* The Menu drawer, sliding in from the right over the page. */
+.gp-drawer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+.gp-drawer[data-open="false"] {
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s 0.28s;
+}
+
+.gp-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(4 19 34 / 0.62);
+  opacity: 0;
+  transition: opacity 0.28s;
+}
+
+.gp-drawer[data-open="true"] .gp-drawer-scrim {
+  opacity: 1;
+}
+
+.gp-drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, 88%);
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-left: 1px solid var(--g-frost-edge);
+  background: var(--g-modal);
+  box-shadow: -18px 0 48px rgb(2 12 24 / 0.55);
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.gp-drawer[data-open="true"] .gp-drawer-panel {
+  transform: none;
+}
+
+.gp-drawer-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 0 12px 0 20px;
+  border-bottom: 1px solid var(--g-line);
+}
+
+.gp-drawer-head h2 {
+  margin: 0;
+  color: var(--g-text-strong);
+  font: 20px var(--g-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.gp-drawer-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.gp-drawer-close:active {
+  background: var(--g-press);
+}
+
+.gp-drawer-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 16px 24px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .m-app.glacier .m-tab {
+  .m-app.glacier .m-tab,
+  .gp-drawer,
+  .gp-drawer-scrim,
+  .gp-drawer-panel {
     transition: none;
   }
 }

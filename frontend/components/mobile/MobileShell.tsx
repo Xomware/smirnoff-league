@@ -1,18 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { type ComponentType, useEffect, useRef, useState } from "react";
+import { type ComponentType, useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
+import { MenuDrawer } from "@/components/glacier/MenuDrawer";
 import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
+import { track } from "@/lib/activity/tracker";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import type { WindowParams } from "@/lib/desktop/windows";
 import { useLeague } from "@/lib/league/use-league";
@@ -101,6 +103,8 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const topKey = `${nav.tab}/${stack.length}/${screenId(top)}`;
   const shown = useRef(topKey);
   const [searching, setSearching] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const drawerId = useId();
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
   useEffect(() => {
@@ -115,6 +119,16 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     push({ kind, params });
   };
   const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
+  // Glacier's Menu is a drawer over the current screen, not a tab of its own.
+  const onTab = (tab: Tab) => {
+    if (!glacier || tab !== "menu") return selectTab(tab);
+    setMenuOpen(true);
+    track("open", "tab:menu");
+  };
+  const pushFromMenu = (screen: Screen) => {
+    setMenuOpen(false);
+    push(screen);
+  };
 
   return (
     <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
@@ -171,13 +185,17 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
       <nav className={glacier ? "m-tabs m-tabs-pill" : "m-tabs"} aria-label="Tabs">
         {TABS.map((tab) => {
           const { label, Icon } = TAB_BAR[tab];
+          const drawer = glacier && tab === "menu";
           return (
             <button
               key={tab}
               type="button"
               className="m-tab"
               aria-current={tab === nav.tab ? "page" : undefined}
-              onClick={() => selectTab(tab)}
+              aria-haspopup={drawer ? "dialog" : undefined}
+              aria-expanded={drawer ? menuOpen : undefined}
+              aria-controls={drawer ? drawerId : undefined}
+              onClick={() => onTab(tab)}
             >
               {glacier ? <LineIcon d={LINE_ICONS[tab]} /> : <Icon width={24} height={24} />}
               {label}
@@ -191,6 +209,13 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
         onOpenChange={setSearching}
         onGo={go}
       />
+      {glacier && (
+        <PushContext value={pushFromMenu}>
+          <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
+            <MenuScreen />
+          </MenuDrawer>
+        </PushContext>
+      )}
       {glacier && <Effects />}
     </div>
   );
