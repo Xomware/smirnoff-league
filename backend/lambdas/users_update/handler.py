@@ -1,7 +1,11 @@
 """
 POST /users/update - create or update the caller's profile, keyed by the token's sub.
 
-Body: { "name": 1-40 chars, "username": 2-20 of [A-Za-z0-9_.-], "rosterId": int 1-14 }
+Body: { "name": 1-40 chars, "username": 2-20 of [A-Za-z0-9_.-], "rosterId": int 1-14,
+        "notificationsSeenAt"?: ISO 8601 with an offset, not in the future }
+
+`notificationsSeenAt` may also be sent alone, to mark notifications read
+without resending the profile.
 
 Two users may claim the same roster: co-owners share one.
 """
@@ -9,22 +13,43 @@ Two users may claim the same roster: co-owners share one.
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta, timezone
 
 from lambdas.common.api import ValidationError, api_handler, body, caller_sub, ok
-from lambdas.common.users_dynamo import save_profile
+from lambdas.common.users_dynamo import save_profile, save_seen_at
 
 USERNAME = re.compile(r"[A-Za-z0-9_.-]{2,20}")
 ROSTERS = range(1, 15)
+PROFILE_KEYS = {"name", "username", "rosterId"}
+# The browser stamps "now" with its own clock, which can run a little ahead of ours.
+CLOCK_SKEW = timedelta(minutes=2)
 
 
 def _invalid(field: str, message: str) -> ValidationError:
     return ValidationError(f"{field} {message}", field=field)
 
 
+def _seen_at(value) -> str:
+    message = "must be an ISO 8601 time with an offset, not in the future"
+    if not isinstance(value, str):
+        raise _invalid("notificationsSeenAt", message)
+    try:
+        at = datetime.fromisoformat(value)
+    except ValueError:
+        raise _invalid("notificationsSeenAt", message)
+    if at.tzinfo is None or at > datetime.now(timezone.utc) + CLOCK_SKEW:
+        raise _invalid("notificationsSeenAt", message)
+    return value
+
+
 @api_handler("users_update")
 def handler(event, context):
     sub = caller_sub(event)
     data = body(event)
+
+    seen_at = _seen_at(data["notificationsSeenAt"]) if "notificationsSeenAt" in data else None
+    if seen_at is not None and PROFILE_KEYS.isdisjoint(data):
+        return ok(save_seen_at(sub, seen_at))
 
     name = data.get("name")
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= 40:
@@ -39,4 +64,4 @@ def handler(event, context):
     if type(roster_id) is not int or roster_id not in ROSTERS:
         raise _invalid("rosterId", "must be a whole number from 1 to 14")
 
-    return ok(save_profile(sub, name.strip(), username, roster_id))
+    return ok(save_profile(sub, name.strip(), username, roster_id, seen_at))

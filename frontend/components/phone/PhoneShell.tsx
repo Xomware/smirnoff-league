@@ -11,6 +11,7 @@ import { windowId } from "@/lib/desktop/windows";
 import { stackOf, type Tab, TABS } from "@/lib/phone/nav";
 import { usePhoneNav } from "@/lib/phone/use-phone-nav";
 import { useProfile } from "@/lib/profile/use-profile";
+import { NotificationBell } from "@/components/xp/NotificationBell";
 import { StartSheet } from "./StartSheet";
 
 import "./phone.css";
@@ -71,6 +72,7 @@ export function PhoneShell() {
         <h1 ref={heading} tabIndex={-1} className="phone-title">
           {windowTitle(view)}
         </h1>
+        <NotificationBell onOpen={() => view.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
       <DrillContext.Provider value={drill}>
         <NavigateContext value={drill}>
@@ -123,7 +125,7 @@ export function PhoneShell() {
           aria-controls={sheet ? sheetId : undefined}
           onClick={() => setSheet((s) => !s)}
         >
-          <RobotHeadIcon width={22} height={22} className="xp-start-logo" />
+          <RobotHeadIcon width={22} height={22} />
           start
         </button>
         <ul className="phone-tab-list">

@@ -1,0 +1,111 @@
+/* Notifications: an Outlook Express style list, unread rows bold with a gold rail. */
+.notifs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notifs-list {
+  border: 1px solid var(--xp-face-shadow);
+  background: var(--xp-cream);
+}
+
+.notifs-list > li + li {
+  border-top: 1px solid var(--xp-face);
+}
+
+.notifs-item .xp-drill {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr auto;
+  align-items: start;
+  gap: 0.625rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.625rem;
+}
+
+.notifs-item .xp-drill:hover {
+  text-decoration: none;
+  background: var(--ice-tint);
+}
+
+.notifs-item .xp-drill:hover .notifs-title {
+  text-decoration: underline;
+}
+
+.notifs-item .xp-drill:active {
+  color: inherit;
+  background: var(--xp-menu-side);
+}
+
+.notifs-item .xp-drill:focus-visible {
+  outline-offset: -3px;
+}
+
+.notifs-new .xp-drill {
+  box-shadow: inset 4px 0 var(--xp-gold);
+}
+
+.notifs-icon {
+  justify-self: center;
+  margin-top: 0.125rem;
+}
+
+.notifs-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.notifs-title {
+  color: var(--xp-title-dark);
+}
+
+.notifs-new .notifs-title {
+  font-weight: bold;
+}
+
+.notifs-body {
+  font-size: 0.8125rem;
+}
+
+.notifs-time {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.notifs-note {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--xp-gold);
+  font-size: 0.8125rem;
+  background: var(--xp-balloon);
+}
+
+.notifs-empty {
+  padding: 1rem 0.5rem;
+  font-style: italic;
+  color: var(--xp-title-dark);
+}
+
+/* The tray and title-bar bell. The badge is XP's red count bubble. */
+.notif-bell {
+  position: relative;
+}
+
+.notif-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.125rem;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--xp-cream);
+  border-radius: 0.5625rem;
+  font: bold 0.6875rem/1rem var(--xp-font);
+  text-align: center;
+  color: var(--xp-text-inverse);
+  background: var(--xp-red);
+}

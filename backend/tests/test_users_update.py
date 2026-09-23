@@ -96,3 +96,42 @@ def test_listed_user_onboards_and_is_admin(aws):
     _, body = me()
     assert body["data"]["profile"]["rosterId"] == 7
     assert body["data"]["isAdmin"] is True
+
+
+def test_seen_at_updates_on_its_own_and_round_trips(aws):
+    _, first = update(VALID)
+    status, body = update({"notificationsSeenAt": "2025-09-25T12:00:00-04:00"})
+    assert status == 200
+    saved = body["data"]
+    assert saved["notificationsSeenAt"] == "2025-09-25T12:00:00-04:00"
+    assert {k: saved[k] for k in ("name", "username", "rosterId")} == VALID
+    assert saved["createdAt"] == first["data"]["createdAt"]
+    assert me()[1]["data"]["profile"] == saved
+
+
+def test_profile_update_keeps_seen_at(aws):
+    update({**VALID, "notificationsSeenAt": "2025-09-25T16:00:00Z"})
+    _, body = update({**VALID, "name": "Renamed"})
+    assert body["data"]["notificationsSeenAt"] == "2025-09-25T16:00:00Z"
+
+
+def test_profile_without_seen_at_returns_null(aws):
+    assert update(VALID)[1]["data"]["notificationsSeenAt"] is None
+
+
+def test_seen_at_before_onboarding_is_404(aws):
+    status, _ = update({"notificationsSeenAt": "2025-09-25T16:00:00Z"})
+    assert status == 404
+    assert me()[1]["data"]["profile"] is None
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["2025-09-25T16:00:00", "yesterday", "", 1758816000, "2999-01-01T00:00:00Z"],
+)
+def test_invalid_seen_at_is_400(aws, value):
+    update(VALID)
+    status, res = update({"notificationsSeenAt": value})
+    assert status == 400
+    assert res["error"]["detail"] == {"field": "notificationsSeenAt"}
+    assert me()[1]["data"]["profile"]["notificationsSeenAt"] is None
