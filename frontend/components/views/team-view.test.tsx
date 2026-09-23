@@ -6,6 +6,10 @@ vi.mock("@/lib/api/ledger", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/ledger")>()),
   getLedger: vi.fn(),
 }));
+vi.mock("@/lib/api/videos", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/videos")>()),
+  listVideos: vi.fn(),
+}));
 vi.mock("@/lib/api/users", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/users")>()),
   getMe: vi.fn(),
@@ -13,8 +17,9 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 
 import { AppShell } from "@/components/phone/AppShell";
 import { Desktop } from "@/components/desktop/Desktop";
-import { getLedger } from "@/lib/api/ledger";
+import { getLedger, type Ledger } from "@/lib/api/ledger";
 import { ApiError, getMe } from "@/lib/api/users";
+import { listVideos, type Video } from "@/lib/api/videos";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
@@ -36,6 +41,21 @@ function viewport(phone: boolean) {
   );
 }
 
+const R6_ZERO = SCENARIO_LEDGER.ices.find((i) => i.rosterId === 6 && i.reason === "zero")!;
+const R6_VIDEO: Video = {
+  mediaId: "W01#r6",
+  iceId: R6_ZERO.iceId,
+  week: 1,
+  rosterId: 6,
+  createdAt: "2026-09-20T12:00:00+00:00",
+  bytes: 5_000_000,
+  url: "https://media.test/r6.mp4",
+};
+const FILMED: Ledger = {
+  ...SCENARIO_LEDGER,
+  ices: SCENARIO_LEDGER.ices.map((i) => (i.iceId === R6_ZERO.iceId ? { ...i, videoId: R6_VIDEO.mediaId } : i)),
+};
+
 const withDrill = (onOpen: () => void, view: ReactNode) => (
   <DrillContext.Provider value={onOpen}>{view}</DrillContext.Provider>
 );
@@ -46,9 +66,11 @@ beforeEach(() => {
   stubSleeper();
   vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
   vi.mocked(getMe).mockResolvedValue({ sub: "s6", email: "six@example.com", isAdmin: false, profile: PROFILE });
+  vi.mocked(listVideos).mockResolvedValue([]);
   Element.prototype.setPointerCapture = vi.fn();
 });
 afterEach(() => {
+  vi.clearAllMocks();
   vi.restoreAllMocks();
   window.history.replaceState(null, "", "/");
 });
@@ -122,6 +144,76 @@ describe("Manager profile", () => {
     expect((await screen.findByRole("note")).textContent).toMatch(/ledger unavailable \(internal error\)/i);
     const rows = within(screen.getByRole("table", { name: "Season ices" })).getAllByRole("row").slice(1);
     expect(rows.map((r) => cells(r)[3])).toEqual(["Provisional", "Provisional"]);
+  });
+
+  it("links only the ices that have a video, and plays one in a media player", async () => {
+    vi.mocked(getLedger).mockResolvedValue(FILMED);
+    vi.mocked(listVideos).mockResolvedValue([R6_VIDEO]);
+    render(<TeamView rosterId={6} />);
+    await screen.findByRole("table", { name: "Weekly results" });
+    openTab("Ices");
+
+    const ices = await screen.findByRole("table", { name: "Season ices" });
+    const [lowest, zero] = within(ices).getAllByRole("row").slice(1);
+    const play = await within(zero).findByRole("button", { name: "Play Week 1 · Team 6 · Romeo Doubs" });
+    expect(cells(lowest)[5]).toBe("None");
+    expect(within(lowest).queryByRole("button", { name: /play/i })).toBeNull();
+
+    play.focus();
+    fireEvent.click(play);
+    const player = screen.getByRole("dialog", { name: "Week 1 · Team 6 · Romeo Doubs" });
+    const video = player.querySelector("video")!;
+    expect(video.getAttribute("src")).toBe(`${R6_VIDEO.url}#t=0.1`);
+    expect(video.hasAttribute("controls")).toBe(true);
+    expect(video.hasAttribute("playsinline")).toBe(true);
+    expect(video.getAttribute("preload")).toBe("metadata");
+
+    fireEvent.keyDown(player, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(play);
+  });
+
+  it("refetches an expired presigned URL and plays the fresh one", async () => {
+    vi.mocked(getLedger).mockResolvedValue(FILMED);
+    vi.mocked(listVideos).mockResolvedValue([R6_VIDEO]);
+    render(<TeamView rosterId={6} />);
+    await screen.findByRole("table", { name: "Weekly results" });
+    openTab("Ices");
+    fireEvent.click(await screen.findByRole("button", { name: /^Play Week 1/ }));
+    const video = screen.getByRole("dialog").querySelector("video")!;
+
+    vi.mocked(listVideos).mockResolvedValue([{ ...R6_VIDEO, url: "https://media.test/fresh.mp4" }]);
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 2 * 60 * 60 * 1000);
+    fireEvent.error(video);
+    await waitFor(() => expect(screen.getByRole("dialog").querySelector("video")!.getAttribute("src")).toBe("https://media.test/fresh.mp4#t=0.1"));
+    expect(listVideos).toHaveBeenCalledTimes(2);
+  });
+
+  it("offers an upload on my own team's owed ices only", async () => {
+    vi.mocked(getMe).mockResolvedValue({ sub: "s13", email: "e", isAdmin: false, profile: { ...PROFILE, rosterId: 13 } });
+    const { rerender } = render(
+      <ProfileProvider>
+        <TeamView rosterId={13} />
+      </ProfileProvider>,
+    );
+    await screen.findByRole("table", { name: "Weekly results" });
+    openTab("Ices");
+    const ices = await screen.findByRole("table", { name: "Season ices" });
+    await waitFor(() => expect(within(ices).getAllByRole("button", { name: "Upload chug" })).toHaveLength(4));
+    expect(within(ices).getAllByRole("row").slice(1).every((r) => cells(r)[5]?.startsWith("None"))).toBe(true);
+
+    fireEvent.click(within(ices).getAllByRole("button", { name: "Upload chug" })[0]);
+    const picker = within(screen.getByRole("dialog", { name: "Upload chug" })).getByLabelText("Ice") as HTMLSelectElement;
+    expect(picker.selectedOptions[0].textContent).toMatch(/lowest score/i);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    rerender(
+      <ProfileProvider>
+        <TeamView rosterId={12} />
+      </ProfileProvider>,
+    );
+    const theirs = await screen.findByRole("table", { name: "Season ices" });
+    expect(within(theirs).queryByRole("button", { name: "Upload chug" })).toBeNull();
   });
 
   it("shows transactions, head-to-head records and the roster with season points", async () => {
@@ -216,5 +308,33 @@ describe("scenario", () => {
     openTab("Ices", within(win));
     fireEvent.click(within(await within(win).findByRole("table", { name: "Season ices" })).getByRole("button", { name: "Romeo Doubs" }));
     expect(await within(win).findByRole("heading", { name: "Romeo Doubs" })).toBeTruthy();
+  });
+
+  it("plays a completed ice's chug video from roster 6's Ices tab", async () => {
+    vi.mocked(getLedger).mockResolvedValue(FILMED);
+    vi.mocked(listVideos).mockResolvedValue([R6_VIDEO]);
+    render(
+      <ProfileProvider>
+        <DesktopProvider>
+          <Desktop />
+        </DesktopProvider>
+      </ProfileProvider>,
+    );
+    const standings = document.querySelector<HTMLElement>('section[aria-label="League Standings"]')!;
+    fireEvent.click((await within(standings).findByText("Team 6")).closest("button")!);
+    await within(standings).findByRole("table", { name: "Weekly results" });
+    openTab("Ices", within(standings));
+
+    const ices = await within(standings).findByRole("table", { name: "Season ices" });
+    const zero = within(ices).getAllByRole("row").slice(1).find((r) => cells(r)[1] === "Zero points")!;
+    expect(cells(zero)[3]).toBe("Completed");
+    fireEvent.click(await within(zero).findByRole("button", { name: /^Play / }));
+
+    const player = screen.getByRole("dialog", { name: "Week 1 · Team 6 · Romeo Doubs" });
+    const video = player.querySelector("video")!;
+    expect(video.getAttribute("src")).toBe(`${R6_VIDEO.url}#t=0.1`);
+    expect(video.autoplay).toBe(true);
+    fireEvent.click(within(player).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });
