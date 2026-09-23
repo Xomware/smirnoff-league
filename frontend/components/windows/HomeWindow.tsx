@@ -22,7 +22,7 @@ function EditionPanel() {
   const latest = state.status === "ok" ? state.writeups[0] : undefined;
 
   return (
-    <section aria-label="This Week's Edition" className="xp-inset shrink-0 p-2 sm:w-36">
+    <section aria-label="This Week's Edition" className="xp-inset shrink-0 p-2 sm:w-56">
       {state.status === "loading" ? (
         <p role="status">Checking the News Drop...</p>
       ) : state.status === "error" ? (
@@ -33,7 +33,7 @@ function EditionPanel() {
         <button type="button" className="home-edition" onClick={() => open({ kind: "writeup", week: latest.week })}>
           <span className="font-bold">This Week&apos;s Edition</span>
           <Image unoptimized src={latest.pages[0]} alt="" width={140} height={181} onError={onPageError} />
-          <span className="truncate">
+          <span className="line-clamp-3">
             Week {latest.week}: {latest.title}
           </span>
         </button>

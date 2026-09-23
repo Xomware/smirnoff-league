@@ -91,7 +91,7 @@ export function WriteupWindow({ params }: WriteupWindowProps) {
         : nav}
       <div className="writeup-main">
         <header className="writeup-head">
-          <div className="mr-auto min-w-0">
+          <div className="min-w-0 flex-1">
             {shown && (
               <>
                 <h3 className="writeup-title">{shown.title}</h3>
@@ -101,9 +101,11 @@ export function WriteupWindow({ params }: WriteupWindowProps) {
               </>
             )}
           </div>
-          <button type="button" className="xp-button writeup-archive-toggle" aria-expanded={archiveOpen} onClick={() => setArchiveOpen(true)}>
-            Archive
-          </button>
+          {writeups.length > 0 && (
+            <button type="button" className="xp-button writeup-archive-toggle" aria-expanded={archiveOpen} onClick={() => setArchiveOpen(true)}>
+              Archive
+            </button>
+          )}
           {isAdmin && (
             <button type="button" className="xp-button" onClick={() => setUploading(true)}>
               Upload edition
@@ -134,13 +136,16 @@ export function WriteupWindow({ params }: WriteupWindowProps) {
           </ol>
         )}
       </div>
-      {uploading && (
-        <UploadEdition
-          defaultWeek={Math.min(17, (writeups[0]?.week ?? 0) + 1)}
-          onPublished={refresh}
-          onClose={() => setUploading(false)}
-        />
-      )}
+      {/* Portalled so no window stacked above this one can cover the modal. */}
+      {uploading &&
+        createPortal(
+          <UploadEdition
+            defaultWeek={Math.min(17, (writeups[0]?.week ?? 0) + 1)}
+            onPublished={refresh}
+            onClose={() => setUploading(false)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

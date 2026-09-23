@@ -12,7 +12,6 @@
 
 .writeup-head {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
@@ -128,6 +127,7 @@
 
 .upload-edition {
   width: min(26rem, 100%);
+  font-size: 0.8125rem;
   box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
 }
 
@@ -160,8 +160,8 @@
 
 .home-edition {
   display: grid;
-  grid-template-columns: 5rem 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-columns: 4.5rem 1fr;
+  align-content: start;
   gap: 0.25rem 0.5rem;
   width: 100%;
   min-width: 0;
@@ -184,19 +184,11 @@
   background: var(--xp-menu-side);
 }
 
+.home-edition:active {
+  background: var(--xp-face);
+}
+
 .home-edition:focus-visible {
   outline: 2px dotted var(--xp-text);
   outline-offset: 1px;
-}
-
-@media (min-width: 40rem) {
-  .home-edition {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-  }
-
-  .home-edition img {
-    grid-row: auto;
-    order: 0;
-  }
 }
