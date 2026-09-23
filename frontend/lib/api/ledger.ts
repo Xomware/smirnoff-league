@@ -15,6 +15,9 @@ export interface LedgerIce {
   completedAt?: string | null;
   parentIceId?: string;
   chugSeconds?: number;
+  /** Who chugged it; untimed or unnamed ices have none. */
+  chugger?: { name: string };
+  timedAt?: string;
   videoId?: string;
   note?: string;
 }
@@ -44,6 +47,13 @@ export interface Ledger {
   summary: LedgerSummary[];
   toiletByes?: number[];
 }
+
+/** A league user by sub, or free text for someone without an account. Only admins may name one. */
+export type ChuggerPick = { sub: string } | { name: string };
+
+// The server rounds to a tenth. Players time their own roster's ices; admins time any.
+export const logChugTime = (iceId: string, seconds: number, chugger?: ChuggerPick) =>
+  request<LedgerIce>("/ices/chug-time", { method: "POST", body: JSON.stringify(chugger ? { iceId, seconds, chugger } : { iceId, seconds }) });
 
 export async function getLedger(): Promise<Ledger> {
   if (!process.env.NEXT_PUBLIC_API_URL) throw new ApiError(0, "API not configured");

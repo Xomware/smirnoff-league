@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { chugTime } from "@/components/videos/ChugTime";
 import { TeamName } from "@/components/xp/TeamName";
 import type { LedgerIce } from "@/lib/api/ledger";
 import { byRoster } from "@/lib/league/drill";
@@ -38,6 +39,7 @@ function LedgerRow({ ice, players, action }: LedgerRowProps) {
         {ice.reason === "late" ? `Late ice ${ice.iceId.split("#LATE")[1]}` : <IceCause ice={{ ...ice, reason: ice.reason }} players={players} />}
       </span>
       <span className="xp-watch-tag">{status}</span>
+      {ice.chugSeconds !== undefined && <span className="xp-watch-tag tabular-nums">{chugTime(ice.chugSeconds)}</span>}
       {ice.points !== undefined && <span className="xp-player-pts">{ice.points.toFixed(2)}</span>}
       {action?.(ice)}
     </li>

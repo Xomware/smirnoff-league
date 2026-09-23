@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
+import { canTime, ChugTimeButton, ChugTimeDialog, chugTime } from "@/components/videos/ChugTime";
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { MediaPlayerIcon } from "@/components/xp/icons";
@@ -47,6 +48,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
   const { myRosterId, me } = useProfile();
   const [playing, setPlaying] = useState<LedgerIce | null>(null);
   const [uploadFor, setUploadFor] = useState<string | null>(null);
+  const [timing, setTiming] = useState<LedgerIce | null>(null);
 
   if (ledger.status === "loading") return <p role="status">Loading the ledger...</p>;
 
@@ -54,6 +56,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
   const videos = videosState.status === "ok" ? videosState.videos : [];
   const playingVideo = playing && videoFor(videos, playing);
   const uploadable = (ice: LedgerIce) => !provisional && !videoFor(videos, ice) && canUpload(ice, myRosterId, me?.isAdmin ?? false);
+  const timeable = (ice: LedgerIce) => !provisional && canTime(ice, myRosterId, me?.isAdmin ?? false);
 
   const videoCell = (ice: LedgerIce) => {
     const video = !provisional && videoFor(videos, ice);
@@ -95,12 +98,15 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
               <th scope="col" className={rows.some(uploadable) ? "w-38" : "w-20"}>
                 Video
               </th>
+              <th scope="col" className={rows.some(timeable) ? "w-32" : "w-16"}>
+                Time
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={6}>No ices this season. Stay thirsty.</td>
+                <td colSpan={7}>No ices this season. Stay thirsty.</td>
               </tr>
             )}
             {rows.map((ice) => {
@@ -121,6 +127,12 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
                   <td className="font-bold whitespace-nowrap">{provisional ? "Provisional" : ice.status === "owed" ? "Owed" : "Completed"}</td>
                   <td className="whitespace-nowrap tabular-nums">{ice.completedAt ? paidOn(ice.completedAt) : "-"}</td>
                   <td className="whitespace-nowrap">{videoCell(ice)}</td>
+                  <td className="whitespace-nowrap tabular-nums">
+                    <span className="flex items-center gap-2">
+                      {ice.chugSeconds === undefined ? "-" : chugTime(ice.chugSeconds)}
+                      {timeable(ice) && <ChugTimeButton ice={ice} onClick={() => setTiming(ice)} />}
+                    </span>
+                  </td>
                 </tr>
               );
             })}
@@ -136,6 +148,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
       {uploadFor &&
         ledger.status === "ok" &&
         createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
+      {timing && <ChugTimeDialog ice={timing} label={iceLabel(timing, teamFor, players)} onClose={() => setTiming(null)} />}
     </div>
   );
 }

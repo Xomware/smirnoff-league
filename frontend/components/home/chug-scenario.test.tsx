@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/api/ledger", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/ledger")>()),
   getLedger: vi.fn(),
+  logChugTime: vi.fn(),
 }));
 vi.mock("@/lib/api/videos", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/videos")>()),
@@ -22,7 +23,7 @@ vi.mock("@/lib/sound/sound", async (importOriginal) => ({
 
 import { Desktop } from "@/components/desktop/Desktop";
 import { Taskbar } from "@/components/xp/Taskbar";
-import { getLedger, type Ledger } from "@/lib/api/ledger";
+import { getLedger, type Ledger, logChugTime } from "@/lib/api/ledger";
 import { getMe, type Me } from "@/lib/api/users";
 import { confirmVideo, listVideos, presignVideo, type Video } from "@/lib/api/videos";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
@@ -116,5 +117,48 @@ describe("scenario: desktop Home with the tray warning and the Chug Board", () =
     await screen.findByRole("list", { name: "Team 12 chugs" });
     expect(getLedger).toHaveBeenCalledTimes(1);
     expect(listVideos).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("scenario: upload a chug, time it, and find it in Ice Rankings", () => {
+  it("logs 9.4s from the upload dialog and ranks the uploader with PR 9.4", async () => {
+    vi.mocked(getMe).mockResolvedValue({ ...me, profile: { ...me.profile!, name: "Player Twelve" } });
+    vi.mocked(logChugTime).mockResolvedValue({ ...MINE, chugSeconds: 9.4, chugger: { name: "Player Twelve" } });
+    render(
+      <ProfileProvider>
+        <DesktopProvider>
+          <Desktop />
+          <Taskbar />
+        </DesktopProvider>
+      </ProfileProvider>,
+    );
+
+    fireEvent.click(await within(await screen.findByRole("list", { name: "Team 12 chugs" })).findByRole("button", { name: "Upload chug" }));
+    const dialog = screen.getByRole("dialog", { name: "Upload chug" });
+    fireEvent.change(within(dialog).getByLabelText("Video file"), { target: { files: [new File(["chug"], "chug.mp4", { type: "video/mp4" })] } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Upload" }));
+    await waitFor(() => expect(FakeXhr.last?.url).toBe("https://bucket.test"));
+    act(() => FakeXhr.last.finish(204));
+
+    fireEvent.change(await within(dialog).findByLabelText("How long did it take?"), { target: { value: "9.4" } });
+    vi.mocked(getLedger).mockResolvedValue({
+      ...LEDGER,
+      ices: LEDGER.ices.map((i) =>
+        i.iceId === MINE.iceId ? { ...i, status: "completed", videoId: UPLOADED.mediaId, chugSeconds: 9.4, chugger: { name: "Player Twelve" } } : i,
+      ),
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save time" }));
+    expect(await within(dialog).findByText("Time saved: 9.4s.")).toBeTruthy();
+    expect(logChugTime).toHaveBeenCalledWith(MINE.iceId, 9.4);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "start" }));
+    const menu = within(screen.getByRole("navigation", { name: "Start menu" }));
+    fireEvent.click(menu.getByRole("button", { name: "Ices" }));
+    fireEvent.click(within(menu.getByRole("list", { name: "Ices" })).getByRole("button", { name: "Ice Rankings" }));
+
+    const table = await screen.findByRole("table", { name: "Chuggers ranked by personal best" });
+    const row = within(table).getByRole("row", { name: /Player Twelve/ });
+    expect([...row.querySelectorAll("td")].map((td) => td.textContent)).toEqual(["1", "Player Twelve", "Team 12", "9.4s", "9.4s", "1"]);
   });
 });

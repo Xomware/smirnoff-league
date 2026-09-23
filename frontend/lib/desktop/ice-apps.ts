@@ -1,4 +1,4 @@
-import { CamcorderIcon, ChartIcon, IceBottleIcon, IceStandingsIcon, StopwatchIcon } from "@/components/xp/icons";
+import { CamcorderIcon, ChartIcon, ChugRankIcon, IceBottleIcon, IceStandingsIcon, StopwatchIcon } from "@/components/xp/icons";
 
 export const ICES_PATH = "C:\\Smirnoff\\Ices";
 
@@ -7,6 +7,7 @@ export const ICES_PATH = "C:\\Smirnoff\\Ices";
 export const ICE_APPS = [
   { kind: "ices", label: "Ice Ledger", Icon: IceBottleIcon },
   { kind: "ice-standings", label: "Ice Standings", Icon: IceStandingsIcon },
+  { kind: "chug-rankings", label: "Ice Rankings", Icon: ChugRankIcon },
   { kind: "stats", label: "Ice Stats", Icon: ChartIcon },
   { kind: "watch", label: "Ice Watch", Icon: StopwatchIcon },
   { kind: "videos", label: "Chug Videos", Icon: CamcorderIcon },

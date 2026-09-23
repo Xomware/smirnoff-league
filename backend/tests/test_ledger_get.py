@@ -100,7 +100,7 @@ def test_missing_claims_is_401(aws):
 
 def test_ledger_never_carries_an_email(aws):
     seed()
-    ice_admin.set_chug("W01#R02#S5", 4.2, "admin@example.com")
+    ice_admin.set_chug("W01#R02#S5", 4.2, None, "admin-sub", "admin@example.com")
     ice_admin.set_completed("W01#R06#S4", True, None, "admin@example.com", "paid up")
     res = handler(authorized_event(path="/ledger/get"), None)
 
