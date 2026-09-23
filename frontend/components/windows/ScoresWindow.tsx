@@ -167,8 +167,8 @@ export function ScoresWindow() {
 
   return (
     <div className="grid gap-3">
-      <div className="flex items-center gap-2">
-        <label htmlFor={picker} className="font-bold">
+      <div className="flex items-stretch gap-2">
+        <label htmlFor={picker} className="self-center font-bold">
           Week
         </label>
         <button

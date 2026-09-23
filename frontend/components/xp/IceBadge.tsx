@@ -11,12 +11,10 @@ export function IceBadge({ count, season = false }: IceBadgeProps) {
   return (
     <span className="ice-badge">
       <IceBottleIcon />
-      <span aria-hidden>x{count}</span>
-      {season && (
-        <span aria-hidden className="ice-badge-season">
-          season
-        </span>
-      )}
+      <span aria-hidden className={season ? "ice-badge-stack" : undefined}>
+        x{count}
+        {season && <span className="ice-badge-season">season</span>}
+      </span>
       <span className="sr-only">
         {count} {count === 1 ? "ice" : "ices"} this {season ? "season" : "week"}
       </span>
