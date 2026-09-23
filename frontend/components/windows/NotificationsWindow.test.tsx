@@ -33,6 +33,7 @@ import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { play } from "@/lib/sound/sound";
 import { stubSleeper } from "@/lib/test/league-mock";
+import { PHONE } from "@/lib/use-media-query";
 
 // Friday noon ET before the W3 deadline, Sunday 2026-10-04 13:00 EDT.
 const FRIDAY = new Date("2026-10-02T16:00:00Z");
@@ -58,7 +59,7 @@ function viewport(phone: boolean) {
   vi.spyOn(window, "matchMedia").mockImplementation(
     (query) =>
       ({
-        matches: phone && query === "(max-width: 767.98px)",
+        matches: phone && query === PHONE,
         media: query,
         addEventListener: () => {},
         removeEventListener: () => {},
