@@ -15,6 +15,31 @@ import "@/components/glacier/glacier.css";
 export type Theme = "xp" | "glacier";
 
 export const THEME_KEY = "smirnoff.theme";
+// Set while a choice has not reached the profile, so the stale saved theme
+// doesn't win on the next load and undo it (#185).
+const UNSAVED_KEY = "smirnoff.theme.unsaved";
+
+function markUnsaved(on: boolean) {
+  try {
+    if (on) localStorage.setItem(UNSAVED_KEY, "1");
+    else localStorage.removeItem(UNSAVED_KEY);
+  } catch {
+    // Without storage the choice only lives for this visit anyway.
+  }
+}
+
+function isUnsaved() {
+  try {
+    return localStorage.getItem(UNSAVED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function save(theme: Theme) {
+  markUnsaved(true);
+  return updateMe({ theme }).then(() => markUnsaved(false));
+}
 
 const isTheme = (v: unknown): v is Theme => v === "xp" || v === "glacier";
 
@@ -88,25 +113,28 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // notifications-seen mark and would otherwise undo a switch made since load.
   useEffect(() => {
     if (!onboarded) return;
-    if (saved) return write(saved);
     const local = read();
+    if (saved && !(local && isUnsaved())) return write(saved);
     // Left unsaved on failure, so the next load tries again.
-    if (local) updateMe({ theme: local }).catch(() => {});
+    if (local && local !== saved) save(local).catch(() => {});
   }, [onboarded, saved]);
 
   const setTheme = useCallback(
     (next: Theme) => {
       if (next === theme) return;
-      const before = read();
       setSwitching(true);
       // Saved from inside apply: the transition drops a switch made while one is
       // running, and a fast failure must not roll back before the swap lands.
       void runThemeTransition(next, () => {
         write(next);
         if (!onboarded) return;
-        updateMe({ theme: next }).catch(() => {
-          write(before);
-          notify({ title: "Theme not saved", body: "Couldn't save your theme. Try again in a moment.", icon: "error" });
+        // A failed save keeps the choice on screen; the next load retries it.
+        save(next).catch(() => {
+          notify({
+            title: "Theme not synced",
+            body: "Your theme is set here but didn't reach your profile. It will sync next time you open the site.",
+            icon: "error",
+          });
         });
       }).finally(() => setSwitching(false));
     },
