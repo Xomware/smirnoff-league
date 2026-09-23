@@ -38,7 +38,7 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   height: 76px;
   padding: 0 48px;
   background: var(--g-red);
@@ -87,7 +87,7 @@
 
 .glacier-nav a {
   flex-shrink: 0;
-  padding: 9px 16px;
+  padding: 9px 14px;
   border-radius: 999px;
   color: inherit;
   white-space: nowrap;
@@ -171,14 +171,6 @@
   z-index: 65;
 }
 
-/* Glyphs only up here, so the nav keeps its room; Settings has the labelled
-   switch, and the text stays as each button's accessible name. */
-.glacier-header .theme-toggle button {
-  gap: 0;
-  padding: 0 10px;
-  font-size: 0;
-}
-
 .glacier-account {
   position: relative;
   flex-shrink: 0;
@@ -223,7 +215,7 @@
   top: calc(100% + 12px);
   right: 0;
   z-index: 3;
-  width: 240px;
+  width: 280px;
   padding: 8px;
   border: 1px solid var(--g-frost-edge);
   border-radius: 18px;
@@ -253,7 +245,7 @@
   list-style: none;
 }
 
-.glacier-account-menu :is(a, button) {
+.glacier-account-menu li > :is(a, button) {
   display: flex;
   align-items: center;
   width: 100%;
@@ -268,13 +260,28 @@
   cursor: pointer;
 }
 
-.glacier-account-menu :is(a, button):hover {
+.glacier-account-menu li > :is(a, button):hover {
   background: rgb(170 225 255 / 0.14);
   text-decoration: none;
 }
 
-.glacier-account-menu :is(a, button):active {
+.glacier-account-menu li > :is(a, button):active {
   background: rgb(170 225 255 / 0.22);
+}
+
+.glacier-account-theme {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 12px 4px;
+  border-top: 1px solid var(--g-frost-edge);
+  font-size: 14px;
+}
+
+.glacier-account-menu .theme-toggle {
+  align-self: flex-start;
+  font-size: 14px;
 }
 
 .glacier-account-menu li:last-child {
@@ -356,16 +363,17 @@
   .glacier-page {
     padding-inline: 24px;
   }
+}
 
+/* Below 1440 the wordmark gives its room to the nav and the trouble pill; the crest stays. */
+@media (max-width: 1439.98px) {
   .glacier-brand span {
     display: none;
   }
-
 }
 
-/* Six nav links, search, the theme switch, the bell and the account menu only
-   fit a 1440 header without the manager's name. */
-@media (max-width: 1519.98px) {
+/* Beside the trouble pill the name only fits a wide header; the menu's head shows it. */
+@media (max-width: 1599.98px) {
   .glacier-account-name {
     display: none;
   }

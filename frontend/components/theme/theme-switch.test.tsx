@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 describe("switching themes in the app", () => {
-  it("swaps the XP desktop for the Glacier shell from the Start menu, and back from Glacier's header", async () => {
+  it("swaps the XP desktop for the Glacier shell from the Start menu, and back from Glacier's account menu", async () => {
     vi.mocked(updateMe).mockImplementation(async (input) => profile("theme" in input ? input.theme : null));
     renderApp("xp");
     await screen.findByRole("list", { name: "Open windows" });
@@ -99,7 +99,8 @@ describe("switching themes in the app", () => {
 
     // A switch in the same tick as the last one is dropped as still running.
     await new Promise((r) => setTimeout(r, 0));
-    fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
+    fireEvent.click(screen.getByRole("button", { name: /account menu/ }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Account" })).getByRole("button", { name: "Classic XP" }));
     expect(glacierNav()).toBeNull();
     expect(taskbar()).not.toBeNull();
     expect(updateMe).toHaveBeenLastCalledWith({ theme: "xp" });

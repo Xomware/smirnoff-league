@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { type MouseEvent, useEffect, useId, useRef, useState } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/lib/auth/use-auth";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -91,6 +92,10 @@ export function ProfileMenu({ urlOf, onNav }: ProfileMenuProps) {
                 </a>
               </li>
             ))}
+            <li className="glacier-account-theme">
+              <span>Theme</span>
+              <ThemeToggle />
+            </li>
             <li>
               <button type="button" onClick={() => void signOut()}>
                 Sign out

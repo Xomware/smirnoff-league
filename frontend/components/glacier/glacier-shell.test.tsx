@@ -101,12 +101,14 @@ describe("GlacierShell", () => {
     expect(window.location.search).toBe("?open=writeup");
   });
 
-  it("opens notifications from the bell and carries the theme switch", () => {
+  it("opens notifications from the bell and carries the theme switch in the account menu", async () => {
     renderShell();
     fireEvent.click(screen.getByRole("button", { name: /Notifications/ }));
     expect(heading()).toBe("Notifications");
 
-    expect(within(screen.getByRole("group", { name: "Theme" })).getByRole("button", { name: "Classic XP" })).toBeTruthy();
+    expect(screen.queryByRole("group", { name: "Theme" })).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "Me, account menu" }));
+    expect(within(menu().getByRole("group", { name: "Theme" })).getByRole("button", { name: "Classic XP" })).toBeTruthy();
   });
 
   it("puts the signed-in manager top right, with their pages and Sign out", async () => {
