@@ -28,3 +28,6 @@ frontend/public/data/
 .claude/worktrees/
 frontend/AGENTS.md
 frontend/CLAUDE.md
+
+# Raw images Dom hands over before processing
+assets-incoming/
