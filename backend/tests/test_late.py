@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from lambdas.common import late
 from lambdas.common.late import deadline_for, late_count, reconcile
 from lambdas.cron_tick.handler import handler as cron_tick
 from scripts.ice_admin import main as ice_admin
@@ -21,6 +22,13 @@ WEEK = timedelta(days=7)
 W1_DEADLINE = datetime(2026, 9, 20, 17, tzinfo=UTC)
 W2_DEADLINE = datetime(2026, 9, 27, 17, tzinfo=UTC)
 PARENT = "W01#R02#S5"
+
+
+@pytest.fixture(autouse=True)
+def no_prepaid_weeks(monkeypatch):
+    # Most tests exercise lateness on the golden W1/W2 data, which production
+    # treats as paid before launch.
+    monkeypatch.setattr(late, "PAID_BEFORE_LAUNCH", ())
 
 
 def test_deadline_is_the_sunday_after_monday_night():
@@ -217,36 +225,19 @@ def test_force_finalize_skips_reconcile(monkeypatch):
 
 
 @pytest.mark.usefixtures("aws", "web")
-def test_scenario_seed_test_weeks_clears_w1_lateness(capsys):
+def test_scenario_weeks_paid_before_launch_never_go_late(monkeypatch):
+    monkeypatch.setattr(late, "PAID_BEFORE_LAUNCH", (1, 2))
     finalize_both_weeks()
     now = W1_DEADLINE + 8 * timedelta(days=1)
-    reconcile(now)
-    for parent in expected_ids(1):
-        assert len(late_rows(parent)) == 2
-
-    ice_admin(["seed-test-weeks"])
     reconcile(now)
 
     originals = {k: v for k, v in rows().items() if v["reason"] != "late"}
     assert set(originals) == expected_ids(1) | expected_ids(2)
     for ice_id, row in originals.items():
         deadline = W1_DEADLINE if ice_id.startswith("W01#") else W2_DEADLINE
-        assert (row["status"], row["source"], row["completedAt"]) == (
-            "completed",
-            "seed",
-            deadline.isoformat(),
-        )
+        assert (row["status"], row["source"], row["completedAt"]) == ("completed", "cron", deadline.isoformat())
     assert owed_late(1) == owed_late(2) == set()
-    assert f"{PARENT} completed at {W1_DEADLINE.isoformat()}" in capsys.readouterr().out
-
-
-@pytest.mark.usefixtures("aws", "web")
-def test_seed_test_weeks_finalizes_weeks_that_are_not_yet():
-    ice_admin(["seed-test-weeks"])
-
-    assert set(rows()) == expected_ids(1) | expected_ids(2)
-    assert {r["status"] for r in rows().values()} == {"completed"}
-    assert week_setting(1)["finalizedAt"] and week_setting(2)["finalizedAt"]
+    assert reconcile(now) == {"created": 0, "revived": 0, "voided": 0}
 
 
 @pytest.mark.usefixtures("aws", "web")
