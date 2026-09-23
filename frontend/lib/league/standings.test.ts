@@ -67,17 +67,17 @@ describe("dangerZone", () => {
   const rows = table([9, 8, 7, 6, 6, 5, 5, 5, 4, 4, 3, 3, 2, 1]);
 
   it("flags teams within one game above and below the 8/9 cut", () => {
-    expect([...dangerZone(rows, 8)].sort((a, b) => a - b)).toEqual([6, 7, 8, 9, 10]);
+    expect([...dangerZone(rows, 8, 4)].sort((a, b) => a - b)).toEqual([6, 7, 8, 9, 10]);
   });
 
   it("leaves teams more than a game clear of the cut on either side", () => {
-    const zone = dangerZone(rows, 8);
+    const zone = dangerZone(rows, 8, 4);
     expect(zone.has(5)).toBe(false);
     expect(zone.has(11)).toBe(false);
   });
 
   it("is empty when the 8th seed is more than a game ahead of the 9th", () => {
-    expect(dangerZone(table([10, 10, 9, 9, 9, 8, 8, 8, 5, 5, 4, 3, 2, 1]), 8).size).toBe(0);
+    expect(dangerZone(table([10, 10, 9, 9, 9, 8, 8, 8, 5, 5, 4, 3, 2, 1]), 8, 4).size).toBe(0);
   });
 
   it("counts a tie as half a game", () => {
@@ -87,6 +87,16 @@ describe("dangerZone", () => {
       roster(9, 4, 6),
       roster(10, 3, 5, 2),
     ]);
-    expect(dangerZone(tied, 8).has(10)).toBe(true);
+    expect(dangerZone(tied, 8, 4).has(10)).toBe(true);
+  });
+
+  it("flags only ranks 6 to 11 when the whole league is bunched up", () => {
+    const bunched = table([2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1]);
+    expect([...dangerZone(bunched, 8, 4)].sort((a, b) => a - b)).toEqual([6, 7, 8, 9, 10, 11]);
+  });
+
+  it("is empty before week 4", () => {
+    expect(dangerZone(rows, 8, 3).size).toBe(0);
+    expect(dangerZone(rows, 8, 1).size).toBe(0);
   });
 });

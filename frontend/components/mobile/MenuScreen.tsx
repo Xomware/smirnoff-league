@@ -6,6 +6,7 @@ import { TeamName } from "@/components/xp/TeamName";
 import {
   BracketIcon,
   ChartIcon,
+  ChugRankIcon,
   ControlPanelIcon,
   NewsFeedIcon,
   NewspaperIcon,
@@ -35,6 +36,7 @@ const ROWS: Row[] = [
   { kind: "news", label: "League News", blurb: "Moves, trades and ice events", Icon: NewsFeedIcon },
   { kind: "writeup", label: "News Drop", blurb: "The commish's weekly edition", Icon: NewspaperIcon },
   { kind: "stats", label: "Ice Stats", blurb: "The race, heat check and Hall of Shame", Icon: ChartIcon },
+  { kind: "chug-rankings", label: "Ice Rankings", blurb: "Chug times ranked by personal best", Icon: ChugRankIcon },
   { kind: "teams", label: "Teams", blurb: "Every team's profile", Icon: ProfileIcon },
   { kind: "my-team", label: "My Team", blurb: "Your results, ices and moves", Icon: StarIcon },
 ];

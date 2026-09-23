@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MatchupRow } from "@/lib/ices/compute";
 import { clearLeagueCache } from "@/lib/league/cache";
 import { espnEvent } from "@/lib/test/espn-mock";
+import { DrillContext } from "@/components/views/drill-link";
 import { ScoresWindow } from "./ScoresWindow";
 
 const golden: { weeks: { week: number; matchups: MatchupRow[] }[] } =
@@ -159,6 +160,22 @@ describe("Scores window", () => {
     expect(screen.getByText("Romeo Doubs").closest("li")?.classList).toContain(
       "ice",
     );
+  });
+
+  it("opens a matchup's game from its Open game link, keeping the expand", async () => {
+    const onOpen = vi.fn();
+    render(
+      <DrillContext.Provider value={onOpen}>
+        <ScoresWindow />
+      </DrillContext.Provider>,
+    );
+    fireEvent.change(await screen.findByLabelText("Week"), { target: { value: "1" } });
+
+    const card = await screen.findByRole("region", { name: "Matchup 7" });
+    fireEvent.click(within(card).getByRole("button", { name: "Open game" }));
+
+    expect(onOpen).toHaveBeenCalledWith({ kind: "game", week: 1, matchup: 7 });
+    expect(within(card).getByRole("button", { expanded: false })).toBeTruthy();
   });
 
   it("renders the live week when Sleeper has no lineup for a roster", async () => {

@@ -137,7 +137,7 @@ Late ices are **reconciled rows** with id `{parentId}#LATE{n}` and their own `st
 
 ### Brackets and danger zone spec (`frontend/lib/league/brackets.ts`)
 - **Standings.** Sort by wins desc, then ties, then `fpts + fpts_decimal/100` desc. Sleeper's configured tiebreaker is **unknown**, so assert this against `winners_bracket` seeds once Sleeper generates them.
-- **Danger zone.** A team is in it if it is within 1 game of the 8th/9th cut, on either side.
+- **Danger zone.** A team is in it if it is within 1 game of the 8th/9th cut, on either side, and ranked 6-11. Nobody is flagged before week 4.
 - **Toilet bowl.** If `losers_bracket` is non-empty, render it as-is. Otherwise compute a loser-advances bracket over seeds 9–14 for weeks 15–17.
   - The default config gives seeds **13 and 14 the round-1 byes**. In a loser-advances bracket, a bye moves a team closer to the punishment.
   - The config is stored in `smirnoff-settings` as `TOILET_BRACKET` and is editable by admins. The MVP uses the in-code default until the API exists.

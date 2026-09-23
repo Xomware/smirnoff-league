@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { iceCauseText } from "@/components/videos/ice-label";
 import { teamList, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { ChugRankingsView } from "@/components/views/chug-rankings-view";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { MediaPlayerIcon } from "@/components/xp/icons";
@@ -203,6 +204,9 @@ export function IcesScreen() {
       {ledger.status === "ok" && (
         <>
           <WhoOwes ledger={ledger.ledger} teamFor={teamFor} onUpload={setUpload} />
+          <section aria-label="Ice rankings" className="m-section m-rankings">
+            <ChugRankingsView />
+          </section>
           <Gallery ledger={ledger.ledger} teamFor={teamFor} />
         </>
       )}

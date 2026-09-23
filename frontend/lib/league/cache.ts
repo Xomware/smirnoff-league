@@ -46,10 +46,29 @@ export function scoreboard(week: number) {
   return cached(`scoreboard/${week}`, () => getScoreboard(week), NFL_TTL);
 }
 
+// The last rows each week loaded, for window titles, which are read synchronously.
+const loaded = new Map<number, SleeperMatchup[]>();
+const onLoad = new Set<() => void>();
+let loads = 0;
+
+export const loadedMatchups = (week: number) => loaded.get(week);
+export const loadedVersion = () => loads;
+export function subscribeLoaded(fn: () => void) {
+  onLoad.add(fn);
+  return () => void onLoad.delete(fn);
+}
+
 export function leagueMatchups(week: number, live: boolean, fresh = false): Promise<SleeperMatchup[]> {
   const key = `matchups/${week}`;
   if (fresh) entries.delete(key);
-  return cached(key, () => getMatchups(week), live ? LIVE_TTL : Infinity);
+  const load = () =>
+    getMatchups(week).then((rows) => {
+      loaded.set(week, rows);
+      loads++;
+      onLoad.forEach((fn) => fn());
+      return rows;
+    });
+  return cached(key, load, live ? LIVE_TTL : Infinity);
 }
 
 // A past week's transactions are settled; the current week's keep arriving.
@@ -59,4 +78,5 @@ export function leagueTransactions(week: number, live: boolean): Promise<Sleeper
 
 export function clearLeagueCache() {
   entries.clear();
+  loaded.clear();
 }

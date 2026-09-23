@@ -31,7 +31,7 @@ const PLACES: Partial<Record<ScreenKind, string>> = {
 const PANELS: Record<string, string> = { ices: "Ices", rules: "Week Rules", toilet: "Toilet Bowl", users: "Users" };
 
 function place(target: string, names: Names): string {
-  const [kind, value, more] = target.split(":");
+  const [kind, value] = target.split(":");
   if (value === undefined) return PLACES[kind as ScreenKind] ?? target;
   switch (kind) {
     case "team":
@@ -45,7 +45,7 @@ function place(target: string, names: Names): string {
     case "tab":
       return `the ${value.charAt(0).toUpperCase()}${value.slice(1)} tab`;
     case "game":
-      return `a Week ${more} game`;
+      return `a Week ${value.split("-")[0]} game`;
     case "admin":
       return `Control Panel: ${PANELS[value] ?? value}`;
     default:

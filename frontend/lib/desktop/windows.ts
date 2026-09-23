@@ -38,7 +38,10 @@ export const HOME_H = 420;
 // Desktop icons take the left edge, so new windows open clear of them.
 const ICON_COLUMN = 112;
 
-export function windowId(kind: WindowKind, params: WindowParams): string {
+// Phone-only screens share the shape, hence a plain string kind. A game is
+// read as a week then a matchup, which key order alone would reverse.
+export function windowId(kind: string, params: WindowParams): string {
+  if (kind === "game") return `game:${params.week}-${params.matchup}`;
   return [kind, ...Object.keys(params).sort().map((k) => params[k])].join(":");
 }
 

@@ -10,6 +10,8 @@ export interface TeamWeek {
   week: number;
   points: number;
   opponent: { rosterId: number; points: number } | null;
+  // The game to drill into; null on a bye.
+  matchupId: number | null;
   result: "W" | "L" | "T" | null;
   ices: Ice[];
 }
@@ -41,6 +43,7 @@ export function teamResults(weeks: WeekMatchups<MatchupRow>[], rosterId: number)
         week: w.week,
         points: mine.points,
         opponent: opp ? { rosterId: opp.roster_id, points: opp.points } : null,
+        matchupId: opp ? mine.matchup_id : null,
         result,
         ices: finishedIces(w).filter((i) => i.rosterId === rosterId),
       },

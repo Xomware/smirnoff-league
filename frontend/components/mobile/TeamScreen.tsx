@@ -7,6 +7,7 @@ import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
+import { OpenGame } from "@/components/views/game-view";
 import { paidOn } from "@/components/views/ledger-week";
 import { REASONS, teamIceRows } from "@/components/views/team-ices";
 import { TYPES, useTeamMoves } from "@/components/views/team-moves";
@@ -53,8 +54,13 @@ function Results({ p }: Props) {
                 </span>
               )}
               <span className="m-points">
-                {r.points.toFixed(2)}
-                {r.opponent && ` - ${r.opponent.points.toFixed(2)}`}
+                {r.opponent && r.matchupId ? (
+                  <OpenGame week={r.week} matchup={r.matchupId}>
+                    {r.points.toFixed(2)} - {r.opponent.points.toFixed(2)}
+                  </OpenGame>
+                ) : (
+                  r.points.toFixed(2)
+                )}
               </span>
             </span>
             <span className="m-result-vs">vs {r.opponent ? <Opponent p={p} rosterId={r.opponent.rosterId} /> : "Bye"}</span>

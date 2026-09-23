@@ -87,7 +87,8 @@ describe("Manager profile", () => {
     expect(stat("Record")).toBe("1-1");
     expect(stat("PF / PA")).toBe("194.00 / 0.00");
     expect(stat("Rank")).toContain("6th of 14");
-    expect(stat("Rank")).toContain("Danger zone");
+    // Week 3: too early for the danger zone.
+    expect(stat("Rank")).toContain("Playoff spot");
     await waitFor(() => expect(stat("Ices")).toBe("0 owed · 2 completed · 0 late"));
     expect(within(head).queryByRole("img", { name: "Your team" })).toBeNull();
   });

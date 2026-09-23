@@ -72,7 +72,7 @@ export function iceRate(weeks: StatsWeek[]) {
 // Greedy is optimal here: each fixed slot takes one position, and FLEX only
 // draws from what the fixed slots leave. A FLEX starter with no known
 // position can only go back in FLEX; a fixed-slot starter is that slot.
-function lineupWeek(week: number, m: StatsMatchup, positionOf: PositionOf): BenchWeek {
+export function lineupWeek(week: number, m: StatsMatchup, positionOf: PositionOf): BenchWeek {
   const starters = m.starters!;
   const pool: Benched[] = [];
   SLOTS.forEach((slot, i) => {

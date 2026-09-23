@@ -1,10 +1,11 @@
 "use client";
 
 import { DrillLink } from "@/components/views/drill-link";
+import { IceCause } from "@/components/views/week-ices";
 import { TeamName } from "@/components/xp/TeamName";
 import type { WindowParams } from "@/lib/desktop/windows";
+import { useWeekGames } from "@/lib/league/use-week-games";
 import { WATCH_TAG } from "./MatchupCard";
-import { useWeekGames } from "./use-week-games";
 
 interface GameScreenProps {
   params: WindowParams;
@@ -20,6 +21,7 @@ export function GameScreen({ params }: GameScreenProps) {
   if (!game) return <p className="m-empty">No such game in week {week}.</p>;
 
   const top = Math.max(...game.sides.map((s) => s.points));
+  const player = (id: string) => <DrillLink to={{ kind: "player", playerId: id }}>{data.players[id]?.name ?? id}</DrillLink>;
 
   return (
     <div className="m-page">
@@ -48,11 +50,7 @@ export function GameScreen({ params }: GameScreenProps) {
                     <li key={i} className={`m-player${s.iced ? " ice" : ""}${s.watch?.state === "WATCH" ? " ice-watch" : ""}`}>
                       <span className="m-slot">{s.slot}</span>
                       <span className="m-player-name">
-                        {s.playerId ? (
-                          <DrillLink to={{ kind: "player", playerId: s.playerId }}>{data.players[s.playerId]?.name ?? s.playerId}</DrillLink>
-                        ) : (
-                          "Empty"
-                        )}
+                        {s.playerId ? player(s.playerId) : "Empty"}
                         {tag && (
                           <span className="m-chip" data-state={s.watch!.state}>
                             {tag}
@@ -64,6 +62,37 @@ export function GameScreen({ params }: GameScreenProps) {
                   );
                 })}
               </ul>
+            )}
+            {side.bench && side.bench.length > 0 && (
+              <>
+                <h3 className="m-caption">Bench</h3>
+                <ul aria-label={`${name} bench`} className="m-card m-rows">
+                  {side.bench.map((p) => (
+                    <li key={p.playerId} className="m-player">
+                      <span className="m-slot">BN</span>
+                      <span className="m-player-name">{player(p.playerId)}</span>
+                      <span className="m-points">{p.points.toFixed(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {side.benchLeft !== null && <p className="m-caption">{side.benchLeft.toFixed(2)} left on the bench</p>}
+            {side.iceList.length > 0 && (
+              <>
+                <h3 className="m-caption">Ices</h3>
+                <ul aria-label={`${name} ices`} className="m-card m-rows">
+                  {side.iceList.map((ice) => (
+                    <li key={ice.id} className="m-player ice">
+                      <span className="m-slot">{ice.slot ?? "TEAM"}</span>
+                      <span className="m-player-name">
+                        <IceCause ice={ice} players={data.players} />
+                      </span>
+                      <span className="m-points">{ice.points.toFixed(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </section>
         );

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Desktop } from "@/components/desktop/Desktop";
 import { Taskbar } from "@/components/xp/Taskbar";
+import { DrillContext } from "@/components/views/drill-link";
 import { AlertsProvider } from "@/lib/alerts/alerts";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { SLOTS } from "@/lib/ices/compute";
@@ -83,6 +84,23 @@ describe("Ice Watch on a live Sunday", () => {
 
     const balloon = await screen.findByRole("status", { name: /ice watch/i });
     expect(balloon.textContent).toMatch(/Slow Quarterback has 0.4 pts in the 3rd/);
+  });
+});
+
+describe("Ice Watch drill-in", () => {
+  it("opens each team's game", async () => {
+    const onOpen = vi.fn();
+    render(
+      <AlertsProvider>
+        <DrillContext.Provider value={onOpen}>
+          <WatchWindow />
+        </DrillContext.Provider>
+      </AlertsProvider>,
+    );
+
+    const team = await screen.findByRole("region", { name: "Team 2 ice watch" });
+    fireEvent.click(within(team).getByRole("button", { name: "Open game" }));
+    expect(onOpen).toHaveBeenCalledWith({ kind: "game", week: 3, matchup: 1 });
   });
 });
 

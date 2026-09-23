@@ -3,9 +3,9 @@
 import { TeamName } from "@/components/xp/TeamName";
 import type { WatchState } from "@/lib/ices/watch";
 import type { Player, Team } from "@/lib/league/use-league";
+import type { Game, Starter } from "@/lib/league/use-week-games";
 import { useProfile } from "@/lib/profile/use-profile";
 import { usePush } from "./push";
-import type { Game, Starter } from "./use-week-games";
 
 export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "Iced", WATCH: "Watch", LOCKED: "Locked" };
 const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2 };

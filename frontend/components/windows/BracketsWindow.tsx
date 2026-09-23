@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { DrillLink } from "@/components/views/drill-link";
+import { OpenGame } from "@/components/views/game-view";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import {
@@ -24,7 +25,8 @@ import type { SleeperBracketMatch, SleeperMatchup } from "@/lib/sleeper/types";
 interface Playoffs {
   winners: SleeperBracketMatch[] | null;
   losers: SleeperBracketMatch[] | null;
-  results: SleeperMatchup[][];
+  // Each playoff week that has started, finished or not.
+  games: SleeperMatchup[][];
 }
 
 interface SlotRowProps {
@@ -55,15 +57,17 @@ interface BracketViewProps {
   bracket: Bracket;
   roundNames: string[];
   startWeek: number;
+  games: SleeperMatchup[][];
   // Who leaves each game: the loser in the playoffs, the winner in the toilet bowl.
   exits: "winner" | "loser";
   teamFor: (rosterId: number) => Team;
 }
 
-function BracketView({ bracket, roundNames, startWeek, exits, teamFor }: BracketViewProps) {
+function BracketView({ bracket, roundNames, startWeek, games, exits, teamFor }: BracketViewProps) {
   const row = (m: Match, s: Slot) => (
     <SlotRow slot={s} out={s.rosterId !== null && m[exits] === s.rosterId} teamFor={teamFor} />
   );
+  const matchupOf = (m: Match, round: number) => games[round]?.find((r) => r.roster_id === m.a.rosterId)?.matchup_id;
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       {bracket.rounds.map((matches, i) => (
@@ -77,7 +81,10 @@ function BracketView({ bracket, roundNames, startWeek, exits, teamFor }: Bracket
           <ol className="flex flex-col gap-2">
             {matches.map((m) => (
               <li key={m.id} className="xp-bracket-match">
-                <span className="xp-slot-from">Game {m.id}</span>
+                <span className="flex items-center justify-between gap-2">
+                  <span className="xp-slot-from">Game {m.id}</span>
+                  {matchupOf(m, i) && <OpenGame week={startWeek + i} matchup={matchupOf(m, i)!} />}
+                </span>
                 <ul>
                   {row(m, m.a)}
                   {row(m, m.b)}
@@ -116,32 +123,36 @@ export function BracketsWindow() {
 
   const start = data?.league.settings.playoff_week_start ?? 15;
   const finished = data ? lastFinishedWeek(data.nfl, data.league.season) : 0;
+  const current = data?.nfl.week ?? 0;
   const seeded = finished >= start - 1;
 
   useEffect(() => {
     if (!data) return;
     let live = true;
-    const weeks = [start, start + 1, start + 2].filter((w) => w <= finished);
+    const weeks = [start, start + 1, start + 2].filter((w) => w <= Math.max(current, finished));
     Promise.all([getWinnersBracket(), getLosersBracket(), Promise.all(weeks.map(getMatchups))])
-      .then(([winners, losers, results]) => live && setPlayoffs({ winners, losers, results }))
+      .then(([winners, losers, games]) => live && setPlayoffs({ winners, losers, games }))
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
     };
-  }, [data, start, finished]);
+  }, [data, start, finished, current]);
 
   const view = useMemo(() => {
     if (!data || !playoffs) return null;
     const seeds = sortStandings(data.rosters).map((s) => s.rosterId);
     const sleeperWinners = seeded && playoffs.winners?.length ? playoffs.winners : null;
-    const toilet = toiletBowl(seeds, seeded ? playoffs.losers : null, seeded ? playoffs.results : [], byes && { byes });
+    // A game in progress has no result yet.
+    const results = playoffs.games.slice(0, Math.max(0, finished - start + 1));
+    const toilet = toiletBowl(seeds, seeded ? playoffs.losers : null, seeded ? results : [], byes && { byes });
     return {
       projected: !sleeperWinners,
       bracket: sleeperWinners ? fromSleeper(sleeperWinners, seeds) : projectedPlayoffBracket(seeds),
       toilet,
       risk: punishmentRisk(toilet),
+      games: playoffs.games,
     };
-  }, [data, playoffs, seeded, byes]);
+  }, [data, playoffs, seeded, byes, finished, start]);
 
   const failed = leagueError ?? error;
   if (failed) return <p role="alert">Could not reach Sleeper ({failed}). Refresh to try again.</p>;
@@ -164,6 +175,7 @@ export function BracketsWindow() {
           bracket={view.bracket}
           roundNames={["Quarterfinals", "Semifinals", "Final"]}
           startWeek={start}
+          games={view.games}
           exits="loser"
           teamFor={teamFor}
         />
@@ -180,6 +192,7 @@ export function BracketsWindow() {
           bracket={toilet}
           roundNames={["Round 1", "Round 2", "Final"]}
           startWeek={start}
+          games={view.games}
           exits="winner"
           teamFor={teamFor}
         />

@@ -231,6 +231,11 @@
   gap: 0.5rem;
 }
 
+/* Ice Rankings is one more section in the Ices tab, so its title matches the rest. */
+.m-rankings .rank-title {
+  font-size: 1.125rem;
+}
+
 .m-section-head {
   display: flex;
   align-items: baseline;

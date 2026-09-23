@@ -1,7 +1,8 @@
-import type { ComponentType, SVGProps } from "react";
+import { type ComponentType, type SVGProps, useSyncExternalStore } from "react";
 
 import { ControlPanelWindow } from "@/components/admin/ControlPanel";
 import { ChugRankingsView } from "@/components/views/chug-rankings-view";
+import { GameView } from "@/components/views/game-view";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { MyTeamView } from "@/components/views/my-team-view";
 import { PlayerView } from "@/components/views/player-view";
@@ -40,11 +41,15 @@ import {
   StarIcon,
   StopwatchIcon,
 } from "@/components/xp/icons";
+import { loadedMatchups, loadedVersion, subscribeLoaded } from "@/lib/league/cache";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { HOME_H, type WindowParams, type WindowView } from "./windows";
 
-export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor"> & { myRosterId?: number | null };
+export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor"> & {
+  myRosterId?: number | null;
+  matchupsOf?: typeof loadedMatchups;
+};
 
 export interface WindowSpec {
   title: string | ((params: WindowParams, league: League) => string);
@@ -67,6 +72,16 @@ function PlayerWindow({ params }: ParamsProps) {
 
 function WeekWindow({ params }: ParamsProps) {
   return <WeekView week={Number(params.week)} />;
+}
+
+function GameWindow({ params }: ParamsProps) {
+  return <GameView week={Number(params.week)} matchup={Number(params.matchup)} />;
+}
+
+function gameTitle(p: WindowParams, { data, teamFor, matchupsOf }: League): string {
+  const sides = matchupsOf?.(Number(p.week))?.filter((m) => m.matchup_id === Number(p.matchup)) ?? [];
+  if (!data || sides.length === 0) return `Week ${p.week} Game`;
+  return `Week ${p.week}: ${sides.map((s) => teamFor(s.roster_id).name).join(" vs ")}`;
 }
 
 // One entry per window kind.
@@ -105,6 +120,7 @@ const SPECS = {
     defaultSize: { w: 520, h: 520 },
   },
   week: { title: (p) => `Week ${p.week}`, Icon: ScoresIcon, component: WeekWindow, defaultSize: { w: 600, h: 600 } },
+  game: { title: gameTitle, Icon: ScoresIcon, component: GameWindow, defaultSize: { w: 760, h: 680 } },
   writeup: {
     title: (p) => (p.week ? `Smirnoff League - Week ${p.week} Edition` : "Smirnoff League - Latest Edition"),
     Icon: NewspaperIcon,
@@ -122,10 +138,11 @@ export function windowTitle({ kind, params }: WindowView, league: League): strin
   return typeof title === "string" ? title : title(params, league);
 }
 
-// Team and player titles need the league, so windows, taskbar tabs and phone
-// screens all read titles through this hook.
+// Team, player and game titles need the league, so windows, taskbar tabs and
+// phone screens all read titles through this hook.
 export function useWindowTitle(): (view: WindowView) => string {
   const { data, teamFor } = useLeague();
   const { myRosterId } = useProfile();
-  return (view) => windowTitle(view, { data, teamFor, myRosterId });
+  useSyncExternalStore(subscribeLoaded, loadedVersion, loadedVersion);
+  return (view) => windowTitle(view, { data, teamFor, myRosterId, matchupsOf: loadedMatchups });
 }
