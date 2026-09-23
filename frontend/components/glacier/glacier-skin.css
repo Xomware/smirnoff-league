@@ -1,0 +1,891 @@
+/* The views keep their XP markup and CSS; this layer re-skins them for Glacier.
+   It is unlayered, so it beats the XP rules in globals.css (@layer components) at
+   any specificity. It beats Tailwind's utilities the same way, so a property set
+   here overrides a view's utility class too; only do that on purpose. */
+
+[data-theme="glacier"] {
+  color-scheme: dark;
+  /* Archivo Black ships one weight; a faux bold of it smears. */
+  font-synthesis-weight: none;
+
+  --g-muted: #b3cfdf;
+  --g-label: #9dc2d6;
+  --g-link: #8fe3ff;
+  --g-link-hover: #d7f5ff;
+  /* The brand red is under 3:1 on the navy, so text and marks use this one.
+     It clears 4.5:1 on the lightest row it sits on, your own highlighted one. */
+  --g-red-text: #ffa3aa;
+  --g-green: #7ef0b5;
+  --g-line: rgb(190 235 255 / 0.16);
+  --g-row: rgb(255 255 255 / 0.06);
+  --g-hover: rgb(143 227 255 / 0.14);
+  --g-press: rgb(143 227 255 / 0.24);
+  --g-surface: #0d2a45;
+  --g-sticky: #0f2b45;
+  --g-frost: linear-gradient(160deg, rgb(170 225 255 / 0.13) 0%, rgb(120 190 235 / 0.06) 45%, rgb(170 225 255 / 0.1) 100%);
+  --g-modal: linear-gradient(160deg, #15395a 0%, #0c2741 55%, #0f2d4a 100%);
+
+  /* The XP tokens the views read, pointed at the Glacier palette. */
+  --xp-font: var(--g-body);
+  --xp-title-font: var(--g-display);
+  --xp-text: var(--g-text);
+  --xp-text-inverse: var(--g-night);
+  --xp-cream: var(--g-row);
+  --xp-face: rgb(255 255 255 / 0.1);
+  --xp-face-shadow: rgb(190 235 255 / 0.3);
+  --xp-button-border: var(--g-frost-edge);
+  --xp-select: var(--g-link);
+  --xp-title: #2f8fd0;
+  --xp-title-light: var(--g-link);
+  --xp-title-dark: var(--g-link);
+  --xp-frame: var(--g-frost-edge);
+  --xp-gold: var(--g-link);
+  --xp-balloon: rgb(143 227 255 / 0.1);
+  --xp-menu-side: rgb(143 227 255 / 0.16);
+  --xp-red: var(--g-red-text);
+  --xp-close-dark: var(--g-red);
+  --xp-start-light: var(--g-green);
+  --xp-start-dark: var(--g-green);
+  --xp-hill-dark: var(--g-green);
+  --xp-screen: var(--g-night-deep);
+  --smirnoff-red: var(--g-red-text);
+
+  --ice-tint: rgb(143 227 255 / 0.1);
+  --ice-glass: rgb(143 227 255 / 0.2);
+  --ice-frost: #5bbfe8;
+  --ice-deep: var(--g-link);
+  --ice-label: #cff3ff;
+  /* Dark enough at every step for the light cell text (5:1 at the top). */
+  --ice-heat-1: #0f2d48;
+  --ice-heat-2: #154466;
+  --ice-heat-3: #1b5680;
+  --ice-heat-4: #23679c;
+}
+
+[data-theme="glacier"] body {
+  background: var(--g-night);
+}
+
+[data-theme="glacier"] :focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+:where([data-theme="glacier"]) a {
+  color: var(--g-link);
+}
+
+:where([data-theme="glacier"]) a:hover {
+  color: var(--g-link-hover);
+}
+
+.glacier-panel {
+  line-height: 1.5;
+}
+
+/* Headings */
+
+/* The shell's h1 already says it; the subtitle under it stays. */
+.glacier-panel .rank-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[data-theme="glacier"] :is(.rank-subtitle, .xp-group-title, .xp-round-title) {
+  color: var(--g-text-strong);
+  font: 20px/1.2 var(--g-display);
+}
+
+[data-theme="glacier"] .chug-rankings > header p {
+  color: var(--g-muted);
+  font-size: 18px;
+}
+
+/* Tables */
+
+[data-theme="glacier"] .xp-table {
+  background: none;
+}
+
+[data-theme="glacier"] .xp-table th {
+  padding: 12px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--g-line);
+  background: none;
+}
+
+[data-theme="glacier"] .xp-table thead th {
+  padding-top: 8px;
+}
+
+[data-theme="glacier"] .xp-table thead :is(th, .xp-sort) {
+  color: var(--g-label);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+[data-theme="glacier"] .xp-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--g-line);
+}
+
+[data-theme="glacier"] .xp-table tbody tr:last-child :is(td, th) {
+  border-bottom: 0;
+}
+
+[data-theme="glacier"] .xp-table tbody tr:hover td {
+  background-color: var(--g-row);
+}
+
+[data-theme="glacier"] .xp-table .xp-mine :is(td, th) {
+  background-color: var(--xp-menu-side);
+}
+
+[data-theme="glacier"] .xp-danger :is(td, th) {
+  background-color: rgb(210 31 43 / 0.14);
+}
+
+[data-theme="glacier"] .xp-danger :first-child {
+  box-shadow: inset 4px 0 var(--g-red-text);
+}
+
+[data-theme="glacier"] .xp-sort:active {
+  color: var(--g-link);
+}
+
+/* Sticky cells slide over the rest of the row, so they need a solid fill. */
+[data-theme="glacier"] .ice-grid th[scope="row"] {
+  background: var(--g-sticky);
+}
+
+[data-theme="glacier"] .ice-grid .xp-mine th[scope="row"] {
+  background: #1a4262;
+}
+
+[data-theme="glacier"] .game-table .game-slot {
+  color: var(--g-label);
+  background: none;
+}
+
+/* Tabs and chips */
+
+[data-theme="glacier"] .xp-tab-strip {
+  gap: 6px;
+  margin-inline: -6px;
+  /* Room for the focus ring, which the scroll box would otherwise clip. */
+  padding: 6px 6px 12px;
+}
+
+[data-theme="glacier"] .xp-tab {
+  min-height: 40px;
+  margin: 0;
+  padding: 0 18px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  font-weight: 700;
+  background: var(--g-row);
+  transition: background-color 0.15s;
+}
+
+[data-theme="glacier"] .xp-tab:hover {
+  background: var(--g-hover);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .xp-tab:active {
+  background: var(--g-press);
+}
+
+[data-theme="glacier"] .xp-tab[aria-selected="true"] {
+  margin: 0;
+  padding-bottom: 0;
+  border-color: var(--g-snow);
+  color: var(--g-night);
+  background: var(--g-snow);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .xp-tab-panel {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+[data-theme="glacier"] .xp-tab-panel:focus-visible {
+  outline-offset: 6px;
+  border-radius: 8px;
+}
+
+[data-theme="glacier"] :is(.rank-chip, .news-chip) {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  font-weight: 700;
+  background: var(--g-row);
+  transition: background-color 0.15s;
+}
+
+[data-theme="glacier"] :is(.rank-chip, .news-chip):hover {
+  border-color: var(--g-link);
+  background: var(--g-hover);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] :is(.rank-chip, .news-chip):active {
+  background: var(--g-press);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] :is(.rank-chip, .news-chip)[aria-pressed="true"] {
+  border-color: var(--g-snow);
+  color: var(--g-night);
+  background: var(--g-snow);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] :is(.rank-chip, .news-chip):focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Buttons and fields */
+
+[data-theme="glacier"] :is(.xp-button, .xp-select) {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+[data-theme="glacier"] :is(.xp-button, .xp-select):hover {
+  border-color: var(--g-link);
+  background: var(--g-hover);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .xp-button:active {
+  background: var(--g-press);
+}
+
+[data-theme="glacier"] .xp-button:disabled {
+  border-color: var(--g-frost-edge);
+  color: var(--g-muted);
+  background: none;
+  opacity: 0.55;
+  cursor: default;
+}
+
+[data-theme="glacier"] .xp-button[type="submit"]:not(:disabled) {
+  border-color: var(--g-red);
+  color: var(--g-snow);
+  background: var(--g-red);
+  box-shadow: 0 4px 0 #a8121d;
+}
+
+[data-theme="glacier"] .xp-button[type="submit"]:not(:disabled):hover {
+  background: #e02a36;
+}
+
+[data-theme="glacier"] .xp-button[type="submit"]:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #a8121d;
+}
+
+[data-theme="glacier"] .xp-step {
+  min-width: 44px;
+  padding: 0;
+}
+
+[data-theme="glacier"] .xp-button.chug-row-button {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+[data-theme="glacier"] .xp-select option {
+  color: var(--g-text);
+  background: var(--g-surface);
+}
+
+[data-theme="glacier"] :is(.xp-input, .palette-run .palette-input) {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 12px;
+  color: var(--g-text-strong);
+  font: inherit;
+  background: rgb(4 19 34 / 0.55);
+}
+
+[data-theme="glacier"] :is(.xp-input, .palette-run .palette-input):focus-visible {
+  border-color: var(--g-link);
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+[data-theme="glacier"] :is(.xp-input, .palette-input)::placeholder {
+  color: var(--g-label);
+}
+
+[data-theme="glacier"] .chug-dialog input[type="file"]::file-selector-button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  font: 700 14px var(--g-body);
+  background: rgb(255 255 255 / 0.08);
+}
+
+[data-theme="glacier"] .chug-dialog input[type="file"]::file-selector-button:hover {
+  background: var(--g-hover);
+}
+
+[data-theme="glacier"] .chug-dialog input[type="file"]:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Links. Drill links stay text-coloured, like XP's, and light up on hover. */
+
+[data-theme="glacier"] .xp-drill:hover,
+[data-theme="glacier"] .xp-drill:hover .xp-team-name {
+  color: var(--g-link-hover);
+}
+
+[data-theme="glacier"] .xp-drill:active {
+  color: var(--g-link);
+}
+
+[data-theme="glacier"] :is(.xp-open-game, .news-headline) .xp-drill {
+  color: var(--g-link);
+}
+
+[data-theme="glacier"] .notifs-item .xp-drill,
+[data-theme="glacier"] .notifs-item .xp-drill:hover {
+  color: var(--g-text);
+}
+
+[data-theme="glacier"] .writeup-archive .xp-drill:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: -3px;
+}
+
+/* Badges, tags and avatars */
+
+[data-theme="glacier"] .ice-badge {
+  border-color: rgb(143 227 255 / 0.5);
+  color: var(--ice-label);
+  background: rgb(143 227 255 / 0.14);
+  box-shadow: 0 0 8px rgb(143 227 255 / 0.25);
+}
+
+[data-theme="glacier"] .ice {
+  border-color: rgb(143 227 255 / 0.6);
+  color: var(--g-text-strong);
+  background: rgb(143 227 255 / 0.16);
+  box-shadow:
+    inset 0 0 8px rgb(143 227 255 / 0.3),
+    0 0 8px rgb(143 227 255 / 0.35);
+  text-shadow: none;
+}
+
+[data-theme="glacier"] .xp-player-row.ice {
+  border-radius: 12px;
+}
+
+[data-theme="glacier"] .xp-team-name.ice {
+  border-radius: 999px;
+  padding: 0 10px;
+}
+
+[data-theme="glacier"] :is(.xp-tag, .xp-watch-tag, .xp-game-chip, .profile-chip) {
+  padding: 0 8px;
+  border-radius: 999px;
+}
+
+[data-theme="glacier"] .xp-tag {
+  border-color: var(--g-frost-edge);
+  color: var(--ice-label);
+  background: rgb(143 227 255 / 0.12);
+}
+
+[data-theme="glacier"] .profile-chip[data-tone] {
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] .profile-chip[data-tone="danger"] {
+  box-shadow: inset 3px 0 var(--g-red-text);
+}
+
+[data-theme="glacier"] :is(.xp-avatar, .profile-avatar) {
+  border-color: var(--g-frost-edge);
+  border-radius: 10px;
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] .profile-avatar {
+  border-radius: 16px;
+}
+
+/* Grouped surfaces inside the panel */
+
+[data-theme="glacier"] :is(.xp-matchup, .xp-bracket-match, .game-score, .profile-head, .notifs-list, .chug-card) {
+  border-color: var(--g-line);
+  border-radius: 18px;
+  background: var(--g-row);
+}
+
+/* Only a grouping here; a frame around it would nest cards in the panel. */
+[data-theme="glacier"] .xp-group {
+  padding: 0;
+  border: 0;
+}
+
+[data-theme="glacier"] :is(.xp-matchup, .xp-bracket-match) {
+  padding: 12px 14px;
+}
+
+[data-theme="glacier"] .xp-matchup:hover {
+  border-color: var(--g-link);
+  background: var(--g-hover);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .xp-matchup:active {
+  background: var(--g-press);
+}
+
+[data-theme="glacier"] .notifs-list {
+  overflow: hidden;
+}
+
+[data-theme="glacier"] .notifs-item .xp-drill:hover {
+  background: var(--g-hover);
+}
+
+[data-theme="glacier"] .game-points {
+  color: var(--g-text-strong);
+  font-weight: 400;
+}
+
+[data-theme="glacier"] .profile-name {
+  font-weight: 400;
+}
+
+[data-theme="glacier"] .news-masthead {
+  border-bottom: 1px solid var(--g-line);
+}
+
+[data-theme="glacier"] :is(.news-title, .writeup-title) {
+  color: var(--g-text-strong);
+  font: 26px/1.1 var(--g-display);
+  letter-spacing: 0;
+}
+
+[data-theme="glacier"] .news-dateline {
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] .news-columns {
+  border-radius: 12px 12px 0 0;
+  color: var(--g-label);
+  background: var(--g-sticky);
+}
+
+[data-theme="glacier"] .news-row:hover {
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] .news-meta {
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] :is(.writeup-archive, .chug-picks) {
+  border-color: var(--g-line);
+  border-radius: 16px;
+  background: var(--g-row);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .writeup-archive .xp-drill {
+  border-radius: 10px;
+}
+
+[data-theme="glacier"] .writeup-archive .xp-drill:hover {
+  background: var(--g-hover);
+}
+
+[data-theme="glacier"] .writeup-pages {
+  border-radius: 16px;
+}
+
+[data-theme="glacier"] :is(.chug-meta, .chug-picks legend) {
+  color: var(--g-label);
+}
+
+[data-theme="glacier"] .xp-wanted-poster {
+  border-color: var(--g-red-text);
+  border-radius: 14px;
+  background: none;
+}
+
+[data-theme="glacier"] .xp-wanted-head {
+  color: var(--g-red-text);
+}
+
+/* Stat and chart cards: the XP "dialog" boxes become frost cards. */
+
+[data-theme="glacier"] .xp-dialog {
+  position: relative;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 22px;
+  background: var(--g-frost);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 10px 28px rgb(2 12 24 / 0.3);
+}
+
+[data-theme="glacier"] .xp-dialog-title {
+  padding: 18px 20px 0;
+  border-radius: 0;
+  color: var(--g-label);
+  font: 800 13px var(--g-body);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: none;
+  background: none;
+}
+
+.glacier-panel .xp-dialog::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 14px;
+  right: 14px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 22' preserveAspectRatio='none'%3E%3Cpath fill='rgb(200 238 255 / 0.55)' d='M0 0H400V3H394L391 15L388 3H372L368 20L364 3H340L337 11L334 3H310L306 18L302 3H276L273 9L270 3H246L242 21L238 3H214L211 12L208 3H180L176 17L172 3H150L147 10L144 3H118L114 19L110 3H86L83 11L80 3H58L54 16L50 3H28L25 9L22 3H0Z'/%3E%3C/svg%3E")
+    0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+[data-theme="glacier"] .stats-takeaway {
+  padding: 8px 12px;
+  border-left-color: var(--g-link);
+  border-radius: 0 12px 12px 0;
+  background: var(--ice-tint);
+}
+
+[data-theme="glacier"] .stats-worst {
+  border-left-color: var(--g-red-text);
+  background: rgb(210 31 43 / 0.14);
+}
+
+/* Ice Rankings: the stat cards lead, as in the mockup, and #1 is red. */
+
+.glacier-panel .chug-rankings > header {
+  order: -2;
+}
+
+.glacier-panel .chug-rankings .rank-summary {
+  order: -1;
+}
+
+[data-theme="glacier"] .rank-summary {
+  gap: 18px;
+}
+
+[data-theme="glacier"] .rank-card-body {
+  gap: 4px;
+  padding: 6px 20px 20px;
+  color: var(--g-muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+[data-theme="glacier"] .rank-big {
+  color: var(--g-text-strong);
+  font: 44px/1.1 var(--g-display);
+}
+
+[data-theme="glacier"] .rank-summary > .xp-dialog:last-child {
+  border-color: rgb(255 122 131 / 0.55);
+}
+
+[data-theme="glacier"] .rank-summary > .xp-dialog:last-child :is(.xp-dialog-title, .rank-big) {
+  color: var(--g-red-text);
+}
+
+[data-theme="glacier"] .chug-rankings .xp-table {
+  font-size: 17px;
+}
+
+[data-theme="glacier"] .chug-rankings .xp-table td:nth-child(3) {
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] .rank-label {
+  color: var(--g-label);
+  font-family: var(--g-display);
+  font-weight: 400;
+}
+
+[data-theme="glacier"] .rank-label.rank-top {
+  color: var(--g-red-text);
+}
+
+[data-theme="glacier"] .rank-cards {
+  border-color: var(--g-line);
+  border-radius: 18px;
+}
+
+[data-theme="glacier"] .rank-card-row {
+  border-bottom-color: var(--g-line);
+}
+
+/* Empty, note and error states */
+
+/* No border, so a note never reads as a text field. */
+[data-theme="glacier"] :is(.xp-note, .xp-inset, .notifs-note, .palette-empty) {
+  border: 0;
+  border-radius: 14px;
+  color: var(--g-muted);
+  background: var(--g-row);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .xp-note {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+[data-theme="glacier"] :is(.news-empty, .notifs-empty, .writeup-empty) {
+  color: var(--g-muted);
+}
+
+.glacier-panel p[role="alert"] {
+  padding: 12px 16px;
+  border: 1px solid rgb(255 122 131 / 0.5);
+  border-radius: 14px;
+  color: #ffd6d9;
+  background: rgb(210 31 43 / 0.16);
+}
+
+/* Modals: the backdrop dims the navy, and the box is solid so text stays legible. */
+
+[data-theme="glacier"] .xp-backdrop {
+  background: rgb(4 19 34 / 0.62);
+  backdrop-filter: blur(6px);
+}
+
+[data-theme="glacier"] .xp-backdrop .xp-dialog {
+  overflow: hidden;
+  background: var(--g-modal);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 24px 60px rgb(2 12 24 / 0.6);
+}
+
+[data-theme="glacier"] .xp-backdrop .xp-dialog-title {
+  padding: 22px 24px 6px;
+  color: var(--g-text-strong);
+  font: 22px/1.2 var(--g-display);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-theme="glacier"] .xp-message-body {
+  padding: 16px 24px;
+  font-size: 15px;
+}
+
+[data-theme="glacier"] .xp-message-buttons {
+  padding: 4px 24px 24px;
+}
+
+[data-theme="glacier"] .xp-backdrop .xp-dialog > :is(form, [aria-live]) {
+  padding-inline: 24px;
+  padding-bottom: 24px;
+}
+
+[data-theme="glacier"] .xp-control {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
+  color: var(--g-text-strong);
+  background: rgb(255 255 255 / 0.08);
+}
+
+[data-theme="glacier"] button.xp-control:hover {
+  border-color: var(--g-red);
+  background: var(--g-red);
+  filter: none;
+}
+
+[data-theme="glacier"] button.xp-control:active {
+  background: #a8121d;
+  filter: none;
+}
+
+[data-theme="glacier"] .upload-progress {
+  height: 16px;
+  border-color: var(--g-line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+[data-theme="glacier"] .upload-progress span {
+  border-radius: 999px;
+}
+
+/* The command palette */
+
+[data-theme="glacier"] .palette-run {
+  width: min(36rem, 100%);
+}
+
+[data-theme="glacier"] .palette-title {
+  padding-right: 16px;
+}
+
+[data-theme="glacier"] .palette-run-body {
+  gap: 12px;
+  padding: 12px 24px 0;
+  font-size: 15px;
+}
+
+[data-theme="glacier"] .palette-run .palette-list {
+  border-color: var(--g-line);
+  border-radius: 14px;
+  background: rgb(4 19 34 / 0.45);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .palette-run .palette-group {
+  padding: 10px 14px 6px;
+  border-bottom-color: var(--g-line);
+  color: var(--g-label);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-theme="glacier"] .palette-run .palette-option {
+  min-height: 40px;
+  padding: 4px 14px;
+}
+
+[data-theme="glacier"] .palette-buttons {
+  padding: 16px 24px 24px;
+}
+
+/* The balloon points at the header's bell, not a taskbar tray. */
+
+[data-theme="glacier"] .xp-balloon {
+  top: 92px;
+  right: 24px;
+  bottom: auto;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 16px;
+  color: var(--g-text);
+  font-size: 14px;
+  background: var(--g-surface);
+  box-shadow: 0 14px 40px rgb(2 12 24 / 0.5);
+}
+
+[data-theme="glacier"] .xp-balloon::after {
+  top: -12px;
+  right: 32px;
+  bottom: auto;
+  border: 12px solid transparent;
+  border-top: 0;
+  border-left: 0;
+  border-bottom-color: var(--g-surface);
+  filter: drop-shadow(0 -1px 0 var(--g-frost-edge));
+}
+
+[data-theme="glacier"] .xp-balloon-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+@media (max-width: 1279.98px) {
+  [data-theme="glacier"] .xp-balloon::after {
+    right: 8px;
+  }
+}
+
+/* The loader: a frosted bottle in an icy halo, on the same chug. */
+
+[data-theme="glacier"] .brand-loader {
+  position: relative;
+}
+
+[data-theme="glacier"] .brand-loader::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(200 240 255 / 0.5), rgb(110 190 235 / 0.22) 55%, transparent);
+  animation: glacier-halo 1.2s ease-in-out infinite;
+}
+
+[data-theme="glacier"] .brand-loader img {
+  position: relative;
+  animation-name: glacier-chug;
+}
+
+@keyframes glacier-chug {
+  0%,
+  100% {
+    transform: rotate(0deg);
+    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 4px rgb(200 240 255 / 0.9));
+  }
+  40%,
+  75% {
+    transform: rotate(-110deg);
+    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 16px rgb(150 220 255 / 0.95));
+  }
+  58% {
+    transform: rotate(-100deg);
+  }
+}
+
+@keyframes glacier-halo {
+  40%,
+  75% {
+    opacity: 0.6;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="glacier"] :is(.xp-tab, .rank-chip, .news-chip, .xp-button, .xp-select) {
+    transition: none;
+  }
+
+  [data-theme="glacier"] .brand-loader::before {
+    animation: none;
+  }
+
+  [data-theme="glacier"] .brand-loader img {
+    filter: saturate(0.5) brightness(1.15) drop-shadow(0 0 8px rgb(200 240 255 / 0.9));
+    animation: brand-pulse 1.2s ease-in-out infinite alternate;
+  }
+}

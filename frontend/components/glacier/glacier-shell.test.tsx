@@ -62,6 +62,14 @@ describe("GlacierShell", () => {
     expect(nav().getByRole("link", { name: "Home" }).getAttribute("aria-current")).toBe("page");
   });
 
+  it("themes the whole document while mounted, so dialogs portaled to body pick it up", () => {
+    const { unmount } = renderShell();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("glacier");
+
+    unmount();
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  });
+
   it("switches the view from the nav, writes ?open= and comes back on the browser's Back", async () => {
     renderShell();
     fireEvent.click(nav().getByRole("link", { name: "League" }));
