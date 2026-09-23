@@ -111,7 +111,9 @@ jobs:
             fi
             echo "Comparing $RANGE"
             CHANGED=$(git diff --name-only $RANGE 2>/dev/null || git diff --name-only HEAD)
-            if echo "$CHANGED" | grep -q "^backend/lambdas/common/"; then
+            # The layer bundles requirements.txt deps as well as common, so a
+            # dependency-only change must republish it too (#101).
+            if echo "$CHANGED" | grep -q -e "^backend/lambdas/common/" -e "^backend/requirements\.txt$"; then
               echo "common=true" >> $GITHUB_OUTPUT
             else
               echo "common=false" >> $GITHUB_OUTPUT
