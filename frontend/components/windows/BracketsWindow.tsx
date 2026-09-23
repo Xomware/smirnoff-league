@@ -174,8 +174,7 @@ export function BracketsWindow() {
         <p className="xp-note mb-3">
           Loser advances: win once and you are safe. Seeds {byeSeeds} get round-1 byes, which only puts them one loss
           from the final. Lose in week {start} and you face a bye team in week {start + 1}. Lose again and you are in
-          the week {start + 2} final. Lose that and you spend a night in a dark closet with a head lamp and a
-          300-piece puzzle.
+          the week {start + 2} final. Lose that and you finish last.
         </p>
         <BracketView
           bracket={toilet}
@@ -186,21 +185,21 @@ export function BracketsWindow() {
         />
       </section>
 
-      <section className="xp-group" aria-label="Closet Watch">
-        <h3 className="xp-group-title">Closet Watch</h3>
+      <section className="xp-group" aria-label="Last Place Watch">
+        <h3 className="xp-group-title">Last Place Watch</h3>
         <div className="flex items-start gap-3" aria-live="polite">
           <WarningIcon width={32} height={32} className="shrink-0" />
           <div className="min-w-0 flex-1">
             {toilet.punished !== null ? (
-              <p className="font-bold">{teamFor(toilet.punished).name} lost every toilet bowl game. Closet time.</p>
+              <p className="font-bold">{teamFor(toilet.punished).name} lost every toilet bowl game. Last place, officially.</p>
             ) : (
               <p className="mb-2">
                 {seeded
-                  ? "Still alive in the toilet bowl, and one bad week closer to the closet:"
+                  ? "Still alive in the toilet bowl, and one bad week closer to last place:"
                   : "The bottom 6 right now. Finish here and you are in the toilet bowl:"}
               </p>
             )}
-            <ol aria-label="At risk of the closet" className="flex flex-col gap-1">
+            <ol aria-label="At risk of last place" className="flex flex-col gap-1">
               {view.risk.map((id) => (
                 <li key={id} className="min-w-0">
                   <DrillLink to={{ kind: "team", rosterId: id }}>
