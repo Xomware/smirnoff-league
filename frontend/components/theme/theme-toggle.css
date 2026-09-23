@@ -22,12 +22,21 @@
   cursor: var(--cursor-pointer, pointer);
 }
 
-.theme-toggle button:hover {
+.theme-toggle button:hover:enabled {
   box-shadow: inset 0 0 0 2px var(--xp-gold);
 }
 
 .theme-toggle button:active {
   background: var(--xp-face-shadow);
+}
+
+.theme-toggle button:disabled {
+  box-shadow: none;
+  cursor: default;
+}
+
+.theme-toggle button:disabled:not([aria-pressed="true"]) {
+  opacity: 0.6;
 }
 
 .theme-toggle button[aria-pressed="true"] {
@@ -67,7 +76,7 @@
   transition: background-color 0.15s;
 }
 
-[data-theme="glacier"] .theme-toggle button:hover {
+[data-theme="glacier"] .theme-toggle button:hover:enabled {
   background: rgb(255 255 255 / 0.16);
 }
 

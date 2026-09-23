@@ -47,7 +47,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
   // The callback must render signed out: it is where the sign-in completes. The
   // privacy policy must too, as plain prerendered HTML for Google's OAuth review.
-  if (PUBLIC_PATHS.includes(pathname.replace(/\/$/, ""))) return children;
+  if (PUBLIC_PATHS.includes(pathname.replace(/\/$/, ""))) return <ThemeProvider>{children}</ThemeProvider>;
   if (status === "signedIn") {
     return (
       <ProfileProvider>

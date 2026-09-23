@@ -35,6 +35,7 @@ import PrivacyPage from "@/app/privacy/page";
 import { track } from "@/lib/activity/tracker";
 import { getMe } from "@/lib/api/users";
 import { THEME_KEY } from "@/lib/theme/theme";
+import { PHONE } from "@/lib/use-media-query";
 import { AuthGate } from "./auth-gate";
 
 function signedIn() {
@@ -51,9 +52,9 @@ function signedIn() {
 }
 
 // Reduced motion swaps the theme at once instead of behind the 1.2s transition overlay.
-const reducedMotion = (matches: boolean) =>
+const media = ({ reduced = true, phone = false }) =>
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: matches && query.includes("reduced-motion"),
+    matches: (reduced && query.includes("reduced-motion")) || (phone && query === PHONE),
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -70,7 +71,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  reducedMotion(false);
+  media({ reduced: false });
   cleanup();
   vi.restoreAllMocks();
 });
@@ -88,7 +89,7 @@ describe("AuthGate", () => {
 
   it("puts the theme switch on the signed-out landing, saved to this browser only", async () => {
     signedOut();
-    reducedMotion(true);
+    media({});
     localStorage.clear();
     nav.pathname = "/";
     const { container } = render(<AuthGate>home</AuthGate>);
@@ -104,6 +105,31 @@ describe("AuthGate", () => {
     expect(screen.getByRole("button", { name: "Glacier" }).getAttribute("aria-pressed")).toBe("true");
     expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
     expect(getMe).not.toHaveBeenCalled();
+    localStorage.clear();
+  });
+
+  it("opens the signed-out landing in Glacier on a phone", async () => {
+    signedOut();
+    localStorage.clear();
+    media({ phone: true });
+    nav.pathname = "/";
+    const { container } = render(<AuthGate>home</AuthGate>);
+    await waitFor(() => expect(getCurrentUser).toHaveBeenCalled());
+
+    expect(container.querySelector('[data-theme="glacier"]')).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Glacier" }).getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("themes <html> on the sign-in callback, where the loader shows", async () => {
+    signedOut();
+    localStorage.setItem(THEME_KEY, "glacier");
+    nav.pathname = "/auth/callback/";
+    render(
+      <AuthGate>
+        <AuthCallbackPage />
+      </AuthGate>,
+    );
+    expect(document.documentElement.dataset.theme).toBe("glacier");
     localStorage.clear();
   });
 

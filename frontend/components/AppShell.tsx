@@ -32,7 +32,7 @@ export function AppShell() {
   return (
     <NotificationsProvider>
       {phone ? (
-        <MobileShell />
+        <MobileShell theme={theme} />
       ) : theme === "glacier" ? (
         <GlacierShell />
       ) : (

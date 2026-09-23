@@ -1,11 +1,16 @@
 "use client";
 
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useSyncExternalStore } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState, useSyncExternalStore } from "react";
 
+import { FONTS } from "@/components/glacier/Frost";
 import { runThemeTransition } from "@/components/theme/transition";
 import { useAlerts } from "@/lib/alerts/alerts";
 import { updateMe } from "@/lib/api/users";
 import { useProfile } from "@/lib/profile/use-profile";
+import { PHONE, useMediaQuery } from "@/lib/use-media-query";
+
+// Its tokens are what the loaders read before any Glacier view has loaded.
+import "@/components/glacier/glacier.css";
 
 export type Theme = "xp" | "glacier";
 
@@ -27,10 +32,12 @@ function read(): Theme | null {
   }
 }
 
-function write(theme: Theme) {
+// Only an explicit choice is stored; null clears it back to the device default.
+function write(theme: Theme | null) {
   unstored = theme;
   try {
-    localStorage.setItem(THEME_KEY, theme);
+    if (theme) localStorage.setItem(THEME_KEY, theme);
+    else localStorage.removeItem(THEME_KEY);
   } catch {
     // `unstored` carries it instead.
   }
@@ -52,17 +59,21 @@ const serverTheme = () => null;
 interface ThemeState {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  /** True while a switch plays; another switch then would be dropped. */
+  switching: boolean;
 }
 
-const ThemeContext = createContext<ThemeState>({ theme: "xp", setTheme: () => {} });
+const ThemeContext = createContext<ThemeState>({ theme: "xp", setTheme: () => {}, switching: false });
 
 /**
- * The profile's theme when signed in, else this browser's. Mount it inside
- * ProfileProvider when signed in; outside it there is no profile and the
- * choice stays in localStorage.
+ * The profile's theme when signed in, else this browser's, else the device
+ * default: Glacier on a phone, XP on a desktop. Mount it inside ProfileProvider
+ * when signed in; outside it there is no profile and the choice stays in localStorage.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, read, serverTheme) ?? "xp";
+  const phone = useMediaQuery(PHONE);
+  const theme = useSyncExternalStore(subscribe, read, serverTheme) ?? (phone ? "glacier" : "xp");
+  const [switching, setSwitching] = useState(false);
   const { me } = useProfile();
   const { notify } = useAlerts();
   const onboarded = Boolean(me?.profile);
@@ -86,24 +97,31 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback(
     (next: Theme) => {
       if (next === theme) return;
+      const before = read();
+      setSwitching(true);
       // Saved from inside apply: the transition drops a switch made while one is
       // running, and a fast failure must not roll back before the swap lands.
       void runThemeTransition(next, () => {
         write(next);
         if (!onboarded) return;
         updateMe({ theme: next }).catch(() => {
-          write(theme);
+          write(before);
           notify({ title: "Theme not saved", body: "Couldn't save your theme. Try again in a moment.", icon: "error" });
         });
-      });
+      }).finally(() => setSwitching(false));
     },
     [theme, onboarded, notify],
   );
 
-  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, switching }}>
+      {theme === "glacier" && <link rel="stylesheet" href={FONTS} precedence="default" />}
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export const useTheme = () => useContext(ThemeContext);
 
-/** Runs before hydration so the first paint (the loader) is already in the stored theme. */
-export const THEME_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==="xp"||t==="glacier")document.documentElement.dataset.theme=t}catch(e){}`;
+/** Runs before hydration so the first paint (the loader) is already in the right theme. */
+export const THEME_SCRIPT = `var t;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}if(t!=="xp"&&t!=="glacier")t=matchMedia(${JSON.stringify(PHONE)}).matches?"glacier":"xp";document.documentElement.dataset.theme=t`;

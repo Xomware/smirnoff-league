@@ -9,6 +9,7 @@ import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
 import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
@@ -115,15 +116,6 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   };
   const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
 
-  // Sheets and dialogs portal to <body>, outside this tree, so the theme sits on <html> too.
-  useEffect(() => {
-    if (!glacier) return;
-    document.documentElement.dataset.theme = "glacier";
-    return () => {
-      delete document.documentElement.dataset.theme;
-    };
-  }, [glacier]);
-
   return (
     <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
       {glacier && <link rel="stylesheet" href={FONTS} precedence="default" />}
@@ -160,6 +152,11 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       aria-label={title(screen)}
                       hidden={tab !== nav.tab || i !== all.length - 1}
                     >
+                      {screen.kind === "home" && (
+                        <div className="m-theme-row">
+                          <ThemeToggle />
+                        </div>
+                      )}
                       <WindowBoundary>
                         <Body params={screen.params} />
                       </WindowBoundary>

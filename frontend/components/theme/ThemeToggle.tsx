@@ -48,11 +48,17 @@ const OPTIONS: { theme: Theme; label: string; Glyph: ComponentType<GlyphProps> }
 ];
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, switching } = useTheme();
   return (
     <div role="group" aria-label="Theme" className="theme-toggle">
       {OPTIONS.map(({ theme: option, label, Glyph }) => (
-        <button key={option} type="button" aria-pressed={theme === option} onClick={() => setTheme(option)}>
+        <button
+          key={option}
+          type="button"
+          aria-pressed={theme === option}
+          disabled={switching}
+          onClick={() => setTheme(option)}
+        >
           <Glyph />
           {label}
         </button>

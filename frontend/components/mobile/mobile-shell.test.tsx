@@ -189,17 +189,13 @@ describe("Glacier", () => {
       </ProfileProvider>,
     );
 
-  it("themes its root and the document while mounted, with the pill tab bar and the snow", () => {
-    const { container, unmount } = renderGlacier();
+  it("themes its root, with the pill tab bar and the snow", () => {
+    const { container } = renderGlacier();
     const root = container.firstElementChild!;
     expect(root.getAttribute("data-theme")).toBe("glacier");
-    expect(document.documentElement.getAttribute("data-theme")).toBe("glacier");
     expect(root.querySelector(".m-tabs-pill")).toBe(screen.getByRole("navigation", { name: "Tabs" }));
     expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
     expect(root.querySelector(".glacier-effects")).not.toBeNull();
-
-    unmount();
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
   });
 
   it("opens with Glacier's home and still switches tabs", async () => {
@@ -220,7 +216,6 @@ describe("Glacier", () => {
   it("leaves the default XP phone untouched", () => {
     const { container } = renderShell();
     expect(container.querySelector("[data-theme]")).toBeNull();
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
     expect(container.querySelector(".m-tabs-pill, .glacier-effects")).toBeNull();
     expect(container.querySelector(".m-hero")).not.toBeNull();
   });

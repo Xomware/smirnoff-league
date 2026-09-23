@@ -2,6 +2,7 @@
 
 import { type ComponentType, type SVGProps, useSyncExternalStore } from "react";
 
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { TeamName } from "@/components/xp/TeamName";
 import {
   BracketIcon,
@@ -92,6 +93,10 @@ export function MenuScreen() {
               <span className="m-nav-label">Mute sounds</span>
               <span className="m-switch" aria-hidden />
             </button>
+          </li>
+          <li className="m-row">
+            <span className="m-nav-label">Theme</span>
+            <ThemeToggle />
           </li>
           <li>
             <button type="button" className="m-nav-row" onClick={() => void signOut()}>

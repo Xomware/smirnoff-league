@@ -34,6 +34,7 @@ import { getMe, type Profile, updateMe } from "@/lib/api/users";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { THEME_KEY } from "@/lib/theme/theme";
+import { PHONE } from "@/lib/use-media-query";
 
 const profile = (theme: Profile["theme"]): Profile => ({
   name: "Member",
@@ -46,7 +47,7 @@ const profile = (theme: Profile["theme"]): Profile => ({
 
 function renderApp(theme: Profile["theme"]) {
   vi.mocked(getMe).mockResolvedValue({ sub: "u", email: "member@example.com", isAdmin: false, profile: profile(theme) });
-  render(
+  return render(
     <DesktopProvider>
       <AuthGate>
         <Home />
@@ -57,9 +58,9 @@ function renderApp(theme: Profile["theme"]) {
 
 // Under reduced motion the switch goes through runThemeTransition but applies at
 // once, since jsdom has no View Transitions; without it every switch waits 1.2s.
-const reducedMotion = (matches: boolean) =>
+const media = ({ reduced = true, phone = false }) =>
   vi.stubGlobal("matchMedia", (query: string) => ({
-    matches: matches && query.includes("reduced-motion"),
+    matches: (reduced && query.includes("reduced-motion")) || (phone && query === PHONE),
     media: query,
     addEventListener: () => {},
     removeEventListener: () => {},
@@ -69,14 +70,14 @@ const glacierNav = () => screen.queryByRole("navigation", { name: "Main" });
 const taskbar = () => screen.queryByRole("list", { name: "Open windows" });
 
 beforeEach(() => {
-  reducedMotion(true);
+  media({});
   stubSleeper();
   localStorage.clear();
   Element.prototype.setPointerCapture = vi.fn();
   Element.prototype.scrollIntoView = vi.fn();
 });
 afterEach(() => {
-  reducedMotion(false);
+  media({ reduced: false });
   vi.restoreAllMocks();
   vi.clearAllMocks();
   window.history.replaceState(null, "", "/");
@@ -129,5 +130,26 @@ describe("switching themes in the app", () => {
     expect(await screen.findByRole("list", { name: "Open windows" })).not.toBeNull();
     expect(glacierNav()).toBeNull();
     expect(localStorage.getItem(THEME_KEY)).toBe("xp");
+  });
+
+  it("on a phone opens Glacier, and switches to the XP phone from the Home toggle and back from Menu", async () => {
+    media({ phone: true });
+    vi.mocked(updateMe).mockImplementation(async (input) => profile("theme" in input ? input.theme : null));
+    const { container } = renderApp(null);
+    const tabs = await screen.findByRole("navigation", { name: "Tabs" });
+    expect(tabs.classList.contains("m-tabs-pill")).toBe(true);
+    expect(container.querySelector(".m-app")!.getAttribute("data-theme")).toBe("glacier");
+
+    const home = within(screen.getByRole("region", { name: "Smirnoff League" }));
+    fireEvent.click(home.getByRole("button", { name: "Classic XP" }));
+    expect(container.querySelector(".m-app")!.hasAttribute("data-theme")).toBe(false);
+    expect(updateMe).toHaveBeenCalledWith({ theme: "xp" });
+
+    await new Promise((r) => setTimeout(r, 0));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Tabs" })).getByRole("button", { name: "Menu" }));
+    const menu = within(screen.getByRole("region", { name: "Menu" }));
+    fireEvent.click(menu.getByRole("button", { name: "Glacier" }));
+    expect(container.querySelector(".m-app")!.getAttribute("data-theme")).toBe("glacier");
+    expect(updateMe).toHaveBeenLastCalledWith({ theme: "glacier" });
   });
 });

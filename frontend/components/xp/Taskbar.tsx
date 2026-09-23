@@ -42,7 +42,7 @@ export function Taskbar() {
   const time = useSyncExternalStore(subscribeToClock, readClock, readServerClock);
   const windowTitle = useWindowTitle();
   const { unread } = useNotifications();
-  const { setTheme } = useTheme();
+  const { setTheme, switching } = useTheme();
 
   useEffect(() => {
     if (!open) return;
@@ -130,6 +130,7 @@ export function Taskbar() {
             className="xp-tray-button"
             aria-label="Switch to the Glacier theme"
             title="Glacier theme"
+            disabled={switching}
             onClick={() => setTheme("glacier")}
           >
             <SnowflakeGlyph width={18} height={18} />
