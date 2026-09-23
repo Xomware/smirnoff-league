@@ -10,6 +10,15 @@ Never run `terraform` locally; GitHub Actions owns every plan and apply.
 
 Everything deploys from a push to `main`. Each workflow is path-filtered.
 
+`main` is protected, admins included (`enforce_admins`): every change lands through
+a pull request, force pushes and branch deletion are off, and zero approvals are
+required. No status checks are required, so a red CI run does not block the merge
+button; read the checks before merging. This lives in the repo settings, not in code:
+
+```bash
+gh api repos/domgiordano/smirnoff-league/branches/main/protection
+```
+
 | Workflow | Runs on | Does |
 |---|---|---|
 | `ci.yml` | pull requests to `main` | frontend `npm ci`, lint, test, build |
@@ -127,8 +136,91 @@ Admins only. The flow is in `components/windows/UploadEdition.tsx`.
 4. **Publish.** Until then nobody sees it, since `/writeups/list` returns published
    editions only. **Unpublish** in the same dialog hides it again.
 
-If the dialog says the PDF could not be rendered, PDFium could not open it: export
-it again and re-upload. Render logs are in `/aws/lambda/smirnoff-writeup-render`.
+### A failed edition
+
+The dialog only says "The PDF could not be rendered". The reason is on the media
+row as `failReason` (`backend/lambdas/writeup_render/handler.py`):
+
+| `failReason` | Meaning | Fix |
+|---|---|---|
+| `too many pages` | More than 40 pages (`MAX_PAGES`) | Split or trim the PDF |
+| `bad page size` | A page with zero size, or so narrow that at 1400 px wide it would pass 14,000 px tall | Re-export with normal page sizes |
+| `render error` | Anything else, an unreadable PDF included | Export it again; read the log |
+
+To read it: in the browser's network tab, the last `writeup-publish` poll response
+is the whole row, `failReason` included. Or list every failed edition:
+
+```bash
+aws dynamodb query --region us-east-1 --table-name smirnoff-media \
+  --key-condition-expression '#k = :w' \
+  --filter-expression '#s = :f' \
+  --expression-attribute-names '{"#k":"kind","#s":"status","#t":"title","#r":"failReason"}' \
+  --expression-attribute-values '{":w":{"S":"writeup"},":f":{"S":"failed"}}' \
+  --projection-expression 'mediaId, #t, pdfKey, #r'
+```
+
+The stack trace for a `render error` is in `/aws/lambda/smirnoff-writeup-render`,
+logged as `could not render <pdfKey>`. A failed row is never retried; upload again
+from the dialog, which creates a new row.
+
+## Game days
+
+### The first live Thursday of a week
+
+Sleeper moves `nfl/state` to the new week days before its first kickoff. Until that
+kickoff the default week is the one that just ended; at kickoff it flips to the new
+week (`frontend/lib/league/default-week.ts`). Scores, Home, the team view and the
+sign-in greeting use it. If ESPN fails, it falls back to Sleeper's week.
+
+The flip happens on a load, not live: `useLeague` reads `nfl/state` once per mount
+(`frontend/lib/league/use-league.ts`) and `useDefaultWeek` computes from it once, so
+a tab opened before kickoff keeps last week until it is reloaded.
+
+Check, in a real browser (ESPN returns 403 to headless Chrome):
+
+1. **Before kickoff.** Home and Scores show last week. The previous week should be
+   finalized with a deadline: the Chug Board shows countdowns, not a bare "owed". If
+   it is not finalized, see "Finalize or re-finalize a week".
+2. **After kickoff, reloaded.** Home shows the new week and its summary reads "Ice
+   Watch this week (live)"; while a game is in progress the team list is Ice Watch's
+   count per team (`components/windows/HomeWindow.tsx`). Scores opens on the new
+   week.
+3. **Ice Watch.** The Ice Watch window uses Sleeper's week, not the default week, so
+   it shows the new week all along. While a game is in progress it polls Sleeper and
+   ESPN every 45 s; between games it sleeps until the next kickoff, and it stops
+   polling in a hidden tab until the tab is shown again
+   (`frontend/lib/ices/use-ice-watch.ts`). Starters move through `WATCH`, `SAFE`,
+   `LOCKED`, `FINAL_ICE` and `FINAL_SAFE` (`frontend/lib/ices/watch.ts`), and a new
+   `WATCH` or `FINAL_ICE` raises a balloon (`components/windows/WatchWindow.tsx`).
+4. Nothing is written to the ledger during games. The week finalizes on the first
+   cron tick after ESPN reports every game completed, usually within 15 minutes of
+   the Monday night final.
+
+### Sunday deadline
+
+A week's deadline is the first Sunday 13:00 America/New_York strictly after its last
+kickoff, so a week ending on Monday night is due the following Sunday
+(`backend/lambdas/common/late.py` `deadline_for`). It is stored once on `WEEK#ww` as
+`deadlineUtc`, the first time a tick reconciles the finalized week.
+
+- **Before.** Notifications add "Ice due" from the Friday before, then 48-hour and
+  6-hour reminders (`frontend/lib/notifications/derive.ts`). The due warning turns
+  `soon` inside 24 hours, and countdowns tick every second in the last hour.
+- **At 13:00 ET.** The countdowns and the due warning show `LATE` at once; that is
+  the browser's clock. The late rows `{parentIceId}#LATE1` are written by the first
+  cron tick after 13:00, so they land by about 13:15 ET. Each further Sunday at
+  13:00 adds another.
+- **Paid on time** means `completedAt` at or before the deadline. A video confirmed
+  at 13:05 still leaves `#LATE1` owed.
+- **Backdating.** An admin completion with an earlier `at` voids the extra owed late
+  rows on the next tick. A completed late row is never touched.
+- **Week 1** is marked paid at its deadline (`PAID_BEFORE_LAUNCH = (1,)`). Any other
+  week's ice completed exactly at the deadline with no `updatedBy` and no `videoId`
+  is reverted to `owed` by the next tick. To mark one paid by hand, use the Control
+  Panel or `ice_admin.py`, which stamp `updatedBy`.
+- **No deadline.** If ESPN returns no games for a finalized week, the tick logs
+  `week N has no ESPN games, so no deadline or late ices yet` and tries again next
+  tick.
 
 ## `ice_admin.py`
 
@@ -222,6 +314,78 @@ To change the domain again:
    distribution and `api.<new-domain>`, and rewrites `/smirnoff/api-url`, CORS
    origins and the media bucket CORS. The frontend deploy waits for the apply.
 5. Remove the old callback and logout URLs in `xomware-infrastructure`.
+
+## Email (SES)
+
+`infrastructure/terraform/ses.tf` makes `smirnoff-league.com` an SES domain identity:
+Easy DKIM (3 CNAMEs), MAIL FROM `mail.smirnoff-league.com` (MX + SPF), and DMARC
+`p=none`. The sender is `alerts@smirnoff-league.com` and the configuration set is
+`smirnoff-mail`, published to SSM as `/smirnoff/email-sender` and
+`/smirnoff/email-config-set`. The shared Lambda role may send only as this identity
+through this set.
+
+**Did the identity verify?** DKIM verifies on its own once the CNAMEs resolve,
+usually within minutes of the apply and at most 72 hours:
+
+```bash
+aws sesv2 get-email-identity --email-identity smirnoff-league.com \
+  --query '{verified:VerifiedForSendingStatus,dkim:DkimAttributes.Status,mailFrom:MailFromAttributes.MailFromDomainStatus}'
+```
+
+Expect `true`, `SUCCESS`, `SUCCESS`. The console shows the same under SES >
+Identities > `smirnoff-league.com`.
+
+**Bounces and complaints** go to SNS topic `smirnoff-mail-events` and on to SQS queue
+`smirnoff-mail-events`, kept 14 days. Read them without deleting:
+
+```bash
+aws sqs receive-message --max-number-of-messages 10 --visibility-timeout 0 \
+  --queue-url "$(aws sqs get-queue-url --queue-name smirnoff-mail-events --query QueueUrl --output text)"
+```
+
+### Sandbox and production access
+
+SES sandbox status is per account and per region. Whether this account is still in
+the sandbox is unverified. In the sandbox, SES delivers only to verified addresses
+and caps sending at 200 a day.
+
+Check it:
+
+```bash
+aws sesv2 get-account --region us-east-1 \
+  --query '{production:ProductionAccessEnabled,review:Details.ReviewDetails.Status,quota:SendQuota}'
+```
+
+`production: true` means out of the sandbox. The console shows the same on the SES
+**Account dashboard**: a sandbox account has a "Your Amazon SES account is in the
+sandbox" banner.
+
+If it is `false`, request production access from the Account dashboard (**Request
+production access**) or the CLI:
+
+```bash
+aws sesv2 put-account-details --region us-east-1 \
+  --production-access-enabled --mail-type TRANSACTIONAL \
+  --website-url https://smirnoff-league.com --contact-language EN \
+  --use-case-description "<text below>"
+```
+
+AWS usually answers within a day. For the use case, cover:
+
+- **What:** notifications for a private 14-member fantasy football league site, sent
+  from `alerts@smirnoff-league.com`: weekly results and league alerts.
+- **Volume:** low, a few hundred messages a week at most.
+- **Recipients:** opt-in only. Only league members who signed in with Google and turned
+  on email in their profile get mail. No purchased or scraped lists.
+- **Unsubscribe:** every message carries an unsubscribe link and a `List-Unsubscribe`
+  header, and turning email off in the profile stops all mail.
+- **Bounces and complaints:** a configuration set publishes both to SNS/SQS. Bounced
+  or complaining addresses are removed; SES's account-level suppression list also
+  applies.
+
+While in the sandbox, test sends work only to recipients verified as SES identities,
+and the Lambda role would also need `ses:SendEmail` on each recipient identity. Get
+production access instead of widening the role.
 
 ## Move the repo
 

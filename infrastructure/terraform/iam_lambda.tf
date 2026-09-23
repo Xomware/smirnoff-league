@@ -71,6 +71,16 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = [aws_s3_bucket.media.arn]
   }
 
+  # SESv2 SendEmail authorizes against both the identity and the set.
+  statement {
+    sid     = "SendMail"
+    actions = ["ses:SendEmail", "ses:SendRawEmail"]
+    resources = [
+      aws_sesv2_email_identity.domain.arn,
+      aws_sesv2_configuration_set.mail.arn,
+    ]
+  }
+
   statement {
     sid       = "UseKey"
     actions   = ["kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey"]
