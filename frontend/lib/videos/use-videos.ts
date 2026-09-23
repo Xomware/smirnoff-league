@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { LedgerIce } from "@/lib/api/ledger";
 import { listVideos, type Video } from "@/lib/api/videos";
+
+export const videoFor = (videos: Video[], ice: LedgerIce): Video | undefined =>
+  videos.find((v) => v.mediaId === ice.videoId) ?? videos.find((v) => v.iceId === ice.iceId);
 
 export type VideosState = { status: "loading" } | { status: "ok"; videos: Video[] } | { status: "error"; message: string };
 

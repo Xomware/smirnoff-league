@@ -8,11 +8,10 @@ import { DrillLink } from "@/components/views/drill-link";
 import { IceCause } from "@/components/views/week-ices";
 import { TeamName } from "@/components/xp/TeamName";
 import type { LedgerIce } from "@/lib/api/ledger";
-import type { Video } from "@/lib/api/videos";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
-import { useVideos } from "@/lib/videos/use-videos";
+import { useVideos, videoFor as findVideo } from "@/lib/videos/use-videos";
 
 import "@/components/videos/videos.css";
 
@@ -76,8 +75,7 @@ export function VideosWindow() {
 
   const { ices } = ledgerState.ledger;
   const videos = videosState.status === "ok" ? videosState.videos : [];
-  const videoFor = (ice: LedgerIce): Video | undefined =>
-    videos.find((v) => v.mediaId === ice.videoId) ?? videos.find((v) => v.iceId === ice.iceId);
+  const videoFor = (ice: LedgerIce) => findVideo(videos, ice);
   const shown = ices
     .filter((i) => (week === "all" || i.week === Number(week)) && (team === "all" || i.rosterId === Number(team)))
     .sort(newestFirst);
