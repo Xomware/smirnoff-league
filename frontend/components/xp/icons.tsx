@@ -11,9 +11,9 @@ function Icon({ children, ...props }: IconProps) {
   );
 }
 
-// Dom's pixel-art Smirnoff Ice bottle. It is 72x256, so it sits inside the
-// requested box at full height and keeps its tall shape.
-export function IceBottleIcon({ width = 16, height = 16, className }: IconProps) {
+// Dom's pixel-art Smirnoff Ice bottle. It is 72x256, so it takes the requested
+// height and only as much width as the bottle needs.
+export function IceBottleIcon({ height = 16, className }: IconProps) {
   const h = Number(height);
   return (
     <Image
@@ -23,7 +23,7 @@ export function IceBottleIcon({ width = 16, height = 16, className }: IconProps)
       width={Math.max(1, Math.round((h * 72) / 256))}
       height={h}
       className={className}
-      style={{ display: "inline-block", marginInline: (Number(width) - (h * 72) / 256) / 2 }}
+      style={{ display: "inline-block" }}
     />
   );
 }
