@@ -69,7 +69,9 @@ describe("Home", () => {
   it("shows the season's owed ices in the league summary", async () => {
     renderSignedIn();
 
-    const owed = await screen.findByText("Season owed (provisional)");
+    // The summary waits on every season week, nfl state, the scoreboard and the
+    // ledger across four windows; on a loaded CI runner that took 1.1s, past findBy's 1s default.
+    const owed = await screen.findByText("Season owed (provisional)", undefined, { timeout: 3000 });
     expect(owed.nextElementSibling?.textContent).toBe("8");
   });
 
