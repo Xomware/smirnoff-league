@@ -11,8 +11,7 @@ const RULE_TEXT = [
   /lowest scoring team of the week/i,
   /next sunday at 1:00 pm/i,
   /another ice for every ice still owed/i,
-  /300-piece puzzle/i,
-  /head lamp/i,
+  /finish dead last/i,
 ];
 
 function reduceMotion(reduce: boolean) {
