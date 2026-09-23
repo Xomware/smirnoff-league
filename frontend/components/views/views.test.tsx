@@ -29,6 +29,7 @@ describe("Team view", () => {
     expect(w2.textContent).toContain("Team 1");
 
     expect(screen.getByText("1-1")).toBeTruthy();
+    expect(screen.getByRole("banner").textContent).toContain("2 ices this season");
     expect(screen.getByText(/PF 194\.00/)).toBeTruthy();
     const total = screen.getByRole("list", { name: "Season ices by reason" });
     expect(total.textContent).toContain("Zero points: 1");
@@ -79,6 +80,9 @@ describe("Week view", () => {
     expect(within(matchups).getAllByRole("listitem")).toHaveLength(7);
     expect(screen.getByText(/lowest score of the week/i).closest("p")?.textContent).toContain("Team 6");
     expect(screen.getByRole("list", { name: "Team 6 ices" }).children).toHaveLength(2);
+    const badge = (team: string) => within(matchups).getByText(team).closest(".xp-team")?.querySelector(".ice-badge");
+    expect(badge("Team 6")?.textContent).toContain("2 ices this week");
+    expect(badge("Team 13")).toBeNull();
 
     fireEvent.click(within(matchups).getAllByRole("button", { name: /Team 9/ })[0]);
     expect(onOpen).toHaveBeenCalledWith({ kind: "team", rosterId: 9 });

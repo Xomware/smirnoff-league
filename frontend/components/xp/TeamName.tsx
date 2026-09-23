@@ -9,9 +9,10 @@ interface TeamNameProps {
   ices: number;
   avatarUrl?: string | null;
   isMine?: boolean;
+  season?: boolean;
 }
 
-export function TeamName({ name, iced, ices, avatarUrl, isMine = false }: TeamNameProps) {
+export function TeamName({ name, iced, ices, avatarUrl, isMine = false, season = false }: TeamNameProps) {
   const ice = iced ? " ice" : "";
   return (
     <span className="xp-team">
@@ -24,7 +25,7 @@ export function TeamName({ name, iced, ices, avatarUrl, isMine = false }: TeamNa
       </span>
       <span className={`xp-team-name${ice}`}>{name}</span>
       {isMine && <StarIcon className="shrink-0" role="img" aria-hidden={false} aria-label="Your team" />}
-      <IceBadge count={ices} />
+      <IceBadge count={ices} season={season} />
     </span>
   );
 }

@@ -5,6 +5,8 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MatchupRow } from "@/lib/ices/compute";
+import { clearLeagueCache } from "@/lib/league/cache";
+import { espnEvent } from "@/lib/test/espn-mock";
 import { ScoresWindow } from "./ScoresWindow";
 
 const golden: { weeks: { week: number; matchups: MatchupRow[] }[] } =
@@ -12,6 +14,7 @@ const golden: { weeks: { week: number; matchups: MatchupRow[] }[] } =
     readFileSync(join(__dirname, "../../../fixtures/ices-golden.json"), "utf8"),
   );
 const week1 = golden.weeks.find((w) => w.week === 1)!.matchups;
+const week2 = golden.weeks.find((w) => w.week === 2)!.matchups;
 
 const rosterIds = week1.map((m) => m.roster_id);
 
@@ -85,19 +88,27 @@ const responses: Record<string, unknown> = {
   },
 };
 
-beforeEach(() => {
+function stubFetch(overrides: Record<string, unknown> = {}) {
+  const all = { ...responses, ...overrides };
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      const path = url.replace("https://api.sleeper.app/v1", "");
-      if (!(path in responses))
-        return new Response("not found", { status: 404 });
-      return new Response(JSON.stringify(responses[path]), { status: 200 });
+      const path = url
+        .replace("https://api.sleeper.app/v1", "")
+        .replace("https://site.api.espn.com/apis/site/v2/sports/football/nfl", "");
+      if (!(path in all)) return new Response("not found", { status: 404 });
+      return new Response(JSON.stringify(all[path]), { status: 200 });
     }),
   );
+}
+
+beforeEach(() => {
+  clearLeagueCache();
+  stubFetch();
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -120,6 +131,19 @@ describe("Scores window", () => {
       expect(badgeOf(team)?.textContent).toContain("x1");
     }
     expect(badgeOf("Team 1")).toBeFalsy();
+  });
+
+  it("badges only the ices from the week on screen, not the season", async () => {
+    render(<ScoresWindow />);
+    fireEvent.change(await screen.findByLabelText("Week"), {
+      target: { value: "1" },
+    });
+    await screen.findByText("171.54");
+
+    // Rosters 12 and 13 both owe for week 2 as well.
+    expect(badgeOf("Team 12")?.textContent).toContain("x1");
+    expect(badgeOf("Team 13")).toBeFalsy();
+    expect(badgeOf("Team 6")?.textContent).toContain("ices this week");
   });
 
   it("expands a matchup to its starters, frosting the one who zeroed", async () => {
@@ -147,5 +171,51 @@ describe("Scores window", () => {
       await screen.findByText("Sleeper has no lineup for this team yet."),
     ).toBeTruthy();
     expect(document.querySelector(".ice-badge")).toBeNull();
+  });
+
+  // 2026 week 4: Thursday night kicks off 8:15pm ET on Oct 1.
+  const week4 = {
+    "/state/nfl": { week: 4, display_week: 4, season: "2026", season_type: "regular", leg: 4 },
+    "/league/1394061072742227968/matchups/2": week2,
+    "/league/1394061072742227968/matchups/4": [],
+    "/scoreboard?seasontype=2&week=4": {
+      events: [
+        espnEvent({ home: "DAL", away: "NYG", date: "2026-10-02T00:15Z" }),
+        espnEvent({ home: "KC", away: "BUF", date: "2026-10-04T17:00Z" }),
+      ],
+    },
+  };
+
+  it("opens on last week until Thursday night kicks off, and pages back a week at a time", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-30T16:00Z"));
+    stubFetch(week4);
+    render(<ScoresWindow />);
+
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    expect(picker.value).toBe("3");
+    expect(screen.getByRole("button", { name: "Next week" })).toHaveProperty("disabled", false);
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous week" }));
+    expect(picker.value).toBe("2");
+    await screen.findByText("82.10");
+    expect(badgeOf("Team 13")?.textContent).toContain("x2");
+    expect(badgeOf("Team 12")?.textContent).toContain("x1");
+    expect(badgeOf("Team 6")).toBeFalsy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous week" }));
+    expect(picker.value).toBe("1");
+    expect(screen.getByRole("button", { name: "Previous week" })).toHaveProperty("disabled", true);
+  });
+
+  it("opens on the current week once Thursday night has kicked off", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-10-02T01:00Z"));
+    stubFetch(week4);
+    render(<ScoresWindow />);
+
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    expect(picker.value).toBe("4");
+    expect(screen.getByRole("button", { name: "Next week" })).toHaveProperty("disabled", true);
   });
 });
