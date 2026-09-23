@@ -27,6 +27,13 @@
   margin-inline: auto;
 }
 
+/* The sub-nav lines up with the column under it. */
+@media (min-width: 1280px) {
+  .glacier-subnav {
+    padding-inline: max(42px, calc((100% - 1180px) / 2 - 6px));
+  }
+}
+
 .glacier-title {
   margin-bottom: 32px;
   font-size: 48px;
@@ -178,6 +185,12 @@
   background: rgb(255 255 255 / 0.06);
 }
 
+[data-theme="glacier"] .trouble-tag {
+  min-height: 24px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
 [data-theme="glacier"] .ice-badge {
   min-height: 24px;
   padding: 2px 10px 2px 4px;
@@ -233,12 +246,9 @@
   font-size: 15px;
 }
 
-/* Owed rows keep the frost, as a stripe rather than a box around every row. */
+/* Owed rows sit flush in their team's list; glacier-trouble.css colours them. */
 [data-theme="glacier"] .xp-player-row.ice {
   border-radius: 0;
-  border-bottom-color: var(--g-line);
-  background: rgb(143 227 255 / 0.1);
-  box-shadow: inset 4px 0 var(--g-link);
 }
 
 /* A team's ices in a week: one block, its name as the header. */
@@ -431,4 +441,20 @@
   [data-theme="glacier"] .cp {
     flex-direction: column;
   }
+
+  /* The title gets the full width; the buttons wrap under it. */
+  [data-theme="glacier"] .writeup-head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  [data-theme="glacier"] .writeup-head > .min-w-0 {
+    flex-basis: 100%;
+  }
+}
+
+/* Every jump chip in view: a scrolled strip hid the last ones off the edge. */
+.m-app.glacier .m-jump {
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
