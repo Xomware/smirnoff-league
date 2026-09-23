@@ -89,12 +89,19 @@ def writeup_for_pdf(pdf_key: str) -> dict | None:
     return from_dynamo(items[0]) if items else None
 
 
-def set_writeup_status(media_id: str, status: str, page_keys: list[str]) -> None:
+def set_writeup_status(
+    media_id: str, status: str, page_keys: list[str], fail_reason: str | None = None
+) -> None:
+    expression = "SET #status = :status, pageKeys = :pages"
+    values = {":status": status, ":pages": page_keys}
+    if fail_reason:
+        expression += ", failReason = :reason"
+        values[":reason"] = fail_reason
     table("MEDIA_TABLE").update_item(
         Key={"kind": "writeup", "mediaId": media_id},
-        UpdateExpression="SET #status = :status, pageKeys = :pages",
+        UpdateExpression=expression,
         ExpressionAttributeNames={"#status": "status"},
-        ExpressionAttributeValues={":status": status, ":pages": page_keys},
+        ExpressionAttributeValues=values,
     )
 
 

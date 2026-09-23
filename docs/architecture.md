@@ -159,7 +159,8 @@ Late rows catch up with any admin change on the next tick, within 15 minutes.
 
 `GET /ledger/get` returns every non-voided ice, the week rows, the toilet bowl byes
 (default `[13, 14]`) and a per-roster summary of owed, completed, overdue, late and
-late-owed counts.
+late-owed counts. It strips `updatedBy`, the editing admin's email, from every ice
+(`ledger_get/handler.py`).
 
 ## Write-ups
 
@@ -170,9 +171,12 @@ A write-up ("edition") is a PDF an admin uploads, shown to everyone as page imag
    `writeups/{uuid}/source.pdf` (`admin_writeup_presign/handler.py`).
 2. The S3 `ObjectCreated` event starts `smirnoff-writeup-render` (1536 MB, 120 s).
    It rasterizes each page to a 1400px-wide WebP at `writeups/{uuid}/p{n}.webp`,
-   stores the keys in order and marks the row `rendered`. A PDF that PDFium cannot
-   open marks it `failed` (`writeup_render/handler.py`,
-   `lambda_writeup_render.tf`).
+   stores the keys in order and marks the row `rendered`. Any failure marks it
+   `failed` with a `failReason`: `too many pages` (over 40), `bad page size`, or
+   `render error` for anything else, an unreadable PDF included. It runs on its own
+   role, `smirnoff-writeup-render-exec`, which can only query and update
+   `kind = writeup` media rows, read `writeups/*/source.pdf` and write `writeups/*`
+   (`writeup_render/handler.py`, `iam_writeup_render.tf`).
 3. `POST /admin/writeup-publish` with `published: true` stamps `publishedAt`; only a
    `rendered` row can be published (409 otherwise). `published: false` unpublishes.
 4. `GET /writeups/list` returns published write-ups only, newest week first, with
@@ -367,7 +371,7 @@ Recheck a section when a file matching its globs changes.
 | Request flow | `infrastructure/terraform/*.tf`, `frontend/lib/api/**`, `backend/lambdas/common/api.py` |
 | The ice rule | `backend/lambdas/common/ices.py`, `frontend/lib/ices/compute.ts`, `fixtures/ices-golden.json` |
 | Ledger lifecycle | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**` |
-| Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `infrastructure/terraform/lambda_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
+| Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `infrastructure/terraform/{lambda,iam}_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
 | Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news}/**`, `frontend/lib/ices/{stats,analysis,use-*}.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
 | Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
 | File index | any new top-level folder under `frontend/`, `backend/` or `infrastructure/` |

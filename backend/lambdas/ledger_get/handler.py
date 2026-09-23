@@ -35,7 +35,12 @@ def summarize(ices: list[dict], deadlines: dict[int, datetime], now: datetime) -
 @api_handler("ledger_get")
 def handler(event, context):
     caller_sub(event)
-    ices = [i for i in db.season_ices() if i["status"] != "voided"]
+    # updatedBy is the editing admin's email, and every signed-in user reads this.
+    ices = [
+        {k: v for k, v in i.items() if k != "updatedBy"}
+        for i in db.season_ices()
+        if i["status"] != "voided"
+    ]
     weeks = [
         {
             "week": week,
