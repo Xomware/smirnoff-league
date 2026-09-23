@@ -91,3 +91,34 @@ resource "aws_dynamodb_table" "media" {
 
   point_in_time_recovery { enabled = true }
 }
+
+# Signed-in activity for the admin Users panel, one partition per user.
+resource "aws_dynamodb_table" "activity" {
+  deletion_protection_enabled = true
+  name                        = "${var.app_name}-activity"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "sub"
+  range_key                   = "at"
+
+  attribute {
+    name = "sub"
+    type = "S"
+  }
+  attribute {
+    name = "at" # {UTC ISO time}#{8 hex}
+    type = "S"
+  }
+
+  # 90 days, set per row by backend/lambdas/common/activity_dynamo.py.
+  ttl {
+    attribute_name = "expiresAt"
+    enabled        = true
+  }
+
+  server_side_encryption {
+    enabled     = true
+    kms_key_arn = aws_kms_key.app.arn
+  }
+
+  point_in_time_recovery { enabled = true }
+}

@@ -31,6 +31,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 import AuthCallbackPage from "@/app/auth/callback/page";
+import { track } from "@/lib/activity/tracker";
 import { getMe } from "@/lib/api/users";
 import { AuthGate } from "./auth-gate";
 
@@ -90,6 +91,42 @@ describe("AuthGate", () => {
 
     expect((await screen.findByText(/loading your profile/i)).closest('[role="status"]')).not.toBeNull();
     expect(document.querySelector('main img[src*="robot-head.png"]')).not.toBeNull();
+  });
+
+  describe("activity tracking", () => {
+    const hide = () => {
+      Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+      document.dispatchEvent(new Event("visibilitychange"));
+    };
+    const trackCalls = () => vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/activity/track"));
+
+    beforeEach(() => sessionStorage.clear());
+    afterEach(() => Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" }));
+
+    it("never tracks the signed-out landing", async () => {
+      signedOut();
+      nav.pathname = "/";
+      render(<AuthGate>home</AuthGate>);
+      await waitFor(() => expect(getCurrentUser).toHaveBeenCalled());
+
+      track("open", "stats");
+      hide();
+      await new Promise((r) => setTimeout(r, 0));
+      expect(trackCalls()).toEqual([]);
+    });
+
+    it("records the sign-in once signed in", async () => {
+      signedIn();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ data: {}, error: null, meta: null })));
+      nav.pathname = "/";
+      render(<AuthGate>home</AuthGate>);
+      await screen.findByText("home");
+
+      hide();
+      await waitFor(() => expect(trackCalls()).toHaveLength(1));
+      const { events } = JSON.parse(String(trackCalls()[0][1]?.body)) as { events: { kind: string }[] };
+      expect(events.map((e) => e.kind)).toEqual(["signin"]);
+    });
   });
 
   it("always renders the callback route, even signed out", async () => {

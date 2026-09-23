@@ -28,7 +28,7 @@ through a pull request, admins included.
 - **League News:** transactions, ledger events and editions in one feed.
 - **Ice Stats and Ice Standings:** race, lineups, positions and per-team counts.
 - **Notifications:** derived in the browser from the ledger, editions, videos and trades.
-- **Control Panel:** admin-only ledger edits, week rules, finalize and toilet-bowl byes.
+- **Control Panel:** admin-only ledger edits, week rules, finalize, toilet-bowl byes, and who signs in and where they go.
 
 ## System
 
@@ -39,7 +39,7 @@ flowchart LR
     CF["CloudFront"] --> SITE[("S3 site bucket")]
     COG["Cognito shared pool, Google"]
     APIGW["API Gateway, Cognito authorizer"] --> L["API Lambdas"]
-    L --> DDB[("DynamoDB: users, ices, settings, media")]
+    L --> DDB[("DynamoDB: users, ices, settings, media, activity")]
     L --> MB[("S3 media bucket")]
     EB["EventBridge, every 15 min"] --> CT["cron_tick"]
     CT --> DDB

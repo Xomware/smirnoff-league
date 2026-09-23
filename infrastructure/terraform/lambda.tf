@@ -15,6 +15,12 @@ locals {
     { name = "settings", description = "Week ice settings and toilet bracket byes", path_part = "settings", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
     { name = "writeup_presign", description = "Presigned POST for a write-up PDF", path_part = "writeup-presign", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
     { name = "writeup_publish", description = "Publish or unpublish a write-up", path_part = "writeup-publish", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "users", description = "Every profile with sign-in stats", path_part = "users", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+    { name = "activity", description = "One user's activity, newest first", path_part = "activity", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+  ]
+
+  activity_lambdas = [
+    { name = "track", description = "Record the caller's app activity", path_part = "track", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
   ledger_lambdas = [
@@ -46,6 +52,7 @@ locals {
     { for l in local.videos_lambdas : "videos_${l.name}" => l },
     { for l in local.writeups_lambdas : "writeups_${l.name}" => l },
     { for l in local.email_lambdas : "email_${l.name}" => l },
+    { for l in local.activity_lambdas : "activity_${l.name}" => l },
   )
 }
 

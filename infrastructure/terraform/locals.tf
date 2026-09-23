@@ -21,6 +21,7 @@ locals {
     ICES_TABLE         = aws_dynamodb_table.ices.id
     SETTINGS_TABLE     = aws_dynamodb_table.settings.id
     MEDIA_TABLE        = aws_dynamodb_table.media.id
+    ACTIVITY_TABLE     = aws_dynamodb_table.activity.id
     MEDIA_BUCKET       = aws_s3_bucket.media.id
   }
 }

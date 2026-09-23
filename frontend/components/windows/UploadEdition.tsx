@@ -2,6 +2,7 @@
 
 import { type FormEvent, type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
+import { track } from "@/lib/activity/tracker";
 import { uploadFile } from "@/lib/api/upload";
 import { presignWriteup, publishWriteup } from "@/lib/api/writeups";
 
@@ -82,6 +83,7 @@ export function UploadEdition({ defaultWeek, onPublished, onClose }: UploadEditi
     try {
       const { mediaId, ...post } = await presignWriteup({ week: Number(week), title: title.trim() });
       await uploadFile(post, file, (progress) => setPhase({ step: "uploading", progress }));
+      track("upload", `edition:${Number(week)}`);
       setPhase({ step: "rendering", mediaId });
     } catch (err) {
       backToForm((err as Error).message);
@@ -95,6 +97,7 @@ export function UploadEdition({ defaultWeek, onPublished, onClose }: UploadEditi
       return setPhase({ step: "rendered", mediaId, published: !published, busy: false, error: result.message });
     }
     setPhase({ step: "rendered", mediaId, published, busy: false });
+    if (published) track("publish", `edition:${Number(week)}`);
     onPublished();
   };
 

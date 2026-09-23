@@ -216,6 +216,89 @@
   border-color: var(--xp-red);
 }
 
+.cp-users th[scope="row"] {
+  padding: 0.375rem;
+  border-width: 0 0 1px;
+  background: none;
+}
+
+.cp-user {
+  display: grid;
+  font-weight: bold;
+  text-align: left;
+}
+
+.cp-user-title {
+  font-weight: bold;
+  color: var(--xp-title-dark);
+}
+
+.cp-timeline {
+  border: 1px solid var(--xp-face-shadow);
+  background: #fff;
+}
+
+.cp-timeline li {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.375rem 0.5rem;
+  border-left: 4px solid var(--xp-title-light);
+}
+
+.cp-timeline li + li {
+  border-top: 1px solid var(--xp-face-shadow);
+}
+
+.cp-event {
+  font-weight: bold;
+}
+
+/* On a phone each user is a card: the name on top, then label and value pairs. */
+@container (max-width: 35.99rem) {
+  .cp-users thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .cp-users,
+  .cp-users caption,
+  .cp-users tbody,
+  .cp-users tr,
+  .cp-users th[scope="row"],
+  .cp-users td {
+    display: block;
+  }
+
+  .cp-users tr {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.125rem 0.75rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--xp-face-shadow);
+    border-left: 4px solid var(--xp-title-light);
+    background: #fff;
+  }
+
+  .cp-users th[scope="row"] {
+    grid-column: 1 / -1;
+    padding: 0 0 0.25rem;
+  }
+
+  .cp-users td {
+    display: contents;
+  }
+
+  .cp-users td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    color: var(--xp-title-dark);
+  }
+}
+
 /* The checkbox shows the state; the word does not fit beside it on a phone. */
 @container (max-width: 29.99rem) {
   .cp-check span {
