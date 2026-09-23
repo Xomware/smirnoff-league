@@ -36,6 +36,7 @@ query string (`lambda.tf`).
 | `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin`, and stamps `lastSeenAt`, `lastUa` and `signInCount` on the profile |
 | `POST /users/update` | `users_update` | signed in; saves the profile, `notificationsSeenAt` alone to mark notifications read, or `email` (alert prefs) alone |
 | `GET /ledger/get` | `ledger_get` | signed in |
+| `POST /ices/chug-time` | `ices_chug_time` | signed in; own roster only, admins any ice and any chugger |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
 | `POST /activity/track` | `activity_track` | signed in; a batch of 1-50 `{ kind, target, at }` events. sub, email and device come from the token and User-Agent, never the body |
@@ -50,7 +51,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 | Table | Key | Holds | Access code |
 |---|---|---|---|
 | `smirnoff-users` | `sub` | name, username, rosterId, emailAddress (from the ID token), email (`optIn` + per-type toggles), notificationsSeenAt, createdAt, updatedAt, lastSeenAt, lastUa, signInCount | `common/users_dynamo.py` |
-| `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
+| `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, chugger, timedBy, timedAt, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`, `MAIL#<sub>#<eventId>`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes`; the alert-email sent log (`status` `sent`/`failed`, `at`) | `common/ices_dynamo.py`, `ledger_get/handler.py`, `common/mailer.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |
 | `smirnoff-activity` | `sub`, `at` (`{UTC ISO time}#{8 hex}`) | kind (`signin`/`open`/`drill`/`upload`/`publish`), target (a window id such as `team:6`), email, ua, expiresAt (TTL, 90 days) | `common/activity_dynamo.py` |
@@ -170,8 +171,20 @@ Late rows catch up with any admin change on the next tick, within 15 minutes.
 
 `GET /ledger/get` returns every non-voided ice, the week rows, the toilet bowl byes
 (default `[13, 14]`) and a per-roster summary of owed, completed, overdue, late and
-late-owed counts. It strips `updatedBy`, the editing admin's email, from every ice
-(`ledger_get/handler.py`).
+late-owed counts. Every ice goes through `public_ice`, which drops `updatedBy` (the
+editing admin's email) and `timedBy`, and cuts `chugger` down to its name
+(`common/ices_dynamo.py`).
+
+### Chug times
+
+`POST /ices/chug-time` lets a player time an ice on their own claimed roster; the
+chugger is always their profile. Admins time any ice and may name the chugger by a
+user's `sub` or as free text of 40 characters or fewer. `/admin/chug-time` takes the
+same body. Both round `seconds` half-up to a tenth, write `chugSeconds`, `chugger`,
+`timedBy` (the caller's sub) and `timedAt`, and leave completion alone. Omitting the
+chugger keeps the one on record (`common/ice_admin.py`). Ice Rankings
+(`lib/ices/chug-rankings.ts`) groups timed ices by chugger name, or by team when
+nobody was named.
 
 ### Uploading one video for two teams' ices
 

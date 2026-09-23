@@ -237,7 +237,7 @@ describe("phone stack", () => {
 });
 
 describe("ices on the phone", () => {
-  const APPS = ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"];
+  const APPS = ["Ice Ledger", "Ice Standings", "Ice Rankings", "Ice Stats", "Ice Watch", "Chug Videos"];
 
   it("tracks each tab and each pushed screen as an open", async () => {
     vi.mocked(track).mockClear();

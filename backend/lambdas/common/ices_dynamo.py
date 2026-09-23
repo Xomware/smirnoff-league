@@ -88,6 +88,14 @@ def get_ice(ice_id: str) -> dict | None:
     return from_dynamo(item) if item else None
 
 
+def public_ice(ice: dict) -> dict:
+    """An ice as any signed-in user may see it: no editor email, no subs, the chugger by name."""
+    out = {k: v for k, v in ice.items() if k not in ("updatedBy", "timedBy")}
+    if "chugger" in out:
+        out["chugger"] = {"name": out["chugger"]["name"]}
+    return out
+
+
 def season_ices() -> list[dict]:
     items = query_all(table("ICES_TABLE"), KeyConditionExpression=Key("season").eq(SEASON))
     return [from_dynamo(i) for i in items]

@@ -23,6 +23,10 @@ locals {
     { name = "track", description = "Record the caller's app activity", path_part = "track", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
   ]
 
+  ices_lambdas = [
+    { name = "chug_time", description = "Log a chug time on the caller's own ice", path_part = "chug-time", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+  ]
+
   ledger_lambdas = [
     { name = "get", description = "Season ice ledger and summary", path_part = "get", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
   ]
@@ -48,6 +52,7 @@ locals {
   all_api_lambdas = merge(
     { for l in local.users_lambdas : "users_${l.name}" => l },
     { for l in local.admin_lambdas : "admin_${l.name}" => l },
+    { for l in local.ices_lambdas : "ices_${l.name}" => l },
     { for l in local.ledger_lambdas : "ledger_${l.name}" => l },
     { for l in local.videos_lambdas : "videos_${l.name}" => l },
     { for l in local.writeups_lambdas : "writeups_${l.name}" => l },

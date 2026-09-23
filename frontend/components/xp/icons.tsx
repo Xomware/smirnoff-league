@@ -54,6 +54,18 @@ export function StopwatchIcon(props: IconProps) {
   );
 }
 
+export function ChugRankIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="6.5" cy="7.5" r="5" className="fill-(--ice-tint) stroke-(--ice-deep)" />
+      <rect x="5.5" y="0.5" width="2" height="1.5" className="fill-(--ice-deep)" />
+      <path d="M6.5 7.5V4.5M6.5 7.5l2 1" className="fill-none stroke-(--xp-red) stroke-[1.25]" />
+      <path d="M10 10.5l-1 5 2.5-1.25L14 15.5l-1-5z" className="fill-(--xp-red)" />
+      <circle cx="11.5" cy="10.5" r="2.5" className="fill-(--xp-gold) stroke-(--xp-wood)" />
+    </Icon>
+  );
+}
+
 export function HomeIcon(props: IconProps) {
   return (
     <Icon {...props}>

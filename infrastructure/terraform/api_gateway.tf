@@ -9,6 +9,11 @@ locals {
       invoke_arn = aws_lambda_function.api["admin_${l.name}"].invoke_arn
     })
   ]
+  ices_endpoints = [
+    for l in local.ices_lambdas : merge(l, {
+      invoke_arn = aws_lambda_function.api["ices_${l.name}"].invoke_arn
+    })
+  ]
   ledger_endpoints = [
     for l in local.ledger_lambdas : merge(l, {
       invoke_arn = aws_lambda_function.api["ledger_${l.name}"].invoke_arn
@@ -56,6 +61,7 @@ module "api" {
   services = {
     users    = { path_prefix = "users", endpoints = local.users_endpoints }
     admin    = { path_prefix = "admin", endpoints = local.admin_endpoints }
+    ices     = { path_prefix = "ices", endpoints = local.ices_endpoints }
     ledger   = { path_prefix = "ledger", endpoints = local.ledger_endpoints }
     videos   = { path_prefix = "videos", endpoints = local.videos_endpoints }
     writeups = { path_prefix = "writeups", endpoints = local.writeups_endpoints }
