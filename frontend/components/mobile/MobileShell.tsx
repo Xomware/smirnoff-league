@@ -38,6 +38,7 @@ import "./mobile.css";
 import "@/components/glacier/glacier.css";
 import "@/components/glacier/glacier-skin.css";
 import "@/components/glacier/glacier-phone.css";
+import "@/components/glacier/glacier-layout.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 

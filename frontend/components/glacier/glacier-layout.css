@@ -1,0 +1,460 @@
+/* Glacier's layout: spacing, type and grouping for the views on the desktop
+   page and the phone app. glacier-skin.css colours the XP markup; this gives it
+   room. The shell's panel stops being a card so each section can be one,
+   rather than cards nesting inside it. */
+
+[data-theme="glacier"] {
+  --g-gap: 24px;
+  --g-card-pad: 24px;
+  --g-card-radius: 22px;
+  --g-head: 22px;
+  --g-measure: 72ch;
+}
+
+.m-app.glacier {
+  --g-gap: 16px;
+  --g-card-pad: 16px;
+  --g-card-radius: 20px;
+  --g-head: 19px;
+}
+
+/* The desktop page: one readable column, however wide the window. */
+
+.glacier-title,
+.glacier-panel {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+}
+
+/* The sub-nav lines up with the column under it. */
+@media (min-width: 1280px) {
+  .glacier-subnav {
+    padding-inline: max(42px, calc((100% - 1180px) / 2 - 6px));
+  }
+}
+
+.glacier-title {
+  margin-bottom: 32px;
+  font-size: 48px;
+}
+
+.glacier-panel {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  font-size: 16px;
+}
+
+.glacier-panel > :is(.glacier-icicles, .glacier-crystal) {
+  display: none;
+}
+
+/* The views space their blocks with Tailwind's gap-3; this layer beats utilities. */
+:is(.glacier-panel, .m-app.glacier) :is(.grid.gap-3, .grid.gap-4, .profile, .chug-rankings, .news, .notifs) {
+  gap: var(--g-gap);
+}
+
+/* Cards: every section, and every table that isn't already inside one. */
+
+[data-theme="glacier"] :is(
+    .xp-group,
+    .ices-summary,
+    .profile-head,
+    .game-score,
+    .game-ices,
+    .week-ices,
+    .news-inbox,
+    .writeup-archive,
+    .writeup-main,
+    .notifs-list,
+    .cp-side-box,
+    .cp-main,
+    .chug-toolbar
+  ),
+.glacier-panel :is(.xp-table-scroll, .overflow-x-auto, .rank-wide):not(:is(.xp-group, .xp-dialog, .ices-summary) *) {
+  position: relative;
+  padding: var(--g-card-pad);
+  border: 1px solid var(--g-frost-edge);
+  border-radius: var(--g-card-radius);
+  background: var(--g-frost);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 10px 28px rgb(2 12 24 / 0.3);
+}
+
+.glacier-panel :is(.xp-table-scroll, .overflow-x-auto, .rank-wide):not(:is(.xp-group, .xp-dialog, .ices-summary) *) {
+  padding-block: 16px 8px;
+}
+
+/* A section's heading is its card's header, set off by a rule. */
+[data-theme="glacier"] :is(.xp-group-title, .cp-heading, .cp-side-title, .game-ices > h3, .week-ices > h3),
+[data-theme="glacier"] :is(.ices-summary, .glacier-panel) .xp-table caption:not(.sr-only) {
+  margin: 0 0 16px;
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--g-line);
+  color: var(--g-text-strong);
+  font: var(--g-head) / 1.2 var(--g-display);
+  letter-spacing: 0;
+  text-align: left;
+  background: none;
+}
+
+.glacier-panel h3.font-bold:not(.game-ices > h3, .week-ices > h3) {
+  color: var(--g-text-strong);
+  font: 18px/1.2 var(--g-display);
+}
+
+[data-theme="glacier"] .xp-group > :is(p, .xp-note) + :is(p, div, ul, ol) {
+  margin-top: 12px;
+}
+
+/* Secondary text and notes */
+
+[data-theme="glacier"] :is(.xp-note, .stats-takeaway) {
+  max-width: var(--g-measure);
+  line-height: 1.5;
+}
+
+[data-theme="glacier"] .xp-note {
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.glacier-panel p {
+  max-width: var(--g-measure);
+}
+
+.glacier-panel :is(.text-xs, .text-sm):not(.xp-table *) {
+  font-size: 14px;
+  color: var(--g-muted);
+}
+
+/* Tables: taller rows, readable labels and numbers. */
+
+[data-theme="glacier"] .xp-table {
+  font-size: 15px;
+}
+
+[data-theme="glacier"] .xp-table :is(td, th) {
+  padding: 12px;
+}
+
+[data-theme="glacier"] .xp-table thead :is(th, .xp-sort) {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+[data-theme="glacier"] .xp-table td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sized for the uppercase labels, which outgrow XP's 72px columns. */
+[data-theme="glacier"] .ices-summary .xp-table th.w-18 {
+  width: 116px;
+}
+
+[data-theme="glacier"] .xp-cut td {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* Chips and badges: 12px at the smallest, padded. */
+
+[data-theme="glacier"] :is(.xp-watch-tag, .xp-game-chip, .xp-tag, .profile-chip) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+[data-theme="glacier"] .xp-watch-tag {
+  border: 1px solid var(--g-frost-edge);
+  color: var(--g-text);
+  background: rgb(255 255 255 / 0.06);
+}
+
+[data-theme="glacier"] .trouble-tag {
+  min-height: 24px;
+  padding: 2px 10px;
+  font-size: 12px;
+}
+
+[data-theme="glacier"] .ice-badge {
+  min-height: 24px;
+  padding: 2px 10px 2px 4px;
+  font-size: 12px;
+}
+
+[data-theme="glacier"] .xp-team-name {
+  font-size: 15px;
+}
+
+/* Buttons: 36px on the desktop, 44px under a finger. */
+
+[data-theme="glacier"] :is(.xp-button.chug-row-button, .xp-step) {
+  min-height: 36px;
+}
+
+[data-theme="glacier"] .xp-button.chug-row-button {
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+@media (pointer: coarse) {
+  [data-theme="glacier"] :is(.xp-button, .xp-button.chug-row-button, .xp-step, .xp-select, .xp-tab, .rank-chip, .news-chip) {
+    min-height: 44px;
+  }
+}
+
+/* Player and ice rows */
+
+[data-theme="glacier"] .xp-player-row {
+  gap: 12px;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--g-line);
+}
+
+[data-theme="glacier"] .xp-player-row:last-child {
+  border-bottom: 0;
+}
+
+[data-theme="glacier"] .xp-player-pos {
+  width: 48px;
+  color: var(--g-label);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+[data-theme="glacier"] .xp-player-pts {
+  min-width: 56px;
+  text-align: right;
+  font-size: 15px;
+}
+
+/* Owed rows sit flush in their team's list; glacier-trouble.css colours them. */
+[data-theme="glacier"] .xp-player-row.ice {
+  border-radius: 0;
+}
+
+/* A team's ices in a week: one block, its name as the header. */
+[data-theme="glacier"] .ice-team {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-radius: 16px;
+  background: rgb(4 19 34 / 0.35);
+}
+
+[data-theme="glacier"] .ice-team > ul {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--g-line);
+  border-radius: 12px;
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] .xp-group .grid.gap-3:has(> .ice-team) {
+  gap: 16px;
+}
+
+/* The Ices ledger's late list and other plain lists inside a section. */
+[data-theme="glacier"] .xp-group ol.grid > li {
+  min-height: 44px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--g-line);
+}
+
+[data-theme="glacier"] .xp-group ol.grid > li:last-child {
+  border-bottom: 0;
+}
+
+/* Scores and week matchups: a grid of cards. */
+
+.glacier-panel .scores-list {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.glacier-panel .scores-list > .xp-group {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+[data-theme="glacier"] :is(.xp-matchup, .xp-bracket-match) {
+  gap: 10px;
+  padding: 16px 18px;
+  font-size: 16px;
+}
+
+[data-theme="glacier"] :is(.xp-matchup, .xp-bracket-match) .xp-score {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.glacier-panel .scores-list > .xp-group > p {
+  margin-top: 8px;
+}
+
+/* Tabs */
+
+[data-theme="glacier"] .xp-tabs {
+  display: grid;
+  gap: 16px;
+}
+
+[data-theme="glacier"] .xp-tab-strip {
+  flex-wrap: wrap;
+}
+
+/* Profiles */
+
+[data-theme="glacier"] .profile-head {
+  gap: 20px;
+}
+
+[data-theme="glacier"] .profile-stats {
+  gap: 12px 32px;
+}
+
+[data-theme="glacier"] .profile-stats dt {
+  color: var(--g-label);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-theme="glacier"] .profile-stats dd {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Game */
+
+[data-theme="glacier"] .game-score {
+  padding-block: 20px;
+}
+
+/* Stats and ranking cards */
+
+[data-theme="glacier"] .xp-dialog > :not(.xp-dialog-title) {
+  margin-inline: 4px;
+}
+
+[data-theme="glacier"] .rank-summary {
+  gap: 16px;
+}
+
+/* News, write-ups, notifications */
+
+[data-theme="glacier"] .news-inbox {
+  padding: 0;
+  overflow: hidden;
+}
+
+[data-theme="glacier"] .news-row {
+  padding-block: 12px;
+}
+
+[data-theme="glacier"] .writeup {
+  gap: var(--g-gap);
+}
+
+[data-theme="glacier"] .notifs-list {
+  padding: 0;
+}
+
+[data-theme="glacier"] .notifs-item .xp-drill {
+  padding: 14px 18px;
+}
+
+/* The Control Panel's XP folder chrome gives way to cards. */
+
+[data-theme="glacier"] .cp {
+  gap: var(--g-gap);
+  min-height: 0;
+  margin: 0;
+  background: none;
+}
+
+[data-theme="glacier"] .cp-side {
+  background: none;
+  padding: 0;
+}
+
+[data-theme="glacier"] :is(.cp-category-label, .cp-side-link) {
+  color: var(--g-link);
+}
+
+[data-theme="glacier"] .cp-category-blurb {
+  color: var(--g-muted);
+  font-size: 14px;
+}
+
+[data-theme="glacier"] :is(.cp-ices, .cp-ice) {
+  border-color: var(--g-line);
+  background: var(--g-row);
+}
+
+/* The phone: registry views sit in the screen's padding, sections as cards. */
+
+.m-app.glacier .m-screen > :is(.grid, .xp-tabs, .news, .writeup, .notifs, .cp, .chug-rankings) {
+  gap: var(--g-gap);
+}
+
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  [data-theme="glacier"] .xp-table :is(td, th) {
+    padding: 10px 8px;
+  }
+
+  [data-theme="glacier"] .xp-player-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 10px 12px;
+  }
+
+  [data-theme="glacier"] .xp-player-row .xp-player-name {
+    flex-basis: calc(100% - 60px);
+  }
+
+  [data-theme="glacier"] .ice-team {
+    padding: 12px;
+  }
+
+  [data-theme="glacier"] .cp {
+    flex-direction: column;
+  }
+
+  /* The title gets the full width; the buttons wrap under it. */
+  [data-theme="glacier"] .writeup-head {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  [data-theme="glacier"] .writeup-head > .min-w-0 {
+    flex-basis: 100%;
+  }
+}
+
+/* Every jump chip in view: a scrolled strip hid the last ones off the edge. */
+.m-app.glacier .m-jump {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}

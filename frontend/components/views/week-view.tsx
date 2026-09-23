@@ -56,13 +56,15 @@ export function WeekView({ week }: WeekViewProps) {
         ))}
       </ul>
 
-      <h3 className="font-bold">Ices</h3>
-      {isLive && <p className="xp-note">Only empty slots count until the week ends.</p>}
-      {icesByRoster.length === 0 ? (
-        <p>No ices this week.</p>
-      ) : (
-        <WeekIces groups={icesByRoster} players={data.players} teamFor={teamFor} />
-      )}
+      <section aria-label="Ices" className="week-ices grid gap-3">
+        <h3 className="font-bold">Ices</h3>
+        {isLive && <p className="xp-note">Only empty slots count until the week ends.</p>}
+        {icesByRoster.length === 0 ? (
+          <p>No ices this week.</p>
+        ) : (
+          <WeekIces groups={icesByRoster} players={data.players} teamFor={teamFor} />
+        )}
+      </section>
     </div>
   );
 }

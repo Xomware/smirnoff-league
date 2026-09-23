@@ -25,6 +25,7 @@ import { ProfileMenu } from "./ProfileMenu";
 
 import "./glacier.css";
 import "./glacier-skin.css";
+import "./glacier-layout.css";
 
 // Pages outside the registry. The XP desktop covers them with the My Profile
 // wizard, the tray and the team links in Standings.

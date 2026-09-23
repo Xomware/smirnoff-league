@@ -171,7 +171,7 @@ export function GameView({ week, matchup }: GameViewProps) {
         </table>
       </div>
 
-      <section aria-label={`Week ${week} ices`} className="grid gap-2">
+      <section aria-label={`Week ${week} ices`} className="game-ices grid gap-2">
         <h3 className="font-bold">Ices this week</h3>
         {live && <p className="xp-note">Only empty slots count until the week ends.</p>}
         {iced.length === 0 ? <p>No ices in this game.</p> : <WeekIces groups={iced} players={data.players} teamFor={teamFor} />}

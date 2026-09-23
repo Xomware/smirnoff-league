@@ -60,7 +60,7 @@ export function LedgerWeek({ ices, players, teamFor, action }: LedgerWeekProps) 
       {byRoster(ices).map(([rosterId, rows]) => {
         const owed = rows.filter((i) => i.status === "owed").length;
         return (
-          <div key={rosterId}>
+          <div key={rosterId} className="ice-team">
             <DrillLink to={{ kind: "team", rosterId }}>
               <TeamName name={teamFor(rosterId).name} iced={owed > 0} ices={owed} />
             </DrillLink>
