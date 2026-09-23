@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 
 import { ControlPanelWindow } from "@/components/admin/ControlPanel";
+import { ChugRankingsView } from "@/components/views/chug-rankings-view";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { MyTeamView } from "@/components/views/my-team-view";
 import { PlayerView } from "@/components/views/player-view";
@@ -24,6 +25,7 @@ import {
   BracketIcon,
   CamcorderIcon,
   ChartIcon,
+  ChugRankIcon,
   ControlPanelIcon,
   FolderIcon,
   IceBottleIcon,
@@ -79,6 +81,7 @@ const SPECS = {
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },
   "ice-standings": { title: "Ice Standings", Icon: IceStandingsIcon, component: IceStandingsView, defaultSize: { w: 720, h: 640 } },
+  "chug-rankings": { title: "Ice Rankings", Icon: ChugRankIcon, component: ChugRankingsView, defaultSize: { w: 760, h: 760 } },
   // Only the Ices folder exists; its id is what a `folder:ices` link names.
   folder: { title: "Ices", Icon: FolderIcon, component: FolderWindow, defaultSize: { w: 720, h: 560 } },
   notifications: { title: "Notifications", Icon: BellIcon, component: NotificationsWindow, defaultSize: { w: 440, h: 520 } },

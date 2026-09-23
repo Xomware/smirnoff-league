@@ -70,6 +70,10 @@
   box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
 }
 
+.chug-seconds {
+  width: 6rem;
+}
+
 .chug-picks {
   display: grid;
   max-height: 12rem;

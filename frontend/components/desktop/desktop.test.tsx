@@ -234,7 +234,7 @@ describe("Taskbar tabs", () => {
 });
 
 describe("Start menu", () => {
-  it("cascades the five ice apps under Ices and opens one", () => {
+  it("cascades the six ice apps under Ices and opens one", () => {
     renderDesktop();
     fireEvent.click(screen.getByRole("button", { name: "start" }));
     const menu = within(screen.getByRole("navigation", { name: "Start menu" }));
@@ -251,6 +251,7 @@ describe("Start menu", () => {
     expect(submenu.getAllByRole("button").map((b) => b.textContent)).toEqual([
       "Ice Ledger",
       "Ice Standings",
+      "Ice Rankings",
       "Ice Stats",
       "Ice Watch",
       "Chug Videos",
@@ -269,6 +270,6 @@ describe("desktop icons", () => {
     const names = icons.getAllByRole("button").map((b) => b.textContent);
 
     expect(names).toEqual(expect.arrayContaining(["Ices", "Scores", "Standings", "Brackets", "League News", "News Drop", "My Team"]));
-    for (const app of ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"]) expect(names).not.toContain(app);
+    for (const app of ["Ice Ledger", "Ice Standings", "Ice Rankings", "Ice Stats", "Ice Watch", "Chug Videos"]) expect(names).not.toContain(app);
   });
 });

@@ -1,6 +1,6 @@
 import type { ActivityKind } from "@/lib/activity/tracker";
 import type { WeekSettings } from "@/lib/ices/compute";
-import type { LedgerIce } from "./ledger";
+import type { ChuggerPick, LedgerIce } from "./ledger";
 import { request } from "./users";
 
 const post = <T>(path: string, body: object) => request<T>(path, { method: "POST", body: JSON.stringify(body) });
@@ -14,7 +14,8 @@ export const voidIce = (iceId: string, note: string) => post<LedgerIce>("/admin/
 export const setIceCompleted = (iceId: string, completed: boolean, at?: string) =>
   post<LedgerIce>("/admin/ice-complete", at ? { iceId, completed, at } : { iceId, completed });
 
-export const setChugTime = (iceId: string, seconds: number) => post<LedgerIce>("/admin/chug-time", { iceId, seconds });
+export const setChugTime = (iceId: string, seconds: number, chugger?: ChuggerPick) =>
+  post<LedgerIce>("/admin/chug-time", chugger ? { iceId, seconds, chugger } : { iceId, seconds });
 
 export const setWeekRules = (week: number, rules: Partial<WeekSettings>) =>
   post<unknown>("/admin/settings", { week, ...rules });

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
+import { canTime, ChugTimeButton, ChugTimeDialog } from "@/components/videos/ChugTime";
+import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
 import { LedgerWeek } from "@/components/views/ledger-week";
@@ -140,6 +142,7 @@ export function IcesWindow() {
   const ledgerState = useLedger();
   const { myRosterId, me } = useProfile();
   const [uploadFor, setUploadFor] = useState<string | null>(null);
+  const [timing, setTiming] = useState<LedgerIce | null>(null);
   const error = leagueError ?? icesError;
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
@@ -149,9 +152,11 @@ export function IcesWindow() {
   const finalized = new Set(ledger?.weeks.filter((w) => w.finalizedAt).map((w) => w.week));
   const summary = ledger && summaryFor(ledger, tally.owed.map((t) => t.rosterId));
   const weeks = Array.from({ length: currentWeek }, (_, i) => currentWeek - i);
-  const uploadAction = (ice: LedgerIce) =>
-    ice.status === "owed" &&
-    canUpload(ice, myRosterId, me?.isAdmin ?? false) && <UploadChugButton onClick={() => setUploadFor(ice.iceId)} />;
+  const isAdmin = me?.isAdmin ?? false;
+  const rowAction = (ice: LedgerIce) => {
+    if (ice.status === "owed" && canUpload(ice, myRosterId, isAdmin)) return <UploadChugButton onClick={() => setUploadFor(ice.iceId)} />;
+    if (canTime(ice, myRosterId, isAdmin)) return <ChugTimeButton ice={ice} onClick={() => setTiming(ice)} />;
+  };
 
   return (
     <div className="grid gap-3">
@@ -188,7 +193,7 @@ export function IcesWindow() {
                 ices={ledger.ices.filter((i) => i.week === week)}
                 players={data.players}
                 teamFor={teamFor}
-                action={uploadAction}
+                action={rowAction}
               />
             </section>
           );
@@ -211,6 +216,7 @@ export function IcesWindow() {
       {ledger &&
         uploadFor &&
         createPortal(<UploadChug ices={ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
+      {timing && <ChugTimeDialog ice={timing} label={iceLabel(timing, teamFor, data.players)} onClose={() => setTiming(null)} />}
     </div>
   );
 }
