@@ -13,7 +13,8 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { DesktopWindow } from "./DesktopWindow";
 import { IconButton } from "./IconButton";
 
-// The ice apps live in the Ices folder rather than on the desktop.
+// The ice apps live in the Ices folder and the draft recap in Start, so one
+// column of icons clears the default windows at 1440x900, admin icon included.
 const ICONS: { kind: WindowKind; label: string; params?: WindowParams }[] = [
   { kind: "home", label: "Smirnoff Fantasy Football League" },
   { kind: "folder", label: "Ices", params: { id: "ices" } },
@@ -22,7 +23,6 @@ const ICONS: { kind: WindowKind; label: string; params?: WindowParams }[] = [
   { kind: "standings", label: "Standings" },
   { kind: "brackets", label: "Brackets" },
   { kind: "news", label: "League News" },
-  { kind: "recap", label: "Draft Recap" },
   { kind: "writeup", label: "News Drop" },
 ];
 

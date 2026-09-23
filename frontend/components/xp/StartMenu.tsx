@@ -9,6 +9,7 @@ import {
   DesktopIcon,
   FolderIcon,
   HomeIcon,
+  MediaPlayerIcon,
   NewsFeedIcon,
   NewspaperIcon,
   ProfileIcon,
@@ -26,6 +27,7 @@ const ITEMS = [
   { kind: "brackets", label: "Brackets", Icon: BracketIcon },
   { kind: "news", label: "League News", Icon: NewsFeedIcon },
   { kind: "writeup", label: "News Drop", Icon: NewspaperIcon },
+  { kind: "recap", label: "Draft Recap", Icon: MediaPlayerIcon },
 ] as const;
 
 interface IcesSubmenuProps {

@@ -41,4 +41,20 @@ describe("Ices folder", () => {
     expect(open).toHaveBeenCalledWith({ kind: "watch" });
     expect(navigate).toHaveBeenCalledTimes(6);
   });
+
+  it("opens on a tap's click, once, and ignores a single mouse click", () => {
+    const { navigate, icons } = renderFolder();
+    const stats = icons.getByRole("button", { name: "Ice Stats" });
+
+    fireEvent.pointerDown(stats, { pointerType: "mouse" });
+    fireEvent.pointerUp(stats, { pointerType: "mouse" });
+    fireEvent.click(stats, { detail: 1 });
+    expect(navigate).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(stats, { pointerType: "touch" });
+    fireEvent.pointerUp(stats, { pointerType: "touch" });
+    expect(navigate).not.toHaveBeenCalled();
+    fireEvent.click(stats, { detail: 1 });
+    expect(navigate).toHaveBeenCalledOnce();
+  });
 });
