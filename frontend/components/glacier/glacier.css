@@ -166,6 +166,19 @@
   font: 800 12px/20px var(--g-body);
 }
 
+/* Above the sign-in balloon while the account menu is open, below modals. */
+.glacier-header:has(.glacier-account-menu) {
+  z-index: 65;
+}
+
+/* Glyphs only up here, so the nav keeps its room; Settings has the labelled
+   switch, and the text stays as each button's accessible name. */
+.glacier-header .theme-toggle button {
+  gap: 0;
+  padding: 0 10px;
+  font-size: 0;
+}
+
 .glacier-account {
   position: relative;
   flex-shrink: 0;
@@ -348,6 +361,11 @@
     display: none;
   }
 
+}
+
+/* Six nav links, search, the theme switch, the bell and the account menu only
+   fit a 1440 header without the manager's name. */
+@media (max-width: 1519.98px) {
   .glacier-account-name {
     display: none;
   }

@@ -41,6 +41,10 @@
   cursor: pointer;
 }
 
+[data-theme="glacier"] .settings input[type="checkbox"] {
+  accent-color: var(--g-red);
+}
+
 .settings-check input {
   width: 18px;
   height: 18px;
