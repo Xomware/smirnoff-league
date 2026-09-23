@@ -2,18 +2,16 @@
 
 import { useEffect, useReducer, useRef } from "react";
 
-import { parseOpen } from "@/lib/desktop/deep-link";
-import type { WindowView } from "@/lib/desktop/windows";
-import { type Nav, navFromLinks, navReducer, stackOf, stackUrl, type Tab } from "./nav";
+import { type Nav, navFromLinks, navReducer, parseScreens, type Screen, stackOf, stackUrl, type Tab } from "./nav";
 
 interface Entry {
   tab: Tab;
-  stack: WindowView[];
+  stack: Screen[];
 }
 
 const entryOf = (state: unknown): Entry | null => (state as { phone?: Entry } | null)?.phone ?? null;
 
-const initialNav = (): Nav => navFromLinks(parseOpen(window.location.search));
+const initialNav = (): Nav => navFromLinks(parseScreens(window.location.search));
 
 // Browser history mirrors the current tab's stack, one entry per screen, so
 // the browser's Back, Android's back button and iOS's edge swipe all pop a
@@ -65,7 +63,7 @@ export function usePhoneNav() {
 
   return {
     nav,
-    push: (view: WindowView) => dispatch({ type: "push", view }),
+    push: (screen: Screen) => dispatch({ type: "push", screen }),
     selectTab: (tab: Tab) => dispatch({ type: "tab", tab }),
     back: () => window.history.back(),
   };

@@ -23,7 +23,7 @@ vi.mock("@/lib/sound/sound", async (importOriginal) => ({
   play: vi.fn(),
 }));
 
-import { AppShell } from "@/components/phone/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { AlertsProvider } from "@/lib/alerts/alerts";
 import { getLedger, type Ledger } from "@/lib/api/ledger";
 import { ApiError, getMe, type Me, updateMe } from "@/lib/api/users";

@@ -15,7 +15,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
   getMe: vi.fn(),
 }));
 
-import { AppShell } from "@/components/phone/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { Desktop } from "@/components/desktop/Desktop";
 import { getLedger, type Ledger } from "@/lib/api/ledger";
 import { ApiError, getMe } from "@/lib/api/users";

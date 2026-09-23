@@ -1,0 +1,777 @@
+/* The phone app: Luna colours and buttons on a plain app layout, no window chrome. */
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --taskbar-height: 4rem;
+  }
+
+  /* A toast above the tab bar, not a balloon pointing at a tray that isn't there. */
+  .xp-balloon {
+    right: 0.75rem;
+    left: 0.75rem;
+    bottom: calc(var(--taskbar-top) + 0.5rem);
+    width: auto;
+    font-size: 1rem;
+  }
+
+  .xp-balloon::after {
+    display: none;
+  }
+
+  .xp-balloon-close {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -0.75rem -0.625rem -0.75rem auto;
+  }
+}
+
+.m-app {
+  --m-bg: color-mix(in srgb, var(--xp-face) 55%, var(--xp-cream));
+  --m-muted: #57564d;
+  --m-line: color-mix(in srgb, var(--xp-face-shadow) 55%, var(--xp-cream));
+  --m-pad: max(1rem, env(safe-area-inset-left), env(safe-area-inset-right));
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  font-size: 1rem;
+  line-height: 1.45;
+  background: var(--m-bg);
+}
+
+.m-app :focus-visible {
+  outline: 3px solid var(--xp-select);
+  outline-offset: 2px;
+}
+
+.m-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: calc(3.5rem + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) calc(var(--m-pad) - 0.5rem) 0 calc(var(--m-pad) - 0.5rem);
+  color: var(--xp-text-inverse);
+  background: linear-gradient(var(--xp-title-light), var(--xp-title) 22%, var(--xp-title) 80%, var(--xp-title-dark));
+  box-shadow: 0 1px 0 var(--xp-frame);
+}
+
+.m-title {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: bold 1.25rem var(--xp-title-font);
+  text-shadow: 1px 1px var(--xp-frame);
+}
+
+.m-title:focus {
+  outline: none;
+}
+
+.m-back,
+.m-bar .notif-bell {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.m-bar .notif-bell svg {
+  width: 24px;
+  height: 24px;
+}
+
+.m-back:active,
+.m-bar .notif-bell:active {
+  background: rgb(0 0 0 / 0.15);
+}
+
+.m-app .m-bar :focus-visible {
+  outline-color: var(--xp-text-inverse);
+  outline-offset: -3px;
+}
+
+.m-screens {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.m-screen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  padding: 1rem var(--m-pad) 1.5rem;
+}
+
+/* Hidden screens keep their box so their scroll position survives Back. */
+.m-screen[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+.m-tabs {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.25rem calc(var(--m-pad) - 0.5rem) calc(0.25rem + env(safe-area-inset-bottom));
+  background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar) 14%, var(--xp-taskbar) 86%, var(--xp-taskbar-dark));
+}
+
+.m-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-height: 3.5rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--xp-text-inverse);
+  cursor: pointer;
+}
+
+.m-tab svg,
+.m-tab img {
+  height: 24px;
+}
+
+.m-tab:active {
+  background: rgb(0 0 0 / 0.18);
+}
+
+.m-tab[aria-current="page"] {
+  font-weight: bold;
+  background: linear-gradient(var(--xp-taskbar-dark), var(--xp-tray));
+  box-shadow: inset 1px 1px 3px var(--xp-screen);
+}
+
+.m-app .m-tabs :focus-visible {
+  outline-color: var(--xp-text-inverse);
+  outline-offset: -3px;
+}
+
+/* Page building blocks. */
+.m-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.m-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.m-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.m-section-title {
+  font: bold 1.125rem var(--xp-title-font);
+  color: var(--xp-title-dark);
+}
+
+.m-section-head .xp-drill,
+.m-link {
+  font-weight: bold;
+  color: var(--xp-select);
+}
+
+.m-card {
+  border: 1px solid var(--m-line);
+  border-radius: 0.875rem;
+  background: var(--xp-cream);
+  box-shadow: 0 1px 2px rgb(20 30 60 / 0.08);
+}
+
+.m-rows {
+  overflow: hidden;
+}
+
+.m-rows > li + li {
+  border-top: 1px solid var(--m-line);
+}
+
+.m-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.m-kicker {
+  font-size: 0.875rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.m-caption {
+  font-size: 0.9375rem;
+  color: var(--m-muted);
+}
+
+.m-empty {
+  font-style: italic;
+  color: var(--m-muted);
+}
+
+.m-app .xp-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+}
+
+.m-app .ice-badge {
+  font-size: 0.8125rem;
+}
+
+.m-app .xp-drill {
+  min-height: 2.75rem;
+  align-items: center;
+}
+
+/* Buttons: XP's bevel, sized for a thumb. */
+.m-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--xp-button-border);
+  border-radius: 0.625rem;
+  font-weight: bold;
+  background: linear-gradient(var(--xp-cream), var(--xp-face) 85%, var(--xp-face-shadow));
+  cursor: pointer;
+}
+
+.m-button:active {
+  background: var(--xp-face-shadow);
+}
+
+.m-button-go {
+  width: 100%;
+  min-height: 3.5rem;
+  border-color: var(--xp-start-dark);
+  font: bold 1.1875rem var(--xp-title-font);
+  font-style: italic;
+  color: var(--xp-text-inverse);
+  text-shadow: 1px 1px 1px var(--xp-start-dark);
+  background: linear-gradient(var(--xp-start-light), var(--xp-start) 40%, var(--xp-start-dark));
+  box-shadow: inset 0 1px rgb(255 255 255 / 0.4);
+}
+
+.m-button-go:active {
+  background: var(--xp-start-dark);
+}
+
+/* Home. */
+.m-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  color: var(--xp-text-inverse);
+  background:
+    radial-gradient(ellipse 90% 45% at 70% 118%, var(--xp-hill) 70%, transparent 71%),
+    linear-gradient(var(--xp-sky-top), var(--xp-title-light) 70%, var(--xp-sky-bottom));
+  text-shadow: 1px 1px 1px var(--xp-frame);
+}
+
+.m-hero img {
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.35));
+}
+
+.m-hero-week {
+  font: bold 2.25rem/1.1 var(--xp-title-font);
+}
+
+.m-hero-sub {
+  font-size: 0.9375rem;
+}
+
+.m-your-ices {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.m-owe {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: bold;
+}
+
+.m-owe > span:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+}
+
+.m-owe-count {
+  font: bold 2.75rem/1 var(--xp-title-font);
+  color: var(--smirnoff-red);
+}
+
+.m-owed-list {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.m-owed-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.m-square {
+  font-weight: bold;
+  color: var(--xp-start-dark);
+}
+
+.m-due {
+  flex: none;
+  padding: 0.125rem 0.625rem;
+  border: 1px solid var(--ice-frost);
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  color: var(--ice-label);
+  background: var(--ice-tint);
+}
+
+.m-due[data-level="soon"] {
+  border-color: var(--xp-wood);
+  color: var(--xp-text);
+  background: color-mix(in srgb, var(--xp-gold) 45%, var(--xp-cream));
+}
+
+.m-due[data-level="late"] {
+  border-color: var(--xp-close-dark);
+  color: var(--xp-text-inverse);
+  background: var(--smirnoff-red);
+}
+
+.m-slot {
+  flex: none;
+  min-width: 2.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--xp-title-dark);
+  background: var(--xp-menu-side);
+}
+
+.m-play {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--xp-button-border);
+  border-radius: 999px;
+  font-weight: bold;
+  background: linear-gradient(var(--xp-cream), var(--xp-face));
+  cursor: pointer;
+}
+
+.m-done {
+  flex: none;
+  font-weight: bold;
+  color: var(--xp-start-dark);
+}
+
+/* A row that scrolls sideways inside the page, which itself never does. */
+.m-hscroll {
+  display: grid;
+  grid-auto-columns: min(80%, 18rem);
+  grid-auto-flow: column;
+  gap: 0.75rem;
+  margin-inline: calc(var(--m-pad) * -1);
+  padding: 0.125rem var(--m-pad) 0.375rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--m-pad);
+  scrollbar-width: none;
+}
+
+.m-hscroll > li {
+  display: grid;
+  scroll-snap-align: start;
+}
+
+.m-edition {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.m-edition img {
+  width: 6rem;
+  height: auto;
+  border: 1px solid var(--m-line);
+  box-shadow: 0 2px 4px rgb(20 30 60 / 0.2);
+}
+
+.m-edition-title {
+  font: bold 1.125rem/1.25 var(--xp-title-font);
+}
+
+.m-clip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 0.875rem;
+  background: var(--xp-screen);
+  cursor: pointer;
+}
+
+.m-clip video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.m-clip-play {
+  position: relative;
+  filter: drop-shadow(0 1px 2px var(--xp-screen));
+}
+
+.m-clip-caption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 1.5rem 0.75rem 0.625rem;
+  overflow: hidden;
+  font-weight: bold;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--xp-text-inverse);
+  background: linear-gradient(transparent, rgb(10 20 40 / 0.85));
+}
+
+/* Games. */
+.m-weeks {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) 3rem;
+  gap: 0.5rem;
+}
+
+.m-step {
+  display: grid;
+  place-items: center;
+  height: 3rem;
+  border: 1px solid var(--xp-button-border);
+  border-radius: 50%;
+  background: linear-gradient(var(--xp-cream), var(--xp-face) 85%, var(--xp-face-shadow));
+  cursor: pointer;
+}
+
+.m-step:active {
+  background: var(--xp-face-shadow);
+}
+
+.m-step:disabled {
+  border-color: var(--m-line);
+  background: var(--xp-face);
+  cursor: default;
+}
+
+.m-step:disabled svg {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.m-week-pick select {
+  width: 100%;
+  height: 3rem;
+  padding: 0 2.5rem;
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+  appearance: none;
+  font: bold 1.25rem var(--xp-title-font);
+  text-align: center;
+  text-align-last: center;
+  color: var(--xp-title-dark);
+  background:
+    linear-gradient(135deg, transparent 50%, var(--xp-title-dark) 50%) no-repeat right 1.25rem center / 0.5rem 0.5rem,
+    var(--xp-cream);
+  cursor: pointer;
+}
+
+.m-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.m-matchup {
+  display: grid;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--m-line);
+  border-radius: 0.875rem;
+  text-align: left;
+  background: var(--xp-cream);
+  box-shadow: 0 1px 2px rgb(20 30 60 / 0.08);
+  cursor: pointer;
+}
+
+.m-matchup:active {
+  background: var(--xp-face);
+}
+
+.m-matchup-side {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.m-matchup-side + .m-matchup-side {
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--m-line);
+}
+
+.m-matchup-team {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.m-score {
+  flex: none;
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.m-score-top {
+  font-weight: bold;
+  color: var(--xp-title-dark);
+}
+
+.m-watch-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding-left: 2.5rem;
+}
+
+.m-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--ice-frost);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--ice-label);
+  background: var(--ice-tint);
+}
+
+.m-chip[data-state="FINAL_ICE"] {
+  border-color: var(--xp-close-dark);
+  color: var(--xp-close-dark);
+  background: color-mix(in srgb, var(--smirnoff-red) 10%, var(--xp-cream));
+}
+
+.m-chip[data-state="WATCH"] {
+  border-color: var(--xp-wood);
+  color: var(--xp-text);
+  background: color-mix(in srgb, var(--xp-gold) 40%, var(--xp-cream));
+}
+
+.m-scoreboard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.m-scoreboard-side {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.m-big-score {
+  flex: none;
+  font: 1.75rem var(--xp-title-font);
+  font-variant-numeric: tabular-nums;
+}
+
+.m-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.25rem;
+  padding: 0.25rem 1rem;
+}
+
+.m-player.ice,
+.m-player.ice-watch {
+  border-width: 0;
+  box-shadow: inset 4px 0 var(--ice-deep);
+}
+
+.m-player-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5rem;
+  min-width: 0;
+}
+
+.m-points {
+  font-variant-numeric: tabular-nums;
+}
+
+/* League. */
+.m-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.625rem 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.m-nav-row:active {
+  background: var(--xp-face);
+}
+
+.m-nav-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.m-nav-label {
+  flex: 1;
+  font-size: 1.0625rem;
+  font-weight: bold;
+}
+
+.m-nav-blurb {
+  font-size: 0.9375rem;
+  color: var(--m-muted);
+}
+
+.m-nav-row .xp-team {
+  flex: 1;
+}
+
+.m-record {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--m-muted);
+}
+
+.m-chevron {
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-top: 2px solid var(--m-muted);
+  border-right: 2px solid var(--m-muted);
+  rotate: 45deg;
+}
+
+.m-danger {
+  color: var(--xp-close-dark);
+}
+
+.m-switch {
+  position: relative;
+  flex: none;
+  width: 3rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--xp-face-shadow);
+  transition: background 150ms;
+}
+
+.m-switch::after {
+  content: "";
+  position: absolute;
+  top: 0.1875rem;
+  left: 0.1875rem;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--xp-cream);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  transition: translate 150ms;
+}
+
+[aria-pressed="true"] > .m-switch {
+  background: var(--xp-start);
+}
+
+[aria-pressed="true"] > .m-switch::after {
+  translate: 1.25rem 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-switch,
+  .m-switch::after {
+    transition: none;
+  }
+}
+
+/* A phone on its side: the same app, with the bars trimmed to leave room for content. */
+@media (max-height: 500px) {
+  .m-bar {
+    min-height: calc(2.75rem + env(safe-area-inset-top));
+  }
+
+  .m-tab {
+    flex-direction: row;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+  }
+
+  .m-screen {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
