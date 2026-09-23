@@ -29,6 +29,11 @@ locals {
       invoke_arn = aws_lambda_function.api["email_${l.name}"].invoke_arn
     })
   ]
+  activity_endpoints = [
+    for l in local.activity_lambdas : merge(l, {
+      invoke_arn = aws_lambda_function.api["activity_${l.name}"].invoke_arn
+    })
+  ]
 }
 
 module "api" {
@@ -55,5 +60,6 @@ module "api" {
     videos   = { path_prefix = "videos", endpoints = local.videos_endpoints }
     writeups = { path_prefix = "writeups", endpoints = local.writeups_endpoints }
     email    = { path_prefix = "email", endpoints = local.email_endpoints }
+    activity = { path_prefix = "activity", endpoints = local.activity_endpoints }
   }
 }

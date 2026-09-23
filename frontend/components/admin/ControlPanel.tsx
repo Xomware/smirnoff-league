@@ -1,23 +1,25 @@
 "use client";
 
 import { DrillLink } from "@/components/views/drill-link";
-import { CalendarIcon, ControlPanelIcon, IceBottleIcon, ToiletIcon } from "@/components/xp/icons";
+import { CalendarIcon, ControlPanelIcon, IceBottleIcon, ProfileIcon, ToiletIcon } from "@/components/xp/icons";
 import type { WindowParams } from "@/lib/desktop/windows";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useProfile } from "@/lib/profile/use-profile";
 import { IcesPanel } from "./IcesPanel";
 import { ToiletPanel } from "./ToiletPanel";
+import { UsersPanel } from "./UsersPanel";
 import { WeekRulesPanel } from "./WeekRulesPanel";
 
 import "./control-panel.css";
 
-export const ADMIN_PANELS = ["ices", "rules", "toilet"] as const;
+export const ADMIN_PANELS = ["ices", "rules", "toilet", "users"] as const;
 export type AdminPanel = (typeof ADMIN_PANELS)[number];
 
 const CATEGORIES = {
   ices: { label: "Ices", blurb: "Add, void and complete ices, and log chug times", Icon: IceBottleIcon },
   rules: { label: "Week Rules", blurb: "Switch ice rules per week, pick who counts for lowest, finalize", Icon: CalendarIcon },
   toilet: { label: "Toilet Bowl", blurb: "Choose the two seeds that skip round one", Icon: ToiletIcon },
+  users: { label: "Users", blurb: "Who signs in, from what device, and where they go", Icon: ProfileIcon },
 } as const;
 
 const isPanel = (value: unknown): value is AdminPanel => ADMIN_PANELS.includes(value as AdminPanel);
@@ -50,8 +52,16 @@ function Categories() {
   );
 }
 
-function Panel({ panel }: { panel: AdminPanel }) {
+function LedgerPanel({ panel }: { panel: Exclude<AdminPanel, "users"> }) {
   const state = useLedger();
+  if (state.status === "loading") return <p role="status">Loading the ledger...</p>;
+  if (state.status === "error") return <p role="alert">Could not load the ledger ({state.message}). Close and reopen to try again.</p>;
+  if (panel === "ices") return <IcesPanel ledger={state.ledger} />;
+  if (panel === "rules") return <WeekRulesPanel ledger={state.ledger} />;
+  return <ToiletPanel ledger={state.ledger} />;
+}
+
+function Panel({ panel }: { panel: AdminPanel }) {
   const { label, Icon } = CATEGORIES[panel];
   return (
     <>
@@ -59,11 +69,7 @@ function Panel({ panel }: { panel: AdminPanel }) {
         <Icon width={24} height={24} />
         {label}
       </h3>
-      {state.status === "loading" && <p role="status">Loading the ledger...</p>}
-      {state.status === "error" && <p role="alert">Could not load the ledger ({state.message}). Close and reopen to try again.</p>}
-      {state.status === "ok" && panel === "ices" && <IcesPanel ledger={state.ledger} />}
-      {state.status === "ok" && panel === "rules" && <WeekRulesPanel ledger={state.ledger} />}
-      {state.status === "ok" && panel === "toilet" && <ToiletPanel ledger={state.ledger} />}
+      {panel === "users" ? <UsersPanel /> : <LedgerPanel panel={panel} />}
     </>
   );
 }

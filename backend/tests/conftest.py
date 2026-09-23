@@ -6,6 +6,7 @@ USERS_TABLE = "t-smirnoff-users"
 ICES_TABLE = "t-smirnoff-ices"
 SETTINGS_TABLE = "t-smirnoff-settings"
 MEDIA_TABLE = "t-smirnoff-media"
+ACTIVITY_TABLE = "t-smirnoff-activity"
 MEDIA_BUCKET = "t-smirnoff-media"
 ADMIN_EMAILS_PARAM = "/smirnoff/admin-emails"
 UNSUBSCRIBE_SECRET_PARAM = "/smirnoff/email-unsubscribe-secret"
@@ -23,6 +24,7 @@ def aws(monkeypatch):
         "ICES_TABLE": ICES_TABLE,
         "SETTINGS_TABLE": SETTINGS_TABLE,
         "MEDIA_TABLE": MEDIA_TABLE,
+        "ACTIVITY_TABLE": ACTIVITY_TABLE,
         "MEDIA_BUCKET": MEDIA_BUCKET,
         "ADMIN_EMAILS_PARAM": ADMIN_EMAILS_PARAM,
         "APP_NAME": "smirnoff",
@@ -40,6 +42,7 @@ def aws(monkeypatch):
             (ICES_TABLE, "season", "iceId"),
             (SETTINGS_TABLE, "season", "key"),
             (MEDIA_TABLE, "kind", "mediaId"),
+            (ACTIVITY_TABLE, "sub", "at"),
         ):
             boto3.client("dynamodb").create_table(
                 TableName=name,

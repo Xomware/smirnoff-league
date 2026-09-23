@@ -403,6 +403,36 @@ aws dynamodb query --table-name smirnoff-settings \
 A `failed` row is retried on the next tick. To resend a `sent` one, set its `status`
 to `failed`; only events from the last 2 days are picked up.
 
+## User activity
+
+Control Panel > Users shows every member and, on a click, their timeline. What is
+recorded, and only while signed in (the landing is never tracked):
+
+- **On the profile** (`smirnoff-users`), by every `/users/me`: `lastSeenAt`, `lastUa`
+  (a device and browser label such as "iPhone Safari") and `signInCount`, which goes
+  up when the last visit was over 30 minutes ago.
+- **Per event** (`smirnoff-activity`): a sign-in once per browser session, each
+  desktop window opened, phone tab or screen, in-window navigation, chug and edition
+  uploads, and edition publishes. Each row holds the sub, email, kind, target (a
+  window id such as `team:6`), device label and time.
+
+Activity rows expire 90 days after they are written (DynamoDB TTL on `expiresAt`;
+deletion can lag the expiry by a few days). Profile stats are kept with the profile.
+The tracker drops a failed batch, so a gap in a timeline can be a network blip.
+
+One user's latest events from the CLI:
+
+```bash
+SUB=$(aws dynamodb scan --table-name smirnoff-users \
+  --filter-expression 'username = :u' \
+  --expression-attribute-values '{":u":{"S":"REPLACE: username"}}' \
+  --query 'Items[0].sub.S' --output text)
+aws dynamodb query --table-name smirnoff-activity --no-scan-index-forward --max-items 20 \
+  --key-condition-expression '#s = :s' --expression-attribute-names '{"#s":"sub"}' \
+  --expression-attribute-values "{\":s\":{\"S\":\"$SUB\"}}" \
+  --query 'Items[].[at.S,kind.S,target.S,ua.S]' --output text
+```
+
 ## Move the repo
 
 The repo is `domgiordano/smirnoff-league`; it moved from the `Xomware` org

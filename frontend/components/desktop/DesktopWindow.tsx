@@ -12,6 +12,7 @@ import {
   MinimizeGlyph,
   RestoreGlyph,
 } from "@/components/xp/icons";
+import { track, viewTarget } from "@/lib/activity/tracker";
 import { useAlerts } from "@/lib/alerts/alerts";
 import { windowUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
@@ -68,6 +69,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
   // rather than letting it fall to <body>.
   const navigate = ({ kind, ...params }: DrillTarget) => {
     dispatch({ type: "navigate", id, kind, params });
+    track("drill", viewTarget({ kind, params }));
     ref.current?.focus({ preventScroll: true });
   };
 

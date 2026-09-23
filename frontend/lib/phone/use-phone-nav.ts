@@ -2,7 +2,8 @@
 
 import { useEffect, useReducer, useRef } from "react";
 
-import { type Nav, navFromLinks, navReducer, parseScreens, type Screen, stackOf, stackUrl, type Tab } from "./nav";
+import { track } from "@/lib/activity/tracker";
+import { type Nav, navFromLinks, navReducer, parseScreens, type Screen, screenId, stackOf, stackUrl, type Tab } from "./nav";
 
 interface Entry {
   tab: Tab;
@@ -63,8 +64,15 @@ export function usePhoneNav() {
 
   return {
     nav,
-    push: (screen: Screen) => dispatch({ type: "push", screen }),
-    selectTab: (tab: Tab) => dispatch({ type: "tab", tab }),
+    push: (screen: Screen) => {
+      dispatch({ type: "push", screen });
+      track("open", screenId(screen));
+    },
+    // A tab is how a phone gets to most screens, so it counts as an open.
+    selectTab: (tab: Tab) => {
+      dispatch({ type: "tab", tab });
+      track("open", `tab:${tab}`);
+    },
     back: () => window.history.back(),
   };
 }
