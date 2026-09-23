@@ -171,6 +171,37 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
+// The League News feed: an Outlook Express inbox tray with a letter in it.
+export function NewsFeedIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="3.5" y="1.5" width="9" height="7" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 1.5l4.5 4 4.5-4" className="fill-none stroke-(--xp-text)" />
+      <path d="M1.5 8.5h3.5l1 2h4l1-2h3.5v5h-13z" className="fill-(--xp-title-light) stroke-(--xp-frame)" />
+    </Icon>
+  );
+}
+
+// Waiver or free-agent move: a player in, a player out.
+export function RosterMoveIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="8" cy="8" r="6.5" className="fill-(--xp-cream) stroke-(--xp-face-shadow)" />
+      <path d="M5 1.5v5M2.5 4h5" className="stroke-(--xp-start-dark) stroke-2" />
+      <path d="M8.5 12h5" className="stroke-(--xp-red) stroke-2" />
+    </Icon>
+  );
+}
+
+export function TradeIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M1.5 5.5h10.5V3l3 3.5-3 3.5V7.5H1.5z" className="fill-(--xp-title-light) stroke-(--xp-frame)" strokeWidth="0.75" />
+      <path d="M14.5 10.5H4V8l-3 3.5L4 15v-2.5h10.5z" className="fill-(--xp-gold) stroke-(--xp-wood)" strokeWidth="0.75" />
+    </Icon>
+  );
+}
+
 export function ErrorIcon(props: IconProps) {
   return (
     <Icon {...props}>
