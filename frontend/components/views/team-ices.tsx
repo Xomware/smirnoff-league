@@ -17,13 +17,23 @@ import { useVideos, videoFor } from "@/lib/videos/use-videos";
 import { DrillLink } from "./drill-link";
 import { inLedgerOrder, paidOn } from "./ledger-week";
 
-const REASONS: Record<LedgerIce["reason"], string> = {
+export const REASONS: Record<LedgerIce["reason"], string> = {
   zero: "Zero points",
   empty: "Empty slot",
   lowest: "Lowest score",
   admin: "Admin ice",
   late: "Late ice",
 };
+
+// Without the ledger, the ices Sleeper's scores imply, marked provisional.
+export function teamIceRows(rosterId: number, ledger: Exclude<LedgerState, { status: "loading" }>, results: ResultRow[]) {
+  const provisional = ledger.status === "error";
+  const ices: LedgerIce[] = provisional
+    ? results.flatMap((r) => r.ices.map(({ id, ...ice }): LedgerIce => ({ ...ice, iceId: id, status: "owed" })))
+    : ledger.ledger.ices.filter((i) => i.rosterId === rosterId);
+  const weeks = [...new Set(ices.map((i) => i.week))].sort((a, b) => a - b);
+  return { provisional, rows: weeks.flatMap((w) => inLedgerOrder(ices.filter((i) => i.week === w))) };
+}
 
 interface TeamIcesProps {
   rosterId: number;
@@ -42,12 +52,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
 
   if (ledger.status === "loading") return <p role="status">Loading the ledger...</p>;
 
-  const provisional = ledger.status === "error";
-  const ices: LedgerIce[] = provisional
-    ? results.flatMap((r) => r.ices.map(({ id, ...ice }): LedgerIce => ({ ...ice, iceId: id, status: "owed" })))
-    : ledger.ledger.ices.filter((i) => i.rosterId === rosterId);
-  const weeks = [...new Set(ices.map((i) => i.week))].sort((a, b) => a - b);
-  const rows = weeks.flatMap((w) => inLedgerOrder(ices.filter((i) => i.week === w)));
+  const { provisional, rows } = teamIceRows(rosterId, ledger, results);
   const videos = videosState.status === "ok" ? videosState.videos : [];
   const playingVideo = playing && videoFor(videos, playing);
   const uploadable = (ice: LedgerIce) => !provisional && !videoFor(videos, ice) && canUpload(ice, myRosterId, me?.isAdmin ?? false);
@@ -75,7 +80,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
 
   return (
     <div className="grid gap-2">
-      {provisional && (
+      {ledger.status === "error" && (
         <p role="note" className="xp-note">
           Ledger unavailable ({ledger.message}). These are Sleeper&apos;s ices, not yet confirmed.
         </p>
@@ -141,7 +146,7 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
           document.body,
         )}
       {uploadFor &&
-        !provisional &&
+        ledger.status === "ok" &&
         createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
       {timing && <ChugTimeDialog ice={timing} label={iceLabel(timing, teamFor, players)} onClose={() => setTiming(null)} />}
     </div>

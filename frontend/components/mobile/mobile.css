@@ -314,7 +314,6 @@
 }
 
 .m-app .xp-drill {
-  min-height: 2.75rem;
   align-items: center;
 }
 
@@ -759,6 +758,207 @@
 
 .m-points {
   font-variant-numeric: tabular-nums;
+}
+
+/* Ranked lists: Ices, Standings. */
+.m-rank {
+  flex: none;
+  width: 1.75rem;
+  font: bold 1.125rem var(--xp-title-font);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--xp-title-dark);
+}
+
+.m-row > .xp-drill {
+  flex: 1;
+}
+
+.m-rank ~ .m-row-sub {
+  padding-left: 5rem;
+}
+
+.m-row-sub.m-flush {
+  padding-left: 0;
+}
+
+.m-player-head {
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+  padding: 1rem;
+}
+
+.m-mine {
+  background: color-mix(in srgb, var(--xp-gold) 14%, var(--xp-cream));
+}
+
+.m-cut {
+  flex-basis: 100%;
+  margin: -0.5rem -1rem 0.25rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.875rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--xp-text-inverse);
+  background: var(--xp-title-dark);
+}
+
+.m-danger-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-weight: bold;
+  color: var(--xp-text);
+  background: var(--xp-balloon);
+  box-shadow: inset 0 0 0 1px var(--xp-gold);
+}
+
+.m-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.25rem;
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+  background: var(--xp-face);
+}
+
+.m-segmented button {
+  min-height: 2.75rem;
+  border-radius: 999px;
+  font-weight: bold;
+  color: var(--m-muted);
+  cursor: pointer;
+}
+
+.m-segmented [aria-pressed="true"] {
+  color: var(--xp-text-inverse);
+  background: linear-gradient(var(--xp-title-light), var(--xp-title));
+  box-shadow: 0 1px 2px rgb(20 30 60 / 0.3);
+}
+
+.m-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+/* Stacked sections with a sticky chip row, in place of a tab strip. */
+.m-jump {
+  position: sticky;
+  top: -1rem;
+  z-index: 2;
+  display: flex;
+  gap: 0.5rem;
+  margin: -0.5rem calc(var(--m-pad) * -1) 0;
+  padding: 0.75rem var(--m-pad) 0.625rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--m-bg);
+  box-shadow: 0 1px 0 var(--m-line);
+}
+
+.m-jump-chip {
+  flex: none;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--m-line);
+  border-radius: 999px;
+  font-weight: bold;
+  white-space: nowrap;
+  background: var(--xp-cream);
+  cursor: pointer;
+}
+
+.m-jump-chip[aria-current="true"] {
+  border-color: var(--xp-title-dark);
+  color: var(--xp-text-inverse);
+  background: var(--xp-title);
+}
+
+.m-jump-target {
+  scroll-margin-top: 4rem;
+}
+
+/* A desktop chart card, as a phone card: no title bar. */
+.m-screen .xp-dialog {
+  overflow: hidden;
+  border-color: var(--m-line);
+  border-radius: 0.875rem;
+}
+
+.m-screen .xp-dialog-title {
+  padding: 0.75rem 0.75rem 0;
+  border-radius: 0;
+  font-size: 1.0625rem;
+  color: var(--xp-title-dark);
+  text-shadow: none;
+  background: none;
+}
+
+/* Profiles. */
+.m-screen .profile-head {
+  padding: 1rem;
+  border-color: var(--m-line);
+  border-radius: 0.875rem;
+}
+
+.m-screen .profile-stats dt {
+  font-size: 0.8125rem;
+}
+
+.m-result {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.75rem 1rem;
+}
+
+.m-result-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+}
+
+.m-result-top .m-points {
+  margin-left: auto;
+  font-weight: bold;
+}
+
+.m-result-pill {
+  min-width: 1.75rem;
+  border-radius: 0.375rem;
+  font-weight: bold;
+  text-align: center;
+  color: var(--xp-text-inverse);
+  background: var(--xp-close-dark);
+}
+
+.m-result-pill[data-result="W"] {
+  background: var(--xp-start-dark);
+}
+
+.m-result-pill[data-result="T"] {
+  color: var(--xp-text);
+  background: var(--xp-face-shadow);
+}
+
+.m-result-vs {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.m-plus {
+  color: var(--xp-start-dark);
+}
+
+.m-minus {
+  color: var(--xp-close-dark);
 }
 
 /* Menu. */

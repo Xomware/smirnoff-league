@@ -4,7 +4,6 @@ import { type ComponentType, useEffect, useRef } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { IcesWindow } from "@/components/windows/IcesWindow";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
@@ -15,8 +14,13 @@ import { usePhoneNav } from "@/lib/phone/use-phone-nav";
 import { GameScreen } from "./GameScreen";
 import { GamesScreen } from "./GamesScreen";
 import { HomeScreen } from "./HomeScreen";
+import { IcesScreen } from "./IcesScreen";
 import { MenuScreen, TeamsScreen } from "./MenuScreen";
+import { PlayerScreen } from "./PlayerScreen";
 import { PushContext } from "./push";
+import { StandingsScreen } from "./StandingsScreen";
+import { StatsScreen } from "./StatsScreen";
+import { MyTeamScreen, TeamScreen } from "./TeamScreen";
 
 import "./mobile.css";
 
@@ -26,7 +30,16 @@ const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen
   Exclude<ScreenKind, WindowKind>,
   Body
 >;
-const OVERRIDES: Partial<Record<WindowKind, Body>> = { home: HomeScreen, ices: IcesWindow, week: GamesScreen };
+const OVERRIDES: Partial<Record<WindowKind, Body>> = {
+  home: HomeScreen,
+  ices: IcesScreen,
+  week: GamesScreen,
+  standings: StandingsScreen,
+  stats: StatsScreen,
+  team: TeamScreen,
+  "my-team": MyTeamScreen,
+  player: PlayerScreen,
+};
 
 const isPhoneKind = (kind: ScreenKind): kind is keyof typeof PHONE_SCREENS => kind in PHONE_SCREENS;
 const bodyOf = (kind: ScreenKind): Body => (isPhoneKind(kind) ? PHONE_SCREENS[kind] : (OVERRIDES[kind] ?? REGISTRY[kind].component));

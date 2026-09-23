@@ -8,7 +8,7 @@ import type { Player, Team } from "@/lib/league/use-league";
 import type { SleeperTransaction } from "@/lib/sleeper/types";
 import { DrillLink } from "./drill-link";
 
-const TYPES: Record<SleeperTransaction["type"], string> = {
+export const TYPES: Record<SleeperTransaction["type"], string> = {
   free_agent: "Free agent",
   waiver: "Waiver",
   trade: "Trade",
@@ -24,7 +24,7 @@ interface TeamMovesProps {
   teamFor: (rosterId: number) => Team;
 }
 
-export function TeamMoves({ rosterId, currentWeek, players, teamFor }: TeamMovesProps) {
+export function useTeamMoves(rosterId: number, currentWeek: number): Moves {
   const [state, setState] = useState<Moves>({ status: "loading" });
 
   useEffect(() => {
@@ -38,6 +38,12 @@ export function TeamMoves({ rosterId, currentWeek, players, teamFor }: TeamMoves
       live = false;
     };
   }, [rosterId, currentWeek]);
+
+  return state;
+}
+
+export function TeamMoves({ rosterId, currentWeek, players, teamFor }: TeamMovesProps) {
+  const state = useTeamMoves(rosterId, currentWeek);
 
   if (state.status === "loading") return <p role="status">Loading transactions...</p>;
   if (state.status === "error") return <p role="alert">Could not load transactions ({state.message}).</p>;

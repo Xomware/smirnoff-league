@@ -40,7 +40,8 @@ vars are in the [root README](../README.md); how it fits together is in
 | `auth/` | `AuthGate` (UX only, not security; starts the activity tracker when signed in) and the sign-in callback |
 | `onboarding/` | `ProfileGate` and the first-run wizard |
 | `landing/` | Signed-out landing page |
-| `phone/` | `AppShell` (desktop or phone), `PhoneShell`, Start sheet |
+| `AppShell.tsx` | Picks the desktop or the phone app |
+| `mobile/` | The phone app: `MobileShell`, the four tabs (Home, Games, Ices, Menu) and the screens they push |
 | `desktop/` | `Desktop`, window chrome, desktop icons, legacy-route redirect |
 | `xp/` | XP widgets: window, dialog, taskbar, Start menu, balloon, icons, notification bell |
 | `windows/` | Window bodies: Home, scores, standings, brackets, ledger, Ice Watch, videos, News Drop, news, notifications, Ices folder |
