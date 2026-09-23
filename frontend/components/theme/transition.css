@@ -1,0 +1,277 @@
+/* Keyframe delays are milliseconds from mount; transition.ts calls apply() at
+   500ms (to glacier) or 400ms (to xp) and removes the overlay at 1200ms.
+   Above the palette (71) and Glacier effects (80), and never takes a pointer. */
+.theme-transition {
+  --tt-snow: #f6fbff;
+  --tt-ice: #dff2fb;
+  --tt-ice-deep: #b9e2f5;
+  --tt-crack: #4a96c4;
+  --tt-frost: radial-gradient(120% 90% at 50% 40%, var(--tt-snow) 0%, var(--tt-ice) 45%, var(--tt-ice-deep) 100%);
+
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.theme-transition > *,
+.tt-cover > * {
+  position: absolute;
+}
+
+/* XP to Glacier: frost creeps in, cracks, shatters. */
+
+.tt-cover {
+  inset: 0;
+  animation: tt-hide 1ms linear 750ms forwards;
+}
+
+.tt-frost {
+  inset: 0;
+  background: var(--tt-frost);
+  animation: tt-fade-in 220ms ease-in 280ms both;
+}
+
+.tt-bloom {
+  width: 110vmax;
+  height: 110vmax;
+  margin: -55vmax 0 0 -55vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--tt-ice) 0 55%, rgb(223 242 251 / 0.6) 75%, transparent);
+  animation: tt-bloom 420ms cubic-bezier(0.3, 0.6, 0.4, 1) both;
+}
+
+.tt-fern {
+  width: 26vmin;
+  height: 42vmin;
+  margin-left: -13vmin;
+  transform-origin: 50% 0;
+  animation: tt-fern 460ms cubic-bezier(0.2, 0.7, 0.4, 1) both;
+}
+
+.tt-fern svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--tt-snow);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  overflow: visible;
+}
+
+.tt-cracks {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--tt-crack);
+  stroke-width: 2;
+  stroke-linecap: round;
+  animation: tt-hide 80ms linear 760ms forwards;
+}
+
+.tt-cracks path {
+  vector-effect: non-scaling-stroke;
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.tt-crack-radial {
+  animation: tt-crack 220ms cubic-bezier(0.2, 0.8, 0.3, 1) 500ms both;
+}
+
+.tt-crack-ring {
+  animation: tt-fade-in 110ms linear 640ms both;
+}
+
+.tt-shards {
+  inset: 0;
+  opacity: 0;
+  animation: tt-show 1ms linear 750ms forwards;
+}
+
+.tt-shard {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgb(255 255 255 / var(--tint)), rgb(255 255 255 / var(--tint))),
+    var(--tt-frost);
+  animation: tt-fall 340ms cubic-bezier(0.5, 0, 0.85, 0.45) both;
+}
+
+/* Glacier to XP: an ice sheet drops in, then melts and drips off the bottom. */
+
+.tt-sheet {
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.45) 38%, transparent 46%),
+    linear-gradient(180deg, var(--tt-snow) 0%, var(--tt-ice) 50%, var(--tt-ice-deep) 100%);
+  animation:
+    tt-sheet-in 400ms cubic-bezier(0.2, 0.7, 0.3, 1) both,
+    tt-sheet-out 480ms cubic-bezier(0.45, 0, 0.75, 0.6) 700ms forwards;
+}
+
+.tt-sheet > * {
+  position: absolute;
+}
+
+.tt-fringe {
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: 3vh;
+  margin-top: -1px;
+  fill: var(--tt-ice-deep);
+}
+
+/* Melt water left behind the sheet's top edge as it slides down. */
+.tt-drip {
+  bottom: 100%;
+  border-radius: 50% 50% 0 0 / 22% 22% 0 0;
+  background: linear-gradient(90deg, var(--tt-ice-deep), var(--tt-snow) 45%, var(--tt-ice-deep));
+  transform-origin: 50% 100%;
+  animation: tt-drip 460ms cubic-bezier(0.5, 0, 0.8, 0.6) both;
+}
+
+.tt-run {
+  top: 0;
+  width: 3px;
+  height: 18vh;
+  border-radius: 2px;
+  background: linear-gradient(transparent, rgb(255 255 255 / 0.85), rgb(120 190 225 / 0.7));
+  animation: tt-run 520ms cubic-bezier(0.5, 0, 0.9, 0.5) both;
+}
+
+.tt-loading {
+  top: 50%;
+  left: 50%;
+  width: min(300px, 80vw);
+  translate: -50% -50%;
+  animation: tt-fade-in 80ms linear 420ms both;
+}
+
+.tt-loading-body {
+  padding: 14px 12px 8px;
+  color: var(--xp-text);
+  font: 12px var(--xp-font);
+}
+
+.tt-progress {
+  display: flex;
+  gap: 2px;
+  height: 14px;
+  margin: 0 12px 14px;
+  padding: 1px;
+  overflow: hidden;
+  border: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+  background: var(--xp-cream);
+}
+
+.tt-progress i {
+  flex: none;
+  width: 8px;
+  background: linear-gradient(var(--xp-start-light), var(--xp-start) 60%, var(--xp-start-dark));
+  animation: tt-marquee 600ms linear 420ms infinite both;
+}
+
+/* Reduced motion: a plain crossfade through the View Transitions API. */
+html.theme-fade::view-transition-old(root),
+html.theme-fade::view-transition-new(root) {
+  animation-duration: 200ms;
+}
+
+@keyframes tt-hide {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes tt-show {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes tt-bloom {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes tt-fern {
+  from {
+    transform: rotate(var(--rot)) scale(0);
+  }
+  to {
+    transform: rotate(var(--rot)) scale(1);
+  }
+}
+
+@keyframes tt-crack {
+  from {
+    transform: scale(0);
+  }
+}
+
+@keyframes tt-fall {
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--dx), 105vh) rotate(var(--rot)) scale(0.9);
+  }
+}
+
+@keyframes tt-sheet-in {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes tt-sheet-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes tt-drip {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes tt-run {
+  from {
+    opacity: 0;
+    transform: translateY(-18vh);
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.6;
+    transform: translateY(90vh);
+  }
+}
+
+@keyframes tt-marquee {
+  from {
+    transform: translateX(-40px);
+  }
+  to {
+    transform: translateX(min(300px, 80vw));
+  }
+}

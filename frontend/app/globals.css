@@ -539,45 +539,6 @@
     }
   }
 
-  .brand-loader {
-    display: grid;
-    place-items: center;
-    width: 5.5rem;
-    height: 5.5rem;
-  }
-
-  .brand-loader img {
-    animation: brand-chug 1.2s ease-in-out infinite;
-  }
-
-  @keyframes brand-chug {
-    0%,
-    100% {
-      transform: rotate(0deg);
-      filter: drop-shadow(0 0 2px var(--ice-glow));
-    }
-    40%,
-    75% {
-      transform: rotate(-110deg);
-      filter: drop-shadow(0 0 10px var(--ice-glow));
-    }
-    58% {
-      transform: rotate(-100deg);
-    }
-  }
-
-  @keyframes brand-pulse {
-    to {
-      opacity: 0.45;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .brand-loader img {
-      animation: brand-pulse 1.2s ease-in-out infinite alternate;
-    }
-  }
-
   /* Set on body by XpCursor, only while the XP desktop shell is mounted. The
      CSS elsewhere reads the two variables, so the phone shell keeps the system cursors. */
   @media (pointer: fine) {

@@ -60,10 +60,7 @@ export function AuthCallback() {
         </>
       ) : (
         <>
-          <BrandLoader />
-          <p role="status" className="text-stone-700">
-            Signing you in...
-          </p>
+          <BrandLoader label="Signing you in..." />
         </>
       )}
     </main>

@@ -34,10 +34,7 @@ export function ProfileGate({ children }: ProfileGateProps) {
   if (!me) {
     return (
       <main className="xp-page min-h-dvh justify-center">
-        <BrandLoader />
-        <p role="status" className="xp-note">
-          Loading your profile...
-        </p>
+        <BrandLoader label="Loading your profile..." />
       </main>
     );
   }
