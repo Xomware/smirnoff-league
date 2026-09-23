@@ -93,8 +93,11 @@ describe("signing in", () => {
     signedInAs(1);
     renderSignedIn();
 
-    fireEvent.click(await screen.findByRole("button", { name: /mute sounds/i }));
-    expect(screen.getByRole("button", { name: /unmute sounds/i })).toBeTruthy();
+    // useSyncExternalStore subscribes in a passive effect, and findByRole can
+    // resolve before it runs. A click then mutes with no listener, and the label
+    // only catches up when the effect subscribes (the PR #95 CI flake).
+    fireEvent.click(await screen.findByRole("button", { name: "Mute sounds" }));
+    expect(await screen.findByRole("button", { name: "Unmute sounds" })).toBeTruthy();
     expect(window.localStorage.getItem("smirnoff:muted")).toBe("1");
   });
 });

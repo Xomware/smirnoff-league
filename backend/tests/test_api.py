@@ -8,7 +8,7 @@ from tests.events import authorized_event
 
 @pytest.fixture(autouse=True)
 def origins(monkeypatch):
-    monkeypatch.setenv("CORS_ALLOW_ORIGIN", "https://smirnoff.xomware.com,http://localhost:3000")
+    monkeypatch.setenv("CORS_ALLOW_ORIGIN", "https://smirnoff-league.com,http://localhost:3000")
 
 
 def call(fn, event=None):
@@ -60,4 +60,4 @@ def test_echoes_an_allowed_origin():
 
 def test_unknown_origin_gets_the_primary_one():
     res, _ = call(lambda e, c: ok(None), authorized_event(origin="https://evil.example"))
-    assert res["headers"]["Access-Control-Allow-Origin"] == "https://smirnoff.xomware.com"
+    assert res["headers"]["Access-Control-Allow-Origin"] == "https://smirnoff-league.com"
