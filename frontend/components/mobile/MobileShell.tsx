@@ -7,7 +7,7 @@ import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
-import { FONTS } from "@/components/glacier/GlacierShell";
+import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";

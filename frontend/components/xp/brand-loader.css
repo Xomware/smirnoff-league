@@ -1,0 +1,259 @@
+.brand-loader {
+  --bl-line: var(--xp-text);
+  --bl-skin: #f2c796;
+  --bl-glass: var(--ice-glass);
+  --bl-glass-line: var(--xp-text);
+  --bl-cap: var(--xp-silver);
+  --bl-cuff: var(--xp-cream);
+  --bl-left: var(--xp-title);
+  --bl-right: var(--xp-start);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-loader-art {
+  display: block;
+  width: 8.5rem;
+  height: auto;
+}
+
+.brand-loader-art :is(path, rect, circle) {
+  stroke-linejoin: round;
+}
+
+.bl-outline,
+.bl-skin-stroke,
+.bl-sleeve-outline,
+.bl-sleeve,
+.bl-cuff {
+  fill: none;
+}
+
+.bl-outline {
+  stroke: var(--bl-line);
+  stroke-width: 15;
+  stroke-linecap: round;
+}
+
+.bl-skin-stroke {
+  stroke: var(--bl-skin);
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.bl-sleeve-outline {
+  stroke: var(--bl-line);
+  stroke-width: 21;
+}
+
+.bl-sleeve {
+  stroke: var(--bl-left);
+  stroke-width: 16;
+}
+
+.bl-cuff {
+  stroke: var(--bl-cuff);
+  stroke-width: 16;
+}
+
+.bl-right .bl-sleeve {
+  stroke: var(--bl-right);
+}
+
+.bl-glass {
+  fill: var(--bl-glass);
+  stroke: var(--bl-glass-line);
+  stroke-width: 2.5;
+}
+
+.bl-shine {
+  fill: none;
+  stroke: var(--xp-text-inverse);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.bl-band {
+  fill: var(--smirnoff-red);
+}
+
+.bl-label {
+  fill: var(--ice-label);
+}
+
+.bl-label-text {
+  fill: var(--xp-text-inverse);
+}
+
+.bl-cap,
+.bl-fist,
+.bl-thumb {
+  stroke: var(--bl-line);
+  stroke-width: 2.5;
+}
+
+.bl-cap {
+  fill: var(--bl-cap);
+}
+
+.bl-fist,
+.bl-thumb {
+  fill: var(--bl-skin);
+}
+
+.bl-knuckles {
+  stroke: var(--bl-line);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.bl-spark {
+  stroke: var(--xp-gold);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.bl-drop {
+  fill: var(--ice-frost);
+  stroke: var(--ice-deep);
+  stroke-width: 1;
+}
+
+.bl-crystal {
+  display: none;
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+/* fill-box keeps the pivot in each side's own, possibly mirrored, coordinates. */
+.bl-side,
+.bl-burst {
+  transform-box: fill-box;
+}
+
+.bl-side {
+  transform-origin: 0% 100%;
+}
+
+.bl-burst {
+  transform-origin: 50% 50%;
+}
+
+.brand-loader-cheer .bl-side {
+  animation: bl-swing 1.4s ease-in-out infinite;
+}
+
+.brand-loader-cheer .bl-burst {
+  animation: bl-burst 1.4s ease-out infinite;
+}
+
+.brand-loader-still {
+  animation: bl-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.brand-loader-still .bl-burst {
+  opacity: 0.8;
+}
+
+@keyframes bl-swing {
+  0%,
+  100% {
+    transform: translateX(-8px) rotate(-7deg);
+    animation-timing-function: ease-in;
+  }
+  40%,
+  46% {
+    transform: none;
+  }
+  52% {
+    transform: translateX(-2px) rotate(-1.5deg);
+  }
+}
+
+@keyframes bl-burst {
+  0%,
+  38% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  44% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  66%,
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes bl-pulse {
+  to {
+    opacity: 0.55;
+  }
+}
+
+.brand-loader-label {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--xp-text);
+  border-radius: 4px;
+  color: var(--xp-text);
+  font-family: var(--xp-font);
+  font-size: 0.8125rem;
+  background: var(--xp-balloon);
+}
+
+/* The --g-* tokens live in glacier.css, which only the glacier shell loads, so
+   each one carries its value as a fallback for the auth screens outside it. */
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) {
+  --bl-line: rgb(200 240 255 / 0.7);
+  --bl-skin: #f0c8a4;
+  --bl-glass: rgb(200 238 255 / 0.22);
+  --bl-glass-line: rgb(200 240 255 / 0.95);
+  --bl-cap: var(--g-snow, #f6fbff);
+  --bl-cuff: var(--g-red, #d21f2b);
+  --bl-left: var(--ice-label);
+  --bl-right: var(--ice-label);
+
+  padding: 1.25rem 1.5rem 1rem;
+  border: 1px solid var(--g-frost-edge, rgb(190 235 255 / 0.38));
+  border-radius: 20px;
+  background:
+    radial-gradient(120px 80px at 50% 20%, rgb(90 190 240 / 0.28), transparent 70%),
+    linear-gradient(180deg, var(--g-night-top, #0a2440), var(--g-night-deep, #041322));
+  box-shadow: 0 12px 32px rgb(2 12 24 / 0.35);
+}
+
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .brand-loader-art {
+  filter: drop-shadow(0 0 6px rgb(143 227 255 / 0.55));
+}
+
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-shine {
+  stroke: rgb(255 255 255 / 0.7);
+}
+
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-spark,
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-drop {
+  display: none;
+}
+
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-crystal {
+  display: inline;
+  stroke: var(--g-focus, #cff3ff);
+}
+
+:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .brand-loader-label {
+  border: 1px solid var(--g-frost-edge, rgb(190 235 255 / 0.38));
+  border-radius: 999px;
+  padding: 0.375rem 1rem;
+  color: var(--g-text, #eaf6fc);
+  font-family: var(--g-body, Figtree, system-ui, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: rgb(6 26 46 / 0.8);
+}
