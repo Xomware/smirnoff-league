@@ -131,6 +131,37 @@ describe("Ice Standings, signed in", () => {
     expect(bodyRows(table)[0].textContent).toContain("Team 13");
   });
 
+  it("ranks a single week from the selector and returns to season totals", async () => {
+    renderView();
+
+    const table = await screen.findByRole("table", { name: /ice standings/i });
+    const view = screen.getByRole("combobox", { name: "View" });
+    expect(within(view).getAllByRole("option").map((o) => o.textContent)).toEqual(["Season", "Week 1", "Week 2", "Week 3 (live)"]);
+
+    fireEvent.change(view, { target: { value: "1" } });
+    const weekTable = screen.getByRole("table", { name: /ice standings.*week 1/i });
+    const top = within(bodyRows(weekTable)[0]).getAllByRole("cell").map((c) => c.textContent);
+    expect(top.slice(0, 5)).toEqual(["1", expect.stringContaining("Team 6"), "2", "2", "0"]);
+    expect(top.slice(8)).toEqual(["91.46", "L"]);
+    expect(screen.queryByRole("table", { name: /season grid/i })).toBeNull();
+
+    fireEvent.change(view, { target: { value: "season" } });
+    expect(bodyRows(table)[0].textContent).toContain("Team 13");
+    expect(within(bodyRows(table)[2]).getAllByRole("cell")[2].textContent).toBe("2");
+    expect(screen.getByRole("table", { name: /season grid/i })).toBeTruthy();
+  });
+
+  it("keeps the sort when switching between season and week", async () => {
+    renderView();
+
+    const table = await screen.findByRole("table", { name: /ice standings/i });
+    fireEvent.click(within(within(table).getByRole("columnheader", { name: /late/i })).getByRole("button"));
+    fireEvent.change(screen.getByRole("combobox", { name: "View" }), { target: { value: "2" } });
+
+    expect(within(table).getByRole("columnheader", { name: /late/i }).getAttribute("aria-sort")).toBe("descending");
+    expect(bodyRows(table).map((r) => within(r).getAllByRole("cell")[4].textContent).slice(0, 3)).toEqual(["2", "1", "0"]);
+  });
+
   it("shows a dash in the ledger columns when the ledger is unavailable", async () => {
     vi.mocked(getLedger).mockRejectedValue(new Error("API not configured"));
     renderView();
