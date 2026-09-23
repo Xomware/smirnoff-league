@@ -41,7 +41,7 @@
   font-size: 0.8125rem;
   color: var(--xp-text);
   background: linear-gradient(var(--xp-cream), var(--xp-face));
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .rank-chip:hover {

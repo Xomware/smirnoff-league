@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { RobotHeadIcon } from "@/components/xp/icons";
+import { BrandLoader } from "@/components/xp/BrandLoader";
 import { takeNextPath } from "@/lib/auth/next-path";
 import { useAuth } from "@/lib/auth/use-auth";
 
@@ -60,7 +60,7 @@ export function AuthCallback() {
         </>
       ) : (
         <>
-          <RobotHeadIcon width={72} height={72} className="brand-loading" />
+          <BrandLoader />
           <p role="status" className="text-stone-700">
             Signing you in...
           </p>

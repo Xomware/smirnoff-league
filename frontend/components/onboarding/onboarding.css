@@ -92,7 +92,7 @@
   color: var(--xp-face-shadow);
   box-shadow: none;
   background: var(--xp-face);
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 .xp-input {
@@ -125,7 +125,7 @@
   min-height: 2.75rem;
   padding: 0.25rem 0.5rem;
   border-bottom: 1px solid var(--xp-face-shadow);
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .xp-wizard-team:hover {
@@ -164,7 +164,7 @@
   align-items: center;
   gap: 0.5rem;
   min-height: 2.75rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .xp-email-alerts input {
@@ -189,5 +189,5 @@
 
 .xp-email-types label:has(:disabled) {
   color: var(--xp-face-shadow);
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }

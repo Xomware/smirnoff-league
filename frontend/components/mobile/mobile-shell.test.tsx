@@ -137,6 +137,27 @@ describe("shell choice", () => {
     renderShell();
     expect(screen.queryByRole("navigation", { name: "Tabs" }) !== null).toBe(phone);
     expect(document.querySelector(".xp-desktop") !== null).toBe(!phone);
+    expect(document.body.classList.contains("xp-cursor")).toBe(!phone);
+  });
+
+  it("shows the ice cursor on the desktop only while the mouse is down", () => {
+    viewport(DESKTOP);
+    const { unmount } = renderShell();
+    const body = document.body.classList;
+
+    fireEvent.pointerDown(document.querySelector(".xp-desktop")!);
+    expect(body.contains("xp-cursor-pressed")).toBe(true);
+    fireEvent.pointerUp(document.querySelector(".xp-desktop")!);
+    expect(body.contains("xp-cursor-pressed")).toBe(false);
+
+    unmount();
+    expect(body.contains("xp-cursor")).toBe(false);
+  });
+
+  it("gives the phone shell no custom cursor, even when pressed", () => {
+    renderShell();
+    fireEvent.pointerDown(document.querySelector(".m-screen")!);
+    expect(document.body.className).not.toMatch(/xp-cursor/);
   });
 
   it("keeps the screen when the phone rotates", async () => {
