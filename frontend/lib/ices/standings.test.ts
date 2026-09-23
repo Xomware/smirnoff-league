@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { golden } from "@/lib/test/league-mock";
-import { iceStandings, seasonGrid, sortRows, toggleSort } from "./standings";
+import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
+import { DEFAULT_SORT, iceStandings, seasonGrid, sortFor, sortRows, toggleSort, weekIceStandings } from "./standings";
 import { seasonTally } from "./tally";
 
 // Mirrors the mock league: roster N scored 200 - N points-for.
@@ -48,6 +49,73 @@ describe("column sorting", () => {
     expect(sortRows(rows, { key: "lowest", dir: "desc" }, nameOf).slice(0, 2).map((r) => r.rosterId)).toEqual([13, 6]);
     expect(sortRows(rows, { key: "total", dir: "asc" }, nameOf).at(-1)!.rosterId).toBe(6);
     expect(sortRows(rows, { key: "rank", dir: "desc" }, nameOf)[0].rank).toBe(14);
+  });
+});
+
+describe("weekIceStandings", () => {
+  const rosterIds = rows.map((r) => r.rosterId);
+  const week1 = weekIceStandings(rosterIds, tally.weeks[0], golden.weeks[0].matchups, false, SCENARIO_LEDGER);
+
+  it("ranks by that week's ices, breaking ties by fewest points that week", () => {
+    expect(week1.slice(0, 5).map((r) => [r.rank, r.rosterId, r.total])).toEqual([
+      [1, 6, 2],
+      [2, 12, 1],
+      [3, 2, 1],
+      [4, 8, 1],
+      [5, 7, 0],
+    ]);
+    expect(week1).toHaveLength(14);
+  });
+
+  it("carries the week's reasons, score, result and ledger counts", () => {
+    const byId = Object.fromEntries(week1.map((r) => [r.rosterId, r]));
+    expect(byId[6]).toMatchObject({
+      reasons: { zero: 1, empty: 0, lowest: 1 },
+      score: { points: 91.46, result: "L" },
+      completed: 2,
+      late: 0,
+      streak: null,
+      worst: null,
+    });
+    expect(byId[1]).toMatchObject({ total: 0, score: { points: 171.54, result: "W" } });
+
+    const week2 = weekIceStandings(rosterIds, tally.weeks[1], golden.weeks[1].matchups, false, SCENARIO_LEDGER);
+    expect(week2.find((r) => r.rosterId === 13)).toMatchObject({ rank: 1, total: 2, completed: 0, late: 2 });
+  });
+
+  it("leaves ledger counts empty without the ledger or for a week it hasn't recorded", () => {
+    const noLedger = weekIceStandings(rosterIds, tally.weeks[0], golden.weeks[0].matchups, false, null);
+    expect(noLedger[0]).toMatchObject({ completed: null, late: null });
+
+    const live = weekIceStandings(rosterIds, tally.live!, [], true, SCENARIO_LEDGER);
+    expect(live).toHaveLength(14);
+    expect(live[0]).toMatchObject({ total: 0, score: null, completed: null, late: null });
+  });
+
+  it("withholds the result while the week is live", () => {
+    const live = weekIceStandings(rosterIds, { week: 3, ices: [] }, golden.weeks[0].matchups, true, null);
+    expect(live.find((r) => r.rosterId === 6)!.score).toEqual({ points: 91.46, result: null });
+  });
+
+  it("sorts week rows by score and result", () => {
+    expect(sortRows(week1, { key: "score", dir: "asc" }, nameOf).map((r) => r.rosterId).slice(0, 2)).toEqual([6, 12]);
+    expect(sortRows(week1, { key: "result", dir: "desc" }, nameOf)[0].score!.result).toBe("W");
+    expect(sortRows(week1, { key: "total", dir: "asc" }, nameOf).at(-1)!.rosterId).toBe(6);
+  });
+});
+
+describe("sortFor", () => {
+  it("keeps a sort key both views share when switching", () => {
+    const byLate = { key: "late", dir: "desc" } as const;
+    expect(sortFor(byLate, "week")).toEqual(byLate);
+    expect(sortFor(byLate, "season")).toEqual(byLate);
+  });
+
+  it("ranks by default while the chosen column is missing, without forgetting it", () => {
+    const byStreak = toggleSort(DEFAULT_SORT, "streak");
+    expect(sortFor(byStreak, "week")).toEqual(DEFAULT_SORT);
+    expect(sortFor(byStreak, "season")).toEqual(byStreak);
+    expect(sortFor({ key: "score", dir: "desc" }, "season")).toEqual(DEFAULT_SORT);
   });
 });
 

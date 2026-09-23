@@ -39,7 +39,7 @@ function ProvisionalBoard({ owed, teamFor }: BoardProps) {
               </DrillLink>
             </td>
             <td className="text-right">
-              {t.total > 0 ? <IceBadge count={t.total} /> : <span className="tabular-nums">0</span>}
+              {t.total > 0 ? <IceBadge count={t.total} season /> : <span className="tabular-nums">0</span>}
             </td>
           </tr>
         ))}
