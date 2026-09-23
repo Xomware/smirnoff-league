@@ -13,7 +13,7 @@ const POLL = 60_000;
 
 // Public Sleeper and ESPN data only. Any failure hides the whole section: the
 // landing exists to get people signed in, and a broken widget shouldn't say otherwise.
-export function LeagueStatus() {
+export function useOverview(): State {
   const [state, setState] = useState<State>({ status: "loading" });
 
   useEffect(() => {
@@ -31,6 +31,11 @@ export function LeagueStatus() {
     };
   }, []);
 
+  return state;
+}
+
+export function LeagueStatus() {
+  const state = useOverview();
   if (state.status === "error") return null;
 
   return (
@@ -54,7 +59,7 @@ interface DetailsProps {
   overview: Overview;
 }
 
-function Details({ overview: o }: DetailsProps) {
+export function Details({ overview: o }: DetailsProps) {
   return (
     <div className="min-w-0 flex-1" aria-live="polite">
       <p className="flex items-center gap-2 text-base font-bold">
@@ -104,7 +109,7 @@ function Details({ overview: o }: DetailsProps) {
   );
 }
 
-function Skeleton() {
+export function Skeleton() {
   return (
     <div role="status" aria-label="Loading league status" className="landing-skeleton min-w-0 flex-1">
       <span className="w-3/4" />
