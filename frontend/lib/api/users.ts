@@ -2,10 +2,28 @@ import { fetchAuthSession } from "aws-amplify/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
+export const EMAIL_TYPES = {
+  iced: "When I get iced",
+  due48h: "48 hours before an ice is due",
+  due6h: "6 hours before",
+  lateAdded: "When a late ice is added",
+  edition: "When the commish posts a new edition",
+  videoOfMine: "When someone posts a video of my chug",
+} as const;
+
+export type EmailType = keyof typeof EMAIL_TYPES;
+
+export interface EmailPrefs {
+  optIn: boolean;
+  types: Record<EmailType, boolean>;
+}
+
 export interface Profile {
   name: string;
   username: string;
   rosterId: number;
+  // Optional until the backend that sends it is deployed.
+  email?: EmailPrefs;
   // Optional until the backend that sends it is deployed.
   notificationsSeenAt?: string | null;
   createdAt: string;
@@ -65,6 +83,6 @@ export async function request<T>(path: string, init: RequestInit): Promise<T> {
 
 export const getMe = () => request<Me>("/users/me", { method: "GET" });
 
-/** The profile fields, or `notificationsSeenAt` alone to mark notifications read. */
-export const updateMe = (input: ProfileInput | { notificationsSeenAt: string }) =>
+/** The profile fields, `notificationsSeenAt` alone to mark notifications read, or `email` alone. */
+export const updateMe = (input: ProfileInput | { notificationsSeenAt: string } | { email: EmailPrefs }) =>
   request<Profile>("/users/update", { method: "POST", body: JSON.stringify(input) });

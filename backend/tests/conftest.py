@@ -8,6 +8,7 @@ SETTINGS_TABLE = "t-smirnoff-settings"
 MEDIA_TABLE = "t-smirnoff-media"
 MEDIA_BUCKET = "t-smirnoff-media"
 ADMIN_EMAILS_PARAM = "/smirnoff/admin-emails"
+UNSUBSCRIBE_SECRET_PARAM = "/smirnoff/email-unsubscribe-secret"
 
 
 @pytest.fixture
@@ -24,6 +25,8 @@ def aws(monkeypatch):
         "MEDIA_TABLE": MEDIA_TABLE,
         "MEDIA_BUCKET": MEDIA_BUCKET,
         "ADMIN_EMAILS_PARAM": ADMIN_EMAILS_PARAM,
+        "APP_NAME": "smirnoff",
+        "CORS_ALLOW_ORIGIN": "https://smirnoff-league.com,http://localhost:3000",
     }.items():
         monkeypatch.setenv(k, v)
     with mock_aws():
@@ -53,6 +56,7 @@ def aws(monkeypatch):
         boto3.client("s3").create_bucket(Bucket=MEDIA_BUCKET)
         ssm = boto3.client("ssm")
         ssm.put_parameter(Name=ADMIN_EMAILS_PARAM, Type="StringList", Value="unset")
+        ssm.put_parameter(Name=UNSUBSCRIBE_SECRET_PARAM, Type="SecureString", Value="test-unsubscribe-secret")
         yield ssm
 
 

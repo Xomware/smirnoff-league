@@ -7,6 +7,11 @@ Body: { "name": 1-40 chars, "username": 2-20 of [A-Za-z0-9_.-], "rosterId": int 
 `notificationsSeenAt` may also be sent alone, to mark notifications read
 without resending the profile.
 
+`email` is sent only on its own: { "optIn": bool, "types": { <each EMAIL_TYPES key>: bool } },
+the whole object every time.
+
+Every save also stores the token's email as `emailAddress`, where alerts go.
+
 Two users may claim the same roster: co-owners share one.
 """
 
@@ -15,8 +20,9 @@ from __future__ import annotations
 import re
 from datetime import datetime, timedelta, timezone
 
-from lambdas.common.api import ValidationError, api_handler, body, caller_sub, ok
-from lambdas.common.users_dynamo import save_profile, save_seen_at
+from lambdas.common.api import ValidationError, api_handler, body, caller_email, caller_sub, ok
+from lambdas.common.email_prefs import parse_prefs
+from lambdas.common.users_dynamo import save_profile, update_profile
 
 USERNAME = re.compile(r"[A-Za-z0-9_.-]{2,20}")
 ROSTERS = range(1, 15)
@@ -45,11 +51,17 @@ def _seen_at(value) -> str:
 @api_handler("users_update")
 def handler(event, context):
     sub = caller_sub(event)
+    address = caller_email(event)
     data = body(event)
+
+    if "email" in data:
+        if len(data) > 1:
+            raise _invalid("email", "must be sent on its own")
+        return ok(update_profile(sub, {"email": parse_prefs(data["email"]), "emailAddress": address}))
 
     seen_at = _seen_at(data["notificationsSeenAt"]) if "notificationsSeenAt" in data else None
     if seen_at is not None and PROFILE_KEYS.isdisjoint(data):
-        return ok(save_seen_at(sub, seen_at))
+        return ok(update_profile(sub, {"notificationsSeenAt": seen_at, "emailAddress": address}))
 
     name = data.get("name")
     if not isinstance(name, str) or not 1 <= len(name.strip()) <= 40:
@@ -64,4 +76,4 @@ def handler(event, context):
     if type(roster_id) is not int or roster_id not in ROSTERS:
         raise _invalid("rosterId", "must be a whole number from 1 to 14")
 
-    return ok(save_profile(sub, name.strip(), username, roster_id, seen_at))
+    return ok(save_profile(sub, name.strip(), username, roster_id, address, seen_at))

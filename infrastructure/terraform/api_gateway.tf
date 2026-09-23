@@ -24,6 +24,11 @@ locals {
       invoke_arn = aws_lambda_function.api["writeups_${l.name}"].invoke_arn
     })
   ]
+  email_endpoints = [
+    for l in local.email_lambdas : merge(l, {
+      invoke_arn = aws_lambda_function.api["email_${l.name}"].invoke_arn
+    })
+  ]
 }
 
 module "api" {
@@ -36,7 +41,8 @@ module "api" {
 
   # The module defaults to "CUSTOM", which provisions a Lambda authorizer this
   # stack does not have and fails the plan. Every endpoint also sets it
-  # explicitly, so no route can inherit something weaker.
+  # explicitly, so no route can inherit something weaker. /email/unsubscribe
+  # alone sets NONE; lambda.tf says why.
   authorization          = "COGNITO_USER_POOLS"
   cognito_user_pool_arns = [data.aws_ssm_parameter.cognito_user_pool_arn.value]
 
@@ -48,5 +54,6 @@ module "api" {
     ledger   = { path_prefix = "ledger", endpoints = local.ledger_endpoints }
     videos   = { path_prefix = "videos", endpoints = local.videos_endpoints }
     writeups = { path_prefix = "writeups", endpoints = local.writeups_endpoints }
+    email    = { path_prefix = "email", endpoints = local.email_endpoints }
   }
 }

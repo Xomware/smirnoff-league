@@ -7,13 +7,24 @@ from datetime import datetime, timezone
 from botocore.exceptions import ClientError
 
 from lambdas.common.api import NotFoundError
-from lambdas.common.dynamo import from_dynamo, table
+from lambdas.common.dynamo import from_dynamo, table, to_dynamo
+from lambdas.common.email_prefs import with_defaults
 
-PROFILE_FIELDS = ("name", "username", "rosterId", "notificationsSeenAt", "createdAt", "updatedAt")
+PROFILE_FIELDS = (
+    "name",
+    "username",
+    "rosterId",
+    "emailAddress",
+    "notificationsSeenAt",
+    "createdAt",
+    "updatedAt",
+)
 
 
 def _profile(item: dict) -> dict:
-    return {k: from_dynamo(item.get(k)) for k in PROFILE_FIELDS}
+    profile = {k: from_dynamo(item.get(k)) for k in PROFILE_FIELDS}
+    profile["email"] = with_defaults(item.get("email"))
+    return profile
 
 
 def _now() -> str:
@@ -25,10 +36,18 @@ def get_profile(sub: str) -> dict | None:
     return _profile(item) if item else None
 
 
-def save_profile(sub: str, name: str, username: str, roster_id: int, seen_at: str | None = None) -> dict:
-    values = {":name": name, ":username": username, ":rosterId": roster_id, ":now": _now()}
+def save_profile(
+    sub: str, name: str, username: str, roster_id: int, address: str, seen_at: str | None = None
+) -> dict:
+    values = {
+        ":name": name,
+        ":username": username,
+        ":rosterId": roster_id,
+        ":address": address,
+        ":now": _now(),
+    }
     expression = (
-        "SET #name = :name, username = :username, rosterId = :rosterId, "
+        "SET #name = :name, username = :username, rosterId = :rosterId, emailAddress = :address, "
         "updatedAt = :now, createdAt = if_not_exists(createdAt, :now)"
     )
     if seen_at is not None:
@@ -45,15 +64,18 @@ def save_profile(sub: str, name: str, username: str, roster_id: int, seen_at: st
     return _profile(item)
 
 
-def save_seen_at(sub: str, seen_at: str) -> dict:
-    """Sets only the notifications read mark, on a profile that must already exist."""
+def update_profile(sub: str, fields: dict) -> dict:
+    """Sets the given top-level fields on a profile that must already exist."""
+    names = {f"#f{i}": k for i, k in enumerate(fields)}
+    values = {f":v{i}": to_dynamo(v) for i, v in enumerate(fields.values())}
+    sets = ", ".join(f"#f{i} = :v{i}" for i in range(len(fields)))
     try:
         item = table("USERS_TABLE").update_item(
             Key={"sub": sub},
-            UpdateExpression="SET notificationsSeenAt = :seenAt, updatedAt = :now",
+            UpdateExpression=f"SET {sets}, updatedAt = :now",
             ConditionExpression="attribute_exists(#sub)",
-            ExpressionAttributeNames={"#sub": "sub"},
-            ExpressionAttributeValues={":seenAt": seen_at, ":now": _now()},
+            ExpressionAttributeNames={"#sub": "sub", **names},
+            ExpressionAttributeValues={":now": _now(), **values},
             ReturnValues="ALL_NEW",
         )["Attributes"]
     except ClientError as e:
