@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MatchupRow } from "@/lib/ices/compute";
@@ -217,5 +217,52 @@ describe("Scores window", () => {
     const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
     expect(picker.value).toBe("4");
     expect(screen.getByRole("button", { name: "Next week" })).toHaveProperty("disabled", true);
+  });
+
+  const nflFetches = () =>
+    vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/state/nfl")).length;
+
+  it("moves an open window to the new week when Thursday night kicks off", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    vi.setSystemTime(new Date("2026-10-02T00:10Z"));
+    stubFetch(week4);
+    render(<ScoresWindow />);
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    expect(picker.value).toBe("3");
+
+    await act(() => vi.advanceTimersByTimeAsync(5 * 60_000));
+
+    await waitFor(() => expect(picker.value).toBe("4"));
+    expect(nflFetches()).toBe(2);
+  });
+
+  it("re-checks the week when the tab comes back into view", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    vi.setSystemTime(new Date("2026-10-02T00:10Z"));
+    stubFetch(week4);
+    render(<ScoresWindow />);
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    expect(picker.value).toBe("3");
+
+    vi.setSystemTime(new Date("2026-10-02T00:20Z"));
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+
+    await waitFor(() => expect(picker.value).toBe("4"));
+  });
+
+  it("leaves a week the user picked alone when the default moves", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    vi.setSystemTime(new Date("2026-10-02T00:10Z"));
+    stubFetch(week4);
+    render(<ScoresWindow />);
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    fireEvent.click(screen.getByRole("button", { name: "Previous week" }));
+    expect(picker.value).toBe("2");
+
+    await act(() => vi.advanceTimersByTimeAsync(5 * 60_000));
+
+    await waitFor(() => expect(nflFetches()).toBe(2));
+    await screen.findByText("82.10");
+    expect(picker.value).toBe("2");
   });
 });
