@@ -9,6 +9,7 @@ import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { playWhenAllowed } from "@/lib/sound/sound";
+import { useTheme } from "@/lib/theme/theme";
 
 // Runs once per signed-in load: the startup chime, the ice report balloon, and
 // an ICE.EXE crash if your own starter laid an egg in the reported week.
@@ -18,6 +19,7 @@ export function SignInGreeting() {
   const { data, teamFor } = useLeague();
   const { tally } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
   const shown = useDefaultWeek();
+  const { theme } = useTheme();
   const reported = useRef(false);
 
   useEffect(() => {
@@ -27,6 +29,8 @@ export function SignInGreeting() {
   useEffect(() => {
     if (!tally || !data || shown === undefined || reported.current) return;
     reported.current = true;
+    // Glacier's own toasts carry the same news.
+    if (theme === "glacier") return;
 
     // The live week once it has kicked off and has ices, otherwise the last finished week.
     const live = tally.live?.week === shown && tally.live.ices.length ? tally.live : null;
@@ -60,7 +64,7 @@ export function SignInGreeting() {
         "We are sorry for the inconvenience. Please chug to continue.",
       buttons: ["Send Error Report", "Don't Send"],
     });
-  }, [tally, data, shown, teamFor, myRosterId, notify, alert]);
+  }, [tally, data, shown, teamFor, myRosterId, notify, alert, theme]);
 
   return null;
 }

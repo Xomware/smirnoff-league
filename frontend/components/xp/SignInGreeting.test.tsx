@@ -89,6 +89,18 @@ describe("signing in", () => {
     expect(dialog.textContent).toMatch(/has encountered a problem and needs to close/i);
   });
 
+  it("leaves the report and the crash to Glacier's own toasts", async () => {
+    window.localStorage.setItem("smirnoff.theme", "glacier");
+    signedInAs(12);
+    renderSignedIn();
+
+    await screen.findByText("home");
+    // The XP report lands within a few ticks of the league loading; give it room.
+    await new Promise((done) => setTimeout(done, 500));
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(screen.queryByText(/teams? iced/i)).toBeNull();
+  });
+
   it("toggles mute from the tray", async () => {
     signedInAs(1);
     renderSignedIn();
