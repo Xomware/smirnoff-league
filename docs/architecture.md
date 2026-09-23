@@ -35,7 +35,7 @@ travel in the body or query string (`lambda.tf`).
 | `GET /users/me` | `users_me` | signed in; returns profile and `isAdmin` |
 | `POST /users/update` | `users_update` | signed in; saves the profile, or `notificationsSeenAt` alone to mark notifications read |
 | `GET /ledger/get` | `ledger_get` | signed in |
-| `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own the ice, confirm requires the uploader; admins pass both |
+| `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
 | `GET /writeups/list` | `writeups_list` | signed in |
 | `POST /admin/finalize`, `/admin/ice-adjust`, `/admin/ice-complete`, `/admin/chug-time`, `/admin/settings`, `/admin/writeup-presign`, `/admin/writeup-publish` | `admin_*` | admins (`require_admin`) |
 
@@ -48,7 +48,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 | `smirnoff-users` | `sub` | name, username, rosterId, notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes` | `common/ices_dynamo.py`, `ledger_get/handler.py` |
-| `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceId, rosterId, uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status, publishedAt | `common/media_dynamo.py` |
+| `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status, publishedAt | `common/media_dynamo.py` |
 
 The season is hard-coded as `SEASON = "2026"` in `common/ices_dynamo.py`.
 
@@ -143,11 +143,12 @@ changes them.
      completed exactly at the deadline, no `updatedBy` and no `videoId`. Anything
      else was really completed and is left alone (`_auto_paid`).
 4. **Completion.** Two paths:
-   - **Upload.** `POST /videos/presign` returns a presigned POST (15 min, 1 byte
+   - **Upload.** `POST /videos/presign` takes `iceIds` (1 to 10, one week, any
+     rosters when teams chug together), returns a presigned POST (15 min, 1 byte
      to 200 MB, `video/*`) and writes a `pending` media row. The browser uploads to
      S3, then `POST /videos/confirm` HEADs the object, marks the media `ready`, and
-     sets an `owed` ice to `completed` with `source: "upload"`. An already completed
-     ice only gains the `videoId`.
+     sets every listed `owed` ice to `completed` with `source: "upload"` and
+     `completedBySub` the uploader. An already completed ice only gains the `videoId`.
    - **Admin.** `POST /admin/ice-complete` marks completed (optionally backdated
      with `at`) or undoes it; `/admin/ice-adjust` adds an `admin` ice or voids any
      ice; `/admin/chug-time` sets `chugSeconds`. All go through
@@ -261,8 +262,10 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
   `/users/me` says `isAdmin`; the server re-checks every call.
 - **Chug videos.** `components/videos/UploadChug.tsx` uploads through
   `/videos/presign` and `/videos/confirm` (see Ledger lifecycle). A manager can
-  upload for their own team's owed ices; admins can backfill any ice. The upload
-  button appears in the Ice Ledger, Chug Videos and team Ices views;
+  upload for their own team's owed ices, adding other teams' same-week owed ices
+  when they chugged together; admins can backfill any ice. The upload button
+  appears in the Ice Ledger, Chug Videos and team Ices views and opens the dialog
+  with `initialIceIds`. The gallery shows one card per video, listing every ice;
   `ChugPlayer.tsx` plays from the presigned GET.
 - **Write-ups.** `components/windows/WriteupWindow.tsx` ("News Drop") shows the
   latest edition's pages, or a week's with `?open=writeup:<week>`, plus an archive.
