@@ -38,7 +38,7 @@ export function WeekIces({ groups, players, teamFor }: WeekIcesProps) {
   return (
     <div className="grid gap-3">
       {groups.map(([rosterId, owed]) => (
-        <div key={rosterId}>
+        <div key={rosterId} className="ice-team">
           <DrillLink to={{ kind: "team", rosterId }}>
             <TeamName name={teamFor(rosterId).name} iced ices={owed.length} />
           </DrillLink>

@@ -18,6 +18,7 @@ import { GlacierHome } from "./GlacierHome";
 
 import "./glacier.css";
 import "./glacier-skin.css";
+import "./glacier-layout.css";
 
 const NAV: { label: string; kind: WindowKind }[] = [
   { label: "Home", kind: "home" },

@@ -162,7 +162,7 @@ export function IcesWindow() {
     <div className="grid gap-3">
       {summary ? (
         <>
-          <div>
+          <div className="ices-summary">
             <div className="xp-table-scroll">
               <SeasonSummary rows={summary} teamFor={teamFor} />
             </div>
@@ -173,7 +173,7 @@ export function IcesWindow() {
           <LateLeaders rows={summary} teamFor={teamFor} />
         </>
       ) : (
-        <div>
+        <div className="ices-summary">
           <div className="xp-table-scroll">
             <ProvisionalBoard owed={tally.owed} teamFor={teamFor} />
           </div>
