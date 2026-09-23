@@ -83,7 +83,7 @@ export function useAuth() {
     },
     signInWithGoogle: async () => {
       rememberNextPath(window.location.pathname + window.location.search);
-      await signInWithRedirect({ provider: "Google" });
+      await signInWithRedirect({ provider: { custom: "GoogleSmirnoff" } });
     },
   };
 }
