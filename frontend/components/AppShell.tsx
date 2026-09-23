@@ -4,11 +4,13 @@ import { useState } from "react";
 
 import { Desktop } from "@/components/desktop/Desktop";
 import { XpCursor } from "@/components/desktop/XpCursor";
+import { GlacierShell } from "@/components/glacier/GlacierShell";
 import { MobileShell } from "@/components/mobile/MobileShell";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { Taskbar } from "@/components/xp/Taskbar";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
+import { useTheme } from "@/lib/theme/theme";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
 
 function DesktopSearch() {
@@ -26,10 +28,13 @@ function DesktopSearch() {
 
 export function AppShell() {
   const phone = useMediaQuery(PHONE);
+  const { theme } = useTheme();
   return (
     <NotificationsProvider>
       {phone ? (
         <MobileShell />
+      ) : theme === "glacier" ? (
+        <GlacierShell />
       ) : (
         <>
           <Desktop />

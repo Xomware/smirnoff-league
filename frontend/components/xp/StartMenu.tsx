@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { ICE_APPS } from "@/lib/desktop/ice-apps";
 import type { WindowKind } from "@/lib/desktop/registry";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useProfile } from "@/lib/profile/use-profile";
 import {
   BracketIcon,
@@ -129,6 +130,10 @@ export function StartMenu({ id, onOpen, onReset, onEditProfile, onSignOut }: Sta
           </button>
         </li>
       </ul>
+      <div className="xp-start-menu-theme">
+        <span>Theme</span>
+        <ThemeToggle />
+      </div>
       <div className="xp-start-menu-footer">
         <span className="mr-auto">Stay hydrated. Stay iced.</span>
         <button type="button" className="xp-log-off" onClick={onSignOut}>

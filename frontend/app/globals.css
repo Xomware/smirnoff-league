@@ -694,6 +694,19 @@
     flex: none;
   }
 
+  .xp-start-menu-theme {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--xp-face-shadow);
+    color: var(--xp-text);
+    font-size: 0.75rem;
+    font-weight: bold;
+  }
+
   .xp-start-menu-list {
     min-height: 0;
     overflow-y: auto;

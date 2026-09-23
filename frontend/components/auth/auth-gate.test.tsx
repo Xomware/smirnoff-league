@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // amplify.ts reads these at import time, so they must exist before any import.
@@ -34,6 +34,7 @@ import AuthCallbackPage from "@/app/auth/callback/page";
 import PrivacyPage from "@/app/privacy/page";
 import { track } from "@/lib/activity/tracker";
 import { getMe } from "@/lib/api/users";
+import { THEME_KEY } from "@/lib/theme/theme";
 import { AuthGate } from "./auth-gate";
 
 function signedIn() {
@@ -73,6 +74,26 @@ describe("AuthGate", () => {
     await waitFor(() => expect(getCurrentUser).toHaveBeenCalled());
     expect(screen.getAllByRole("button", { name: /sign in with google/i }).length).toBeGreaterThan(0);
     expect(screen.queryByText("standings content")).toBeNull();
+  });
+
+  it("puts the theme switch on the signed-out landing, saved to this browser only", async () => {
+    signedOut();
+    localStorage.clear();
+    nav.pathname = "/";
+    const { container } = render(<AuthGate>home</AuthGate>);
+    await waitFor(() => expect(getCurrentUser).toHaveBeenCalled());
+
+    const toggle = within(screen.getByRole("group", { name: "Theme" }));
+    expect(toggle.getByRole("button", { name: "Classic XP" }).getAttribute("aria-pressed")).toBe("true");
+    expect(container.querySelector('[data-theme="glacier"]')).toBeNull();
+
+    fireEvent.click(toggle.getByRole("button", { name: "Glacier" }));
+
+    expect(container.querySelector('[data-theme="glacier"]')).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Glacier" }).getAttribute("aria-pressed")).toBe("true");
+    expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
+    expect(getMe).not.toHaveBeenCalled();
+    localStorage.clear();
   });
 
   it("renders the children when signed in", async () => {

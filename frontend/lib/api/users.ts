@@ -1,5 +1,7 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 
+import type { Theme } from "@/lib/theme/theme";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export const EMAIL_TYPES = {
@@ -26,6 +28,8 @@ export interface Profile {
   email?: EmailPrefs;
   // Optional until the backend that sends it is deployed.
   notificationsSeenAt?: string | null;
+  // Optional until the backend that sends it is deployed.
+  theme?: Theme | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -83,6 +87,8 @@ export async function request<T>(path: string, init: RequestInit): Promise<T> {
 
 export const getMe = () => request<Me>("/users/me", { method: "GET" });
 
-/** The profile fields, `notificationsSeenAt` alone to mark notifications read, or `email` alone. */
-export const updateMe = (input: ProfileInput | { notificationsSeenAt: string } | { email: EmailPrefs }) =>
+/** The profile fields, `notificationsSeenAt` alone to mark notifications read, or `email` or `theme` alone. */
+export const updateMe = (
+  input: ProfileInput | { notificationsSeenAt: string } | { email: EmailPrefs } | { theme: Theme },
+) =>
   request<Profile>("/users/update", { method: "POST", body: JSON.stringify(input) });
