@@ -841,7 +841,7 @@
     position: fixed;
     inset: 0 0 var(--taskbar-top) 0;
     overflow: hidden;
-    background: var(--xp-sky-bottom) url("/brand/wallpaper.jpg") center / cover no-repeat;
+    background: var(--xp-sky-bottom) url("/brand/wallpaper-hill-1600.jpg") center / cover no-repeat;
   }
 
   .xp-wallpaper-credit {
