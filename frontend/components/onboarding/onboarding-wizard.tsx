@@ -23,13 +23,13 @@ const SETUP_STEPS: { field: Field; title: string }[] = [
 const PROFILE_STEPS: { field: Field; title: string }[] = [...SETUP_STEPS, { field: "email", title: "Email alerts" }];
 
 // Mirrors the users_update handler, so most mistakes never reach the server.
-function nameError(name: string) {
+export function nameError(name: string) {
   const n = name.trim().length;
   if (n === 0) return "Enter your name.";
   return n > 40 ? "Keep it to 40 characters." : null;
 }
 
-function usernameError(username: string) {
+export function usernameError(username: string) {
   if (!/^[A-Za-z0-9_.-]*$/.test(username)) return "Use only letters, numbers, _ . and -.";
   return username.length < 2 || username.length > 20 ? "Use 2 to 20 characters." : null;
 }

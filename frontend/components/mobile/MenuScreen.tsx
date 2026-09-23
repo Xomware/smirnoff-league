@@ -1,110 +1,95 @@
 "use client";
 
-import { type ComponentType, type SVGProps, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { TeamName } from "@/components/xp/TeamName";
-import {
-  BracketIcon,
-  ChartIcon,
-  ChugRankIcon,
-  ControlPanelIcon,
-  NewsFeedIcon,
-  NewspaperIcon,
-  ProfileIcon,
-  SpeakerIcon,
-  StandingsIcon,
-  StarIcon,
-} from "@/components/xp/icons";
+import { ControlPanelIcon, ProfileIcon, SpeakerIcon } from "@/components/xp/icons";
 import { useAuth } from "@/lib/auth/use-auth";
+import { REGISTRY } from "@/lib/desktop/registry";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
-import type { ScreenKind } from "@/lib/phone/nav";
 import { useProfile } from "@/lib/profile/use-profile";
+import { type PageKind, pagesFor, pageView, SECTIONS, type SubPage } from "@/lib/sections";
 import { isMuted, play, setMuted, subscribeMuted } from "@/lib/sound/sound";
 import { usePush } from "./push";
 
-interface Row {
-  kind: ScreenKind;
-  label: string;
-  blurb: string;
-  Icon: ComponentType<SVGProps<SVGSVGElement>>;
-}
-
-const ROWS: Row[] = [
-  { kind: "standings", label: "Standings", blurb: "Records, points and the playoff cut", Icon: StandingsIcon },
-  { kind: "brackets", label: "Brackets", blurb: "The playoffs and the toilet bowl", Icon: BracketIcon },
-  { kind: "news", label: "League News", blurb: "Moves, trades and ice events", Icon: NewsFeedIcon },
-  { kind: "writeup", label: "News Drop", blurb: "The commish's weekly edition", Icon: NewspaperIcon },
-  { kind: "stats", label: "Ice Stats", blurb: "The race, heat check and Hall of Shame", Icon: ChartIcon },
-  { kind: "chug-rankings", label: "Ice Rankings", blurb: "Chug times ranked by personal best", Icon: ChugRankIcon },
-  { kind: "teams", label: "Teams", blurb: "Every team's profile", Icon: ProfileIcon },
-  { kind: "my-team", label: "My Team", blurb: "Your results, ices and moves", Icon: StarIcon },
-];
-const ADMIN: Row = { kind: "admin", label: "Control Panel", blurb: "Ices, week rules and the toilet bowl", Icon: ControlPanelIcon };
+const iconOf = (kind: PageKind) =>
+  kind === "teams" || kind === "profile" ? ProfileIcon : kind === "settings" ? ControlPanelIcon : REGISTRY[kind].Icon;
 
 const serverMuted = () => false;
 
+// Every section's pages, as on Glacier's sub-nav, each listed once. Home is its own tab.
+function groups(isAdmin: boolean) {
+  const listed = new Set<PageKind>();
+  return SECTIONS.filter((s) => s.id !== "home").map((section) => {
+    const pages = pagesFor(section, isAdmin).filter((p) => !listed.has(p.kind));
+    pages.forEach((p) => listed.add(p.kind));
+    return { section, pages };
+  });
+}
+
 export function MenuScreen() {
   const push = usePush();
-  const { me, setEditing } = useProfile();
+  const week = useDefaultWeek();
+  const { me } = useProfile();
   const { signOut } = useAuth();
   const muted = useSyncExternalStore(subscribeMuted, isMuted, serverMuted);
-  const rows = me?.isAdmin ? [...ROWS, ADMIN] : ROWS;
+
+  const row = (page: SubPage) => {
+    const Icon = iconOf(page.kind);
+    return (
+      <li key={page.kind}>
+        <button type="button" className="m-nav-row" onClick={() => push(pageView(page, week))}>
+          <Icon width={28} height={28} className="shrink-0" />
+          <span className="m-nav-label">{page.label}</span>
+          <span className="m-chevron" aria-hidden />
+        </button>
+      </li>
+    );
+  };
 
   return (
     <div className="m-page">
-      <ul aria-label="Menu" className="m-card m-rows">
-        {rows.map(({ kind, label, blurb, Icon }) => (
-          <li key={kind}>
-            <button type="button" className="m-nav-row" onClick={() => push({ kind, params: {} })}>
-              <Icon width={32} height={32} className="shrink-0" />
-              <span className="m-nav-text">
-                <span className="m-nav-label">{label}</span>
-                <span className="m-nav-blurb">{blurb}</span>
-              </span>
-              <span className="m-chevron" aria-hidden />
-            </button>
-          </li>
-        ))}
-      </ul>
-      <section aria-labelledby="m-you" className="m-section">
-        <h2 id="m-you" className="m-section-title">
-          {me?.profile?.name ?? "You"}
-        </h2>
-        <ul className="m-card m-rows">
-          <li>
-            <button type="button" className="m-nav-row" onClick={() => setEditing(true)}>
-              <ProfileIcon width={28} height={28} className="shrink-0" />
-              <span className="m-nav-label">Edit my profile</span>
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="m-nav-row"
-              aria-pressed={muted}
-              onClick={() => {
-                setMuted(!muted);
-                if (muted) play("ding");
-              }}
-            >
-              <SpeakerIcon muted={muted} width={28} height={28} className="shrink-0" />
-              <span className="m-nav-label">Mute sounds</span>
-              <span className="m-switch" aria-hidden />
-            </button>
-          </li>
-          <li className="m-row">
-            <span className="m-nav-label">Theme</span>
-            <ThemeToggle />
-          </li>
-          <li>
-            <button type="button" className="m-nav-row" onClick={() => void signOut()}>
-              <span className="m-nav-label m-danger">Sign out</span>
-            </button>
-          </li>
-        </ul>
-      </section>
+      {groups(me?.isAdmin ?? false).map(({ section, pages }) => (
+        <section key={section.id} aria-labelledby={`m-menu-${section.id}`} className="m-section">
+          <h2 id={`m-menu-${section.id}`} className="m-section-title">
+            {section.account ? (me?.profile?.name ?? "You") : section.label}
+          </h2>
+          <ul className="m-card m-rows">
+            {pages.map(row)}
+            {section.account && (
+              <>
+                <li>
+                  <button
+                    type="button"
+                    className="m-nav-row"
+                    aria-pressed={muted}
+                    onClick={() => {
+                      setMuted(!muted);
+                      if (muted) play("ding");
+                    }}
+                  >
+                    <SpeakerIcon muted={muted} width={28} height={28} className="shrink-0" />
+                    <span className="m-nav-label">Mute sounds</span>
+                    <span className="m-switch" aria-hidden />
+                  </button>
+                </li>
+                <li className="m-row">
+                  <span className="m-nav-label">Theme</span>
+                  <ThemeToggle />
+                </li>
+                <li>
+                  <button type="button" className="m-nav-row" onClick={() => void signOut()}>
+                    <span className="m-nav-label m-danger">Sign out</span>
+                  </button>
+                </li>
+              </>
+            )}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }

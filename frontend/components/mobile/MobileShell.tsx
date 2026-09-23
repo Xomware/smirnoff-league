@@ -7,9 +7,12 @@ import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
+import { GlacierTrouble } from "@/components/glacier/GlacierTrouble";
 import { MenuDrawer } from "@/components/glacier/MenuDrawer";
 import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { Settings } from "@/components/settings/Settings";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
@@ -39,7 +42,13 @@ import "@/components/glacier/glacier-layout.css";
 
 type Body = ComponentType<{ params: WindowParams }>;
 
-const PHONE_SCREENS = { games: GamesScreen, menu: MenuScreen, teams: TeamsScreen } satisfies Record<
+const PHONE_SCREENS = {
+  games: GamesScreen,
+  menu: MenuScreen,
+  teams: TeamsScreen,
+  profile: ProfileSettings,
+  settings: Settings,
+} satisfies Record<
   Exclude<ScreenKind, WindowKind>,
   Body
 >;
@@ -76,7 +85,10 @@ function useScreenTitle(): (screen: Screen) => string {
       case "menu":
       case "teams":
       case "ices":
+      case "settings":
         return kind.charAt(0).toUpperCase() + kind.slice(1);
+      case "profile":
+        return "My Profile";
       case "game":
       case "week":
         return `Week ${params.week}`;
@@ -126,9 +138,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     setMenuOpen(true);
     track("open", "tab:menu");
   };
-  const pushFromMenu = (screen: Screen) => {
+  const goFromMenu = (screen: Screen) => {
     setMenuOpen(false);
-    push(screen);
+    go(screen);
   };
 
   return (
@@ -146,12 +158,13 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
         <h1 ref={heading} tabIndex={-1} className="m-title">
           {title(top)}
         </h1>
+        {glacier && <GlacierTrouble />}
         <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
           {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
         </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
-      <PushContext value={push}>
+      <PushContext value={go}>
         <DrillContext.Provider value={open}>
           <NavigateContext value={open}>
             <main className="m-screens">
@@ -211,7 +224,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
         onGo={go}
       />
       {glacier && (
-        <PushContext value={pushFromMenu}>
+        <PushContext value={goFromMenu}>
           <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
             <MenuScreen />
           </MenuDrawer>

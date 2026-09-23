@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // amplify.ts reads these at import time, so they must exist before any import.
@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 describe("switching themes in the app", () => {
-  it("swaps the XP desktop for the Glacier shell from the Start menu, and back from Glacier's header", async () => {
+  it("swaps the XP desktop for the Glacier shell from the Start menu, and back from Glacier's account menu", async () => {
     vi.mocked(updateMe).mockImplementation(async (input) => profile("theme" in input ? input.theme : null));
     renderApp("xp");
     await screen.findByRole("list", { name: "Open windows" });
@@ -99,7 +99,8 @@ describe("switching themes in the app", () => {
 
     // A switch in the same tick as the last one is dropped as still running.
     await new Promise((r) => setTimeout(r, 0));
-    fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
+    fireEvent.click(screen.getByRole("button", { name: /account menu/ }));
+    fireEvent.click(within(screen.getByRole("navigation", { name: "Account" })).getByRole("button", { name: "Classic XP" }));
     expect(glacierNav()).toBeNull();
     expect(taskbar()).not.toBeNull();
     expect(updateMe).toHaveBeenLastCalledWith({ theme: "xp" });
@@ -121,15 +122,14 @@ describe("switching themes in the app", () => {
     expect(taskbar()).toBeNull();
   });
 
-  it("goes back to XP when the profile save fails", async () => {
+  it("stays on Glacier when the profile save fails", async () => {
     vi.mocked(updateMe).mockRejectedValue(new Error("offline"));
     renderApp("xp");
     await screen.findByRole("list", { name: "Open windows" });
 
     fireEvent.click(screen.getByRole("button", { name: "Switch to the Glacier theme" }));
-    expect(await screen.findByRole("list", { name: "Open windows" })).not.toBeNull();
-    expect(glacierNav()).toBeNull();
-    expect(localStorage.getItem(THEME_KEY)).toBe("xp");
+    await waitFor(() => expect(glacierNav()).not.toBeNull());
+    expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
   });
 
   it("on a phone opens Glacier, and switches to the XP phone from the Home toggle and back from Menu", async () => {

@@ -249,6 +249,26 @@ describe("tabs", () => {
     ]);
   });
 
+  it("reaches the draft recap, my profile and settings from Menu", async () => {
+    renderShell();
+    fireEvent.click(tab("Menu"));
+    fireEvent.click(top().getByRole("button", { name: "Draft recap" }));
+    await waitFor(() => expect(title()).toBe("Now Playing - Draft Recap"));
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Menu"));
+
+    fireEvent.click(top().getByRole("button", { name: "My Profile" }));
+    await waitFor(() => expect(title()).toBe("My Profile"));
+    expect(await top().findByRole("textbox", { name: "Full name" })).toBeTruthy();
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Menu"));
+
+    fireEvent.click(top().getByRole("button", { name: "Settings" }));
+    await waitFor(() => expect(title()).toBe("Settings"));
+    expect(await top().findByRole("checkbox", { name: /Email me alerts/ })).toBeTruthy();
+    expect(window.location.search).toBe("?open=menu,settings");
+  });
+
   it("lists the Control Panel only for an admin", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));
@@ -378,7 +398,7 @@ describe("Ice Rankings", () => {
     expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
 
     fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /^Ice Rankings/ }));
+    fireEvent.click(top().getByRole("button", { name: "Rankings" }));
     await waitFor(() => expect(title()).toBe("Ice Rankings"));
     expect(window.location.search).toBe("?open=menu,chug-rankings");
   });
@@ -388,7 +408,7 @@ describe("screens that were tabbed on the desktop", () => {
   it("stacks Ice Stats' sections under one chip row", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /^Ice Stats/ }));
+    fireEvent.click(top().getByRole("button", { name: "Stats" }));
     await top().findByRole("navigation", { name: "Ice Stats sections" });
     expectStacked("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
   });
