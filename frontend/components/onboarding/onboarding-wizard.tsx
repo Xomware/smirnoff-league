@@ -122,7 +122,7 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
   const rosterError = errorFor("rosterId");
 
   return (
-    <main className="xp-page min-h-screen justify-center">
+    <main className="xp-page min-h-dvh justify-center">
       <Window title={initial ? "My Profile" : "Smirnoff League Setup"} icon={<IceBottleIcon />} className="xp-wizard">
         <form onSubmit={onSubmit} noValidate className="xp-wizard-body">
           <aside className="xp-wizard-banner">

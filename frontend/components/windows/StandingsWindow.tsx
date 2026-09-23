@@ -25,55 +25,57 @@ export function StandingsWindow() {
 
   return (
     <>
-      <table className="xp-table">
-        <caption className="sr-only">
-          League standings. The top {playoffTeams} make the playoffs.
-        </caption>
-        <thead>
-          <tr>
-            <th scope="col" className="w-12">#</th>
-            <th scope="col">Team</th>
-            <th scope="col" className="w-14">W-L</th>
-            <th scope="col" className="w-18 text-right">PF</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((s, i) => (
-            <Fragment key={s.rosterId}>
-              {i === playoffTeams && (
-                <tr className="xp-cut">
-                  <td colSpan={4}>Playoff cut</td>
+      <div className="xp-table-scroll">
+        <table className="xp-table">
+          <caption className="sr-only">
+            League standings. The top {playoffTeams} make the playoffs.
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" className="w-12">#</th>
+              <th scope="col">Team</th>
+              <th scope="col" className="w-14">W-L</th>
+              <th scope="col" className="w-18 text-right">PF</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((s, i) => (
+              <Fragment key={s.rosterId}>
+                {i === playoffTeams && (
+                  <tr className="xp-cut">
+                    <td colSpan={4}>Playoff cut</td>
+                  </tr>
+                )}
+                <tr className={danger.has(s.rosterId) ? "xp-danger" : undefined}>
+                  <td>
+                    <span className="flex items-center gap-1">
+                      {i + 1}
+                      {danger.has(s.rosterId) && (
+                        <WarningIcon className="shrink-0" role="img" aria-hidden={false} aria-label="Danger zone" />
+                      )}
+                    </span>
+                  </td>
+                  <td className="md:max-w-0">
+                    <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
+                      <TeamName
+                        name={teamFor(s.rosterId).name}
+                        iced={owed(s.rosterId) > 0}
+                        ices={owed(s.rosterId)}
+                        isMine={s.rosterId === myRosterId}
+                      />
+                    </DrillLink>
+                  </td>
+                  <td className="tabular-nums">
+                    {s.wins}-{s.losses}
+                    {s.ties > 0 && `-${s.ties}`}
+                  </td>
+                  <td className="text-right tabular-nums">{s.pf.toFixed(2)}</td>
                 </tr>
-              )}
-              <tr className={danger.has(s.rosterId) ? "xp-danger" : undefined}>
-                <td>
-                  <span className="flex items-center gap-1">
-                    {i + 1}
-                    {danger.has(s.rosterId) && (
-                      <WarningIcon className="shrink-0" role="img" aria-hidden={false} aria-label="Danger zone" />
-                    )}
-                  </span>
-                </td>
-                <td className="max-w-0">
-                  <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
-                    <TeamName
-                      name={teamFor(s.rosterId).name}
-                      iced={owed(s.rosterId) > 0}
-                      ices={owed(s.rosterId)}
-                      isMine={s.rosterId === myRosterId}
-                    />
-                  </DrillLink>
-                </td>
-                <td className="tabular-nums">
-                  {s.wins}-{s.losses}
-                  {s.ties > 0 && `-${s.ties}`}
-                </td>
-                <td className="text-right tabular-nums">{s.pf.toFixed(2)}</td>
-              </tr>
-            </Fragment>
-          ))}
-        </tbody>
-      </table>
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <p className="mt-2 flex items-center gap-1">
         <WarningIcon />
         Danger zone: within one game of the playoff cut.
