@@ -80,7 +80,7 @@ describe("GlacierShell", () => {
     expect(nav().getByRole("link", { name: "Home" }).getAttribute("aria-current")).toBeNull();
 
     window.history.back();
-    await waitFor(() => expect(heading()).toBe("Smirnoff Fantasy Football League"));
+    await waitFor(() => expect(heading()).toBe("Every zero is an ice."));
   });
 
   it("opens the view a deep link names", () => {

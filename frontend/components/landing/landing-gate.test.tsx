@@ -46,7 +46,7 @@ describe("signed-out visitor opening a shared link", () => {
     }
 
     fireEvent.click(screen.getAllByRole("button", { name: /sign in with google/i })[0]);
-    await waitFor(() => expect(signInWithRedirect).toHaveBeenCalledWith({ provider: "Google" }));
+    await waitFor(() => expect(signInWithRedirect).toHaveBeenCalledWith({ provider: { custom: "GoogleSmirnoff" } }));
   });
 });
 
