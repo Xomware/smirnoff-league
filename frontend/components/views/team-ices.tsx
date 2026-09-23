@@ -62,8 +62,8 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
               const late = ice.reason === "late";
               return (
                 <tr key={ice.iceId} className={ice.status === "owed" && !provisional ? "profile-owed" : undefined}>
-                  <td>{late ? "" : <DrillLink to={{ kind: "week", week: ice.week }}>Week {ice.week}</DrillLink>}</td>
-                  <td className={late ? "pl-6" : undefined}>
+                  <td className="whitespace-nowrap">{late ? "" : <DrillLink to={{ kind: "week", week: ice.week }}>Week {ice.week}</DrillLink>}</td>
+                  <td className={late ? "pl-6 whitespace-nowrap" : undefined}>
                     {late ? `Late ice ${ice.iceId.split("#LATE")[1]}` : REASONS[ice.reason]}
                   </td>
                   <td>
@@ -73,8 +73,8 @@ export function TeamIces({ rosterId, ledger, results, players }: TeamIcesProps) 
                       "-"
                     )}
                   </td>
-                  <td className="font-bold">{provisional ? "Provisional" : ice.status === "owed" ? "Owed" : "Completed"}</td>
-                  <td className="tabular-nums">{ice.completedAt ? paidOn(ice.completedAt) : "-"}</td>
+                  <td className="font-bold whitespace-nowrap">{provisional ? "Provisional" : ice.status === "owed" ? "Owed" : "Completed"}</td>
+                  <td className="whitespace-nowrap tabular-nums">{ice.completedAt ? paidOn(ice.completedAt) : "-"}</td>
                   {/* The video gallery (#73) will play these; until it lands a row can only say one exists. */}
                   <td>{ice.videoId ? "Uploaded" : "None"}</td>
                 </tr>

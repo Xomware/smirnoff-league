@@ -114,16 +114,16 @@ export function TeamView({ rosterId }: TeamViewProps) {
             )}
             {results.map((r) => (
               <tr key={r.week}>
-                <td>
+                <td className="whitespace-nowrap">
                   <DrillLink to={{ kind: "week", week: r.week }}>Week {r.week}</DrillLink>
                 </td>
                 <td className="md:max-w-0">{r.opponent ? <OpponentLink rosterId={r.opponent.rosterId} teamFor={teamFor} /> : "Bye"}</td>
-                <td className="text-right tabular-nums">
+                <td className="text-right whitespace-nowrap tabular-nums">
                   {r.points.toFixed(2)}
                   {r.opponent && ` - ${r.opponent.points.toFixed(2)}`}
                 </td>
                 <td className="font-bold">{r.result ?? "-"}</td>
-                <td className="text-right tabular-nums">{r.margin === null ? "-" : signed(r.margin)}</td>
+                <td className="text-right whitespace-nowrap tabular-nums">{r.margin === null ? "-" : signed(r.margin)}</td>
                 <td className="text-right tabular-nums">{r.benchLeft === null ? "-" : r.benchLeft.toFixed(2)}</td>
                 <td>
                   {r.ices.length === 0 ? (
@@ -154,7 +154,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
         <thead>
           <tr>
             <th scope="col">Opponent</th>
-            <th scope="col" className="w-16">W-L</th>
+            <th scope="col" className="w-16 whitespace-nowrap">W-L</th>
             <th scope="col" className="w-20 text-right">PF</th>
             <th scope="col" className="w-20 text-right">PA</th>
           </tr>
@@ -180,7 +180,9 @@ export function TeamView({ rosterId }: TeamViewProps) {
 
   const rosterPanel = () => {
     if (!lineup || !mine?.starters) return <p>No lineup from Sleeper yet.</p>;
-    const bench = (mine.players ?? []).filter((id) => !mine.starters!.includes(id));
+    const bench = (mine.players ?? [])
+      .filter((id) => !mine.starters!.includes(id))
+      .sort((a, b) => (points.get(b) ?? 0) - (points.get(a) ?? 0));
     const player = (id: string) => <DrillLink to={{ kind: "player", playerId: id }}>{playerName(id)}</DrillLink>;
     return (
       <div className="grid gap-3 @2xl:grid-cols-2 @2xl:items-start">
@@ -228,7 +230,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
             {team.name}
             {rosterId === myRosterId && <StarIcon width={18} height={18} className="shrink-0" role="img" aria-hidden={false} aria-label="Your team" />}
           </h3>
-          {manager && <p className="truncate">{manager}</p>}
+          {manager && manager !== team.name && <p className="truncate">{manager}</p>}
         </div>
         <dl className="profile-stats">
           <div>

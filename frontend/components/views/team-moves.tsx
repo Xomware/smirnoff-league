@@ -74,7 +74,7 @@ export function TeamMoves({ rosterId, currentWeek, players, teamFor }: TeamMoves
         <tbody>
           {state.moves.map((m) => (
             <tr key={m.id}>
-              <td>Week {m.week}</td>
+              <td className="whitespace-nowrap">Week {m.week}</td>
               <td>
                 {TYPES[m.type]}
                 {m.partners.map((id, i) => (
