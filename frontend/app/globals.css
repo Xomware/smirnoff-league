@@ -50,6 +50,7 @@
   --ice-deep: #1d6fa8;
   --ice-label: #1d4f91;
   --ice-glow: rgb(150 215 255 / 0.9);
+  --smirnoff-red: #d4202c;
   --ice-heat-1: #eef8ff;
   --ice-heat-2: #d2ebfc;
   --ice-heat-3: #acd9f7;
@@ -1180,5 +1181,88 @@
     font: bold 1.25rem Georgia, "Times New Roman", serif;
     letter-spacing: 0.2em;
     text-transform: uppercase;
+  }
+  .xp-tab-strip {
+    display: flex;
+    gap: 2px;
+    padding: 2px 4px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .xp-tab {
+    flex-shrink: 0;
+    min-height: 2rem;
+    padding: 0.25rem 0.75rem;
+    margin-top: 2px;
+    border: 1px solid var(--xp-face-shadow);
+    border-bottom: 0;
+    border-radius: 3px 3px 0 0;
+    color: var(--xp-text);
+    font: inherit;
+    white-space: nowrap;
+    background: linear-gradient(var(--xp-cream), var(--xp-face));
+    cursor: pointer;
+  }
+
+  .xp-tab:hover {
+    box-shadow: inset 0 2px 0 var(--xp-gold);
+  }
+
+  .xp-tab:active {
+    background: var(--xp-face);
+  }
+
+  .xp-tab[aria-selected="true"] {
+    position: relative;
+    z-index: 1;
+    margin-top: 0;
+    margin-bottom: -1px;
+    padding-bottom: calc(0.25rem + 3px);
+    font-weight: bold;
+    background: var(--xp-cream);
+    box-shadow: inset 0 3px 0 var(--xp-gold);
+  }
+
+  .xp-tab:focus-visible {
+    outline: 2px dotted var(--xp-text);
+    outline-offset: -4px;
+  }
+
+  .xp-tab-panel {
+    padding: 0.5rem;
+    border: 1px solid var(--xp-face-shadow);
+    background: var(--xp-cream);
+    container-type: inline-size;
+  }
+
+  .xp-tab-panel:focus-visible {
+    outline: 2px dotted var(--xp-text);
+    outline-offset: -3px;
+  }
+
+  .stats-takeaway {
+    padding: 0.25rem 0.5rem;
+    border-left: 3px solid var(--ice-deep);
+    font-weight: bold;
+    background: var(--ice-tint);
+  }
+
+  .stats-worst {
+    border-left-color: var(--smirnoff-red);
+    background: var(--xp-balloon);
+  }
+
+  /* Five tabs don't fit a phone's width. Wrapping to a second row, as XP
+     property sheets did, beats hiding tabs off the edge of a scroller. */
+  @media (max-width: 767.98px) {
+    .xp-tab-strip {
+      flex-wrap: wrap;
+    }
+
+    .xp-tab {
+      flex-grow: 1;
+      min-height: 2.75rem;
+    }
   }
 }

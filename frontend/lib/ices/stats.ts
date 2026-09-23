@@ -6,7 +6,7 @@ import { defaultWeekSettings, type Ice, type MatchupRow, SLOTS, weekIces } from 
 export type StatsMatchup = MatchupRow & Pick<SleeperMatchup, "players" | "players_points">;
 export type PositionOf = (playerId: string) => string | undefined;
 
-interface StatsWeek {
+export interface StatsWeek {
   week: number;
   matchups: StatsMatchup[];
 }
@@ -50,7 +50,7 @@ const icesOf = (weeks: StatsWeek[]) =>
   weeks.flatMap(({ week, matchups }) => weekIces(week, matchups, SLOTS, defaultWeekSettings(week)));
 
 // DEF ids are team abbreviations ("HOU"), everyone else is numeric.
-const withDef = (positionOf: PositionOf) => (id: string) =>
+export const withDef = (positionOf: PositionOf) => (id: string) =>
   positionOf(id) ?? (/^[A-Z]+$/.test(id) ? "DEF" : undefined);
 
 const uniqSorted = (xs: number[]) => [...new Set(xs)].sort((a, b) => a - b);
