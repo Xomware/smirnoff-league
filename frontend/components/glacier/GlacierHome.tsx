@@ -61,7 +61,7 @@ function lede(ledger: LedgerState): string {
   return `Week ${week} left ${n} ${n === 1 ? "ice" : "ices"} on the board. ${deadline}`;
 }
 
-function YourIces() {
+export function YourIces() {
   const ledger = useLedger();
   const { data, teamFor } = useLeague();
   const { myRosterId, setEditing } = useProfile();
@@ -131,7 +131,7 @@ function YourIces() {
   );
 }
 
-function Chugs() {
+export function Chugs() {
   const ledger = useLedger();
   const { state: videos, onVideoError } = useVideos();
   return (
@@ -153,7 +153,7 @@ function Chugs() {
   );
 }
 
-function WeekGames({ week }: { week: number | undefined }) {
+export function WeekGames({ week }: { week: number | undefined }) {
   const { data, games, teamFor, error } = useWeekGames(week);
   const { myRosterId } = useProfile();
   const open = useContext(DrillContext);
@@ -197,7 +197,7 @@ function WeekGames({ week }: { week: number | undefined }) {
   );
 }
 
-function IceTop() {
+export function IceTop() {
   const { data, error: leagueError, teamFor } = useLeague();
   const { myRosterId } = useProfile();
   const { tally, finishedWeeks, error: icesError } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);

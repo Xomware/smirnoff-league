@@ -17,7 +17,7 @@ import { GlacierHome } from "./GlacierHome";
 
 import "./glacier.css";
 
-const FONTS = "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;600;700;800&display=swap";
+export const FONTS = "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;600;700;800&display=swap";
 
 const NAV: { label: string; kind: WindowKind }[] = [
   { label: "Home", kind: "home" },

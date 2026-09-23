@@ -1,0 +1,429 @@
+/* The phone app in Glacier: mobile.css keeps the layout, this swaps the chrome and
+   the m-* surfaces. Views pushed from the desktop registry get the shared
+   [data-theme="glacier"] view skin. */
+
+.m-app.glacier {
+  --m-bg: rgb(8 30 52 / 0.94);
+  --m-muted: #b3cfdf;
+  --m-line: rgb(190 235 255 / 0.16);
+  --gp-link: #8fe3ff;
+  /* The brand red is under 3:1 on the navy; small red text uses this. */
+  --gp-red-text: #ffa3aa;
+  --gp-row: rgb(255 255 255 / 0.06);
+  --gp-press: rgb(143 227 255 / 0.18);
+  --gp-bar: calc(68px + 16px + env(safe-area-inset-bottom));
+
+  /* .glacier is position: relative for the desktop page; the phone app stays pinned. */
+  position: fixed;
+  height: 100dvh;
+  line-height: 1.45;
+}
+
+/* The bar: a red label band with icicles hanging into the page. */
+.m-app.glacier .m-bar {
+  position: relative;
+  z-index: 3;
+  gap: 4px;
+  min-height: calc(62px + env(safe-area-inset-top));
+  padding-left: max(12px, env(safe-area-inset-left));
+  color: var(--g-snow);
+  background: var(--g-red);
+  box-shadow: none;
+}
+
+.m-bar-icicles {
+  position: absolute;
+  inset: auto 0 -18px;
+  width: 100%;
+  height: 20px;
+  fill: var(--g-red);
+  pointer-events: none;
+}
+
+.m-crest {
+  flex: none;
+  width: 32px;
+  height: 38px;
+  margin-left: 4px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgb(4 19 34 / 0.25));
+}
+
+.m-app.glacier .m-title {
+  font: 17px var(--g-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+.m-app.glacier .m-bar :is(.m-back, .m-search, .notif-bell) {
+  color: inherit;
+}
+
+.m-app.glacier .m-bar :is(.m-back, .m-search, .notif-bell):active {
+  background: rgb(255 255 255 / 0.22);
+}
+
+.m-app.glacier .m-bar .notif-badge {
+  top: 2px;
+  right: 0;
+  min-width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--g-snow);
+  color: var(--g-red);
+  font: 800 12px/20px var(--g-body);
+}
+
+.m-app.glacier .m-bar :focus-visible {
+  outline-color: var(--g-snow);
+}
+
+.m-app.glacier .m-screen {
+  padding-top: 26px;
+  padding-bottom: calc(var(--gp-bar) + 24px);
+}
+
+/* The floating pill tab bar. */
+.m-app.glacier .m-tabs-pill {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: max(12px, env(safe-area-inset-left));
+  z-index: 3;
+  align-items: center;
+  height: 68px;
+  padding: 0 8px;
+  border: 1px solid rgb(190 235 255 / 0.35);
+  border-radius: 999px;
+  background: rgb(8 30 52 / 0.92);
+  box-shadow:
+    0 10px 30px rgb(2 12 24 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.m-app.glacier .m-tab {
+  gap: 2px;
+  min-height: 52px;
+  border-radius: 999px;
+  color: #bfd3e2;
+  font: 800 12px var(--g-body);
+  transition: background-color 0.15s;
+}
+
+.m-app.glacier .m-tab:active {
+  background: var(--gp-press);
+}
+
+.m-app.glacier .m-tab[aria-current="page"] {
+  color: var(--g-snow);
+  background: var(--g-red);
+  box-shadow: none;
+}
+
+.m-app.glacier .m-tabs :focus-visible {
+  outline-color: var(--g-focus);
+  outline-offset: 2px;
+}
+
+/* Home: GlacierHome's panels, stacked. */
+.gp-home {
+  gap: 20px;
+}
+
+.gp-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-inline: 4px;
+}
+
+.gp-hero .gh-week {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.gp-hero-row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.gp-hero .gh-title {
+  flex-grow: 1;
+  font-size: 46px;
+}
+
+.gp-hero img {
+  flex: none;
+  width: 130px;
+  height: 142px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 18px rgb(150 220 255 / 0.45));
+}
+
+.m-app.glacier .gh-panel {
+  gap: 12px;
+  padding: 20px 18px 18px;
+  border-radius: 24px;
+}
+
+.m-app.glacier .gh-head h2,
+.m-app.glacier .gh-chugs .xp-group-title {
+  font-size: 19px;
+}
+
+.m-app.glacier .gh-owe-count {
+  font-size: 64px;
+}
+
+.m-app.glacier .gh-button {
+  min-height: 48px;
+}
+
+.m-app.glacier .gh-button-go {
+  align-self: stretch;
+  min-height: 54px;
+  font-size: 17px;
+  box-shadow: 0 5px 0 #a8121d;
+}
+
+.m-app.glacier .gh-chugs-grid,
+.m-app.glacier .gh-game-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.m-app.glacier .gh-game {
+  min-height: 44px;
+}
+
+/* The m-* surfaces, in frost. */
+.m-app.glacier :is(.m-card, .m-matchup) {
+  position: relative;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 20px;
+  color: var(--g-text);
+  background: linear-gradient(160deg, rgb(170 225 255 / 0.13) 0%, rgb(120 190 235 / 0.06) 45%, rgb(170 225 255 / 0.1) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 10px 28px rgb(2 12 24 / 0.3);
+}
+
+/* Frost.tsx's PANEL_ICICLES, as a mask: the cards come from mobile components
+   that don't know the theme, so they can't render the SVG themselves. */
+.m-app.glacier .m-card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 14px;
+  width: calc(100% - 28px);
+  height: 16px;
+  background: rgb(200 238 255 / 0.5);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 22' preserveAspectRatio='none'%3E%3Cpath d='M0 0H400V3H394L391 15L388 3H372L368 20L364 3H340L337 11L334 3H310L306 18L302 3H276L273 9L270 3H246L242 21L238 3H214L211 12L208 3H180L176 17L172 3H150L147 10L144 3H118L114 19L110 3H86L83 11L80 3H58L54 16L50 3H28L25 9L22 3H0Z'/%3E%3C/svg%3E")
+    0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+.m-app.glacier :is(.m-matchup, .m-nav-row):active {
+  background: var(--gp-press);
+}
+
+.m-app.glacier .m-section-title {
+  font: 19px var(--g-display);
+  color: var(--g-text-strong);
+}
+
+.m-app.glacier :is(.m-link, .m-section-head .xp-drill) {
+  color: var(--gp-link);
+}
+
+.m-app.glacier :is(.m-kicker, .m-slot) {
+  color: var(--g-focus);
+}
+
+.m-app.glacier .m-slot {
+  background: rgb(143 227 255 / 0.16);
+}
+
+.m-app.glacier :is(.m-owe-count, .m-danger, .m-minus) {
+  color: var(--gp-red-text);
+}
+
+.m-app.glacier :is(.m-square, .m-done, .m-plus) {
+  color: #7ef0b5;
+}
+
+.m-app.glacier .m-due {
+  border: 0;
+  color: var(--gp-red-text);
+  background: rgb(210 31 43 / 0.2);
+}
+
+.m-app.glacier .m-due[data-level="late"] {
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+.m-app.glacier :is(.m-button, .m-play, .m-step, .m-week-pick select, .m-jump-chip) {
+  border: 1px solid var(--g-frost-edge);
+  color: var(--g-text-strong);
+  background: rgb(170 225 255 / 0.12);
+}
+
+.m-app.glacier :is(.m-button, .m-play, .m-step, .m-jump-chip):active {
+  background: rgb(170 225 255 / 0.24);
+}
+
+.m-app.glacier .m-button {
+  border-radius: 999px;
+}
+
+.m-app.glacier .m-button-go {
+  border-color: var(--g-red);
+  font: 800 17px var(--g-body);
+  color: var(--g-snow);
+  text-shadow: none;
+  background: var(--g-red);
+  box-shadow: 0 5px 0 #a8121d;
+}
+
+.m-app.glacier .m-button-go:active {
+  background: #a8121d;
+}
+
+.m-app.glacier .m-step:disabled {
+  border-color: var(--m-line);
+  background: none;
+}
+
+.m-app.glacier .m-week-pick select {
+  font: 18px var(--g-display);
+}
+
+.m-app.glacier .m-week-pick select option {
+  color: var(--g-text);
+  background: var(--g-night);
+}
+
+.m-app.glacier .m-week-pick::after {
+  border-color: var(--gp-link);
+}
+
+.m-app.glacier :is(.m-rank, .m-score-top) {
+  color: var(--gp-link);
+}
+
+.m-app.glacier .m-rank {
+  font-family: var(--g-display);
+  font-weight: 400;
+}
+
+.m-app.glacier .m-mine {
+  background: rgb(143 227 255 / 0.12);
+  box-shadow: inset 3px 0 var(--gp-link);
+}
+
+.m-app.glacier .m-cut {
+  color: var(--g-snow);
+  background: rgb(210 31 43 / 0.55);
+}
+
+.m-app.glacier .m-chip {
+  border-color: rgb(143 227 255 / 0.45);
+  color: var(--g-focus);
+  background: rgb(143 227 255 / 0.12);
+}
+
+.m-app.glacier .m-chip[data-state="FINAL_ICE"] {
+  border-color: var(--g-red);
+  color: var(--gp-red-text);
+  background: rgb(210 31 43 / 0.16);
+}
+
+.m-app.glacier .m-chip[data-state="WATCH"],
+.m-app.glacier .m-danger-chip {
+  border-color: #f5c96b;
+  color: #ffe2a3;
+  background: rgb(245 201 107 / 0.14);
+  box-shadow: none;
+}
+
+.m-app.glacier .m-player:is(.ice, .ice-watch) {
+  box-shadow: inset 4px 0 var(--gp-link);
+}
+
+.m-app.glacier .m-segmented {
+  border-color: var(--g-frost-edge);
+  background: var(--gp-row);
+}
+
+.m-app.glacier .m-segmented [aria-pressed="true"] {
+  color: var(--g-snow);
+  background: var(--g-red);
+  box-shadow: none;
+}
+
+.m-app.glacier .m-jump {
+  backdrop-filter: blur(10px);
+}
+
+.m-app.glacier .m-jump-chip[aria-current="true"] {
+  border-color: var(--g-snow);
+  color: var(--g-red);
+  background: var(--g-snow);
+}
+
+.m-app.glacier .m-switch {
+  background: rgb(190 235 255 / 0.25);
+}
+
+.m-app.glacier [aria-pressed="true"] > .m-switch {
+  background: var(--g-red);
+}
+
+.m-app.glacier .m-edition img {
+  border-color: var(--g-frost-edge);
+}
+
+/* A phone on its side: a slimmer pill, icons beside their labels. */
+@media (max-height: 500px) {
+  .m-app.glacier {
+    --gp-bar: calc(52px + 10px + env(safe-area-inset-bottom));
+  }
+
+  .m-app.glacier .m-bar {
+    min-height: calc(48px + env(safe-area-inset-top));
+  }
+
+  .m-app.glacier .m-tabs-pill {
+    right: max(25%, env(safe-area-inset-right));
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: max(25%, env(safe-area-inset-left));
+    height: 52px;
+    padding: 0 4px;
+  }
+
+  .m-app.glacier .m-tab {
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .m-app.glacier .m-tab {
+    transition: none;
+  }
+}
+
+/* Toasts sit above the floating pill rather than the XP tab bar. */
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  :root[data-theme="glacier"] {
+    --taskbar-height: 92px;
+  }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  :root[data-theme="glacier"] {
+    --taskbar-height: 66px;
+  }
+}
