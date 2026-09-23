@@ -206,9 +206,8 @@ source in `route53.tf`). `www.smirnoff-league.com` is on the same distribution a
 301s to the bare domain (`web_hosting.tf`). The API is `api.smirnoff-league.com`.
 The frontend workflow hard-codes the site bucket as `S3_BUCKET: smirnoff-league.com`.
 
-`smirnoff.xomware.com` is gone from this repo. The shared Cognito client still lists
-its callback and logout URLs in `Xomware/xomware-infrastructure`
-(`terraform/cognito.tf`, `aws_cognito_user_pool_client.smirnoff`); drop them there.
+`smirnoff.xomware.com` is gone: DNS, certs and the Cognito callback and logout URLs
+(`Xomware/xomware-infrastructure` `terraform/cognito.tf`, `aws_cognito_user_pool_client.smirnoff`).
 
 To change the domain again:
 
@@ -242,8 +241,8 @@ If it moves again:
    skips with a notice.
 3. Drop the old owner's subjects from both files once CI runs green on the new repo.
 
-Both files still list the pre-move `Xomware` pair alongside the `domgiordano` pair,
-each with a comment saying it goes after the move.
+Both files now trust only the `domgiordano` pair; the `Xomware` subjects were
+removed after the move.
 
 ## Logs
 

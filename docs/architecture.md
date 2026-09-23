@@ -307,8 +307,7 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
 - **CI identity.** GitHub OIDC only. The deploy role `smirnoff-github-actions-deploy`
   is owned by this stack and only `main` can assume it (`oidc_deploy.tf`). Its
   trusted subjects are `repo:domgiordano/smirnoff-league` and the immutable
-  `repo:domgiordano@44783934/smirnoff-league@1382285884`. The file still also lists
-  the pre-move `Xomware` pair, commented as going after the move.
+  `repo:domgiordano@44783934/smirnoff-league@1382285884`.
 - **Terraform roles live elsewhere.** `smirnoff-github-actions-terraform-plan` and
   `-apply` are defined in `Xomware/xomware-infrastructure`,
   `terraform/oidc_smirnoff_terraform.tf`, because a stack cannot create the roles its
