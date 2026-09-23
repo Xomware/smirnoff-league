@@ -254,7 +254,6 @@ export function CommandPalette({ open, onOpenChange, onGo, phone }: CommandPalet
     const { target } = item;
     switch (target.type) {
       case "view":
-      case "game":
         return onGo(target);
       case "mute": {
         const muted = isMuted();

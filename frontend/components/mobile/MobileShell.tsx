@@ -166,7 +166,7 @@ export function MobileShell() {
         phone
         open={searching}
         onOpenChange={setSearching}
-        onGo={(to) => go(to.type === "game" ? { kind: "game", params: { matchup: to.matchup, week: to.week } } : to)}
+        onGo={go}
       />
     </div>
   );

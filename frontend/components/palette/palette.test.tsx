@@ -202,12 +202,12 @@ describe("desktop picks", () => {
     await waitFor(() => expect(windowNamed("Smirnoff League - Latest Edition")).not.toBeNull());
   });
 
-  it("opens a game's week", async () => {
+  it("opens a game's window", async () => {
     renderShell();
     cmdK();
     await search("week 2 team 4");
     fireEvent.click(screen.getByRole("option", { name: /Week 2: Team 4 vs Team 7/ }));
-    await waitFor(() => expect(windowNamed("Week 2")).not.toBeNull());
+    await waitFor(() => expect(windowNamed("Week 2: Team 4 vs Team 7")).not.toBeNull());
   });
 
   it("Upload chug opens the upload with my oldest owed week ticked", async () => {
@@ -287,6 +287,6 @@ describe("phone", () => {
     await search("week 2 team 4");
     fireEvent.click(screen.getByRole("option", { name: /Week 2: Team 4 vs Team 7/ }));
     await waitFor(() => expect(title()).toBe("Week 2"));
-    expect(window.location.search).toContain("game:1:2");
+    expect(window.location.search).toContain("game:2-1");
   });
 });
