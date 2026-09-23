@@ -7,6 +7,7 @@ import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierPhoneHome, LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
+import { GlacierTrouble } from "@/components/glacier/GlacierTrouble";
 import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -131,6 +132,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
         <h1 ref={heading} tabIndex={-1} className="m-title">
           {title(top)}
         </h1>
+        {glacier && <GlacierTrouble />}
         <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
           {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
         </button>

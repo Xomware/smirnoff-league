@@ -15,6 +15,7 @@ import { windowId, type WindowView } from "@/lib/desktop/windows";
 import { Effects } from "./Effects";
 import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
+import { GlacierTrouble } from "./GlacierTrouble";
 
 import "./glacier.css";
 import "./glacier-skin.css";
@@ -99,6 +100,7 @@ export function GlacierShell() {
           Search
           <kbd aria-hidden="true">⌘K</kbd>
         </button>
+        <GlacierTrouble />
         <ThemeToggle />
         <NotificationBell onOpen={() => go({ kind: "notifications", params: {} })} />
       </header>

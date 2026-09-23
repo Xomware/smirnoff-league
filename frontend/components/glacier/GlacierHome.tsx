@@ -9,11 +9,13 @@ import { ChugReel } from "@/components/home/ChugReel";
 import { iceCauseText } from "@/components/videos/ice-label";
 import { UploadChug } from "@/components/videos/UploadChug";
 import { DrillContext } from "@/components/views/drill-link";
+import { TroubleTags } from "@/components/xp/TeamName";
 import { currentWeek, myDue } from "@/lib/ices/chug-board";
 import { iceStandings } from "@/lib/ices/standings";
 import { type LedgerState, useLedger } from "@/lib/ices/use-ledger";
 import { useNow } from "@/lib/ices/use-now";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
+import { useTrouble } from "@/lib/ices/use-trouble";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
@@ -156,6 +158,7 @@ export function Chugs() {
 export function WeekGames({ week }: { week: number | undefined }) {
   const { data, games, teamFor, error } = useWeekGames(week);
   const { myRosterId } = useProfile();
+  const trouble = useTrouble();
   const open = useContext(DrillContext);
   const title = week === undefined ? "This week's games" : `Week ${week} games`;
   const all = (
@@ -180,8 +183,14 @@ export function WeekGames({ week }: { week: number | undefined }) {
               <li key={game.id}>
                 <button type="button" className="gh-game" onClick={() => open({ kind: "game", week, matchup: game.id })}>
                   {game.sides.map((side) => (
-                    <span key={side.rosterId} className="gh-side" data-mine={side.rosterId === myRosterId || undefined}>
+                    <span
+                      key={side.rosterId}
+                      className="gh-side"
+                      data-mine={side.rosterId === myRosterId || undefined}
+                      data-trouble={trouble.of(side.rosterId).join(" ") || undefined}
+                    >
                       <span className="gh-name">{teamFor(side.rosterId).name}</span>
+                      <TroubleTags trouble={trouble.of(side.rosterId)} />
                       <span className="gh-score" data-top={(top > 0 && side.points === top) || undefined}>
                         {side.points.toFixed(2)}
                       </span>
@@ -200,6 +209,7 @@ export function WeekGames({ week }: { week: number | undefined }) {
 export function IceTop() {
   const { data, error: leagueError, teamFor } = useLeague();
   const { myRosterId } = useProfile();
+  const trouble = useTrouble();
   const { tally, finishedWeeks, error: icesError } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
   const ledger = useLedger();
   const open = useContext(DrillContext);
@@ -230,9 +240,10 @@ export function IceTop() {
       ) : (
         <ol aria-label="Top of the ice standings" className="gh-rows">
           {rows.map((r) => (
-            <li key={r.rosterId} data-mine={r.rosterId === myRosterId || undefined}>
+            <li key={r.rosterId} data-mine={r.rosterId === myRosterId || undefined} data-trouble={trouble.of(r.rosterId).join(" ") || undefined}>
               <span className="gh-rank">{r.rank}</span>
               <span className="gh-name">{teamFor(r.rosterId).name}</span>
+              <TroubleTags trouble={trouble.of(r.rosterId)} />
               <span className="gh-total">{r.total}</span>
             </li>
           ))}
