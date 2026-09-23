@@ -16,6 +16,7 @@ import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost"
 import { GlacierHome } from "./GlacierHome";
 
 import "./glacier.css";
+import "./glacier-skin.css";
 
 const NAV: { label: string; kind: WindowKind }[] = [
   { label: "Home", kind: "home" },
@@ -45,6 +46,14 @@ export function GlacierShell({ onSwitchTheme }: GlacierShellProps) {
   const page = useRef<HTMLElement>(null);
   const id = windowId(view.kind, view.params);
   const { component: Body } = REGISTRY[view.kind];
+
+  // Dialogs portal to <body>, outside this tree, so the theme has to sit on <html> too.
+  useEffect(() => {
+    document.documentElement.dataset.theme = "glacier";
+    return () => {
+      delete document.documentElement.dataset.theme;
+    };
+  }, []);
 
   useEffect(() => {
     const onPop = () => setView(fromUrl());
