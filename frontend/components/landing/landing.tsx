@@ -54,7 +54,7 @@ export function Landing({ onSignIn }: LandingProps) {
           <h1 className="landing-title">
             Smirnoff League <span className="landing-season">&rsquo;26-&rsquo;27 season</span>
           </h1>
-          <p className="landing-tagline">14 managers. One closet. Every zero is an ice.</p>
+          <p className="landing-tagline">14 managers. Every zero is an ice.</p>
           <SignInButton onSignIn={onSignIn} />
         </div>
         <a href="#the-league" className="landing-cue">
@@ -64,7 +64,7 @@ export function Landing({ onSignIn }: LandingProps) {
       </section>
 
       <section id="the-league" className="landing-band landing-band-mist">
-        <SectionHeading kicker="The league, live" title="This week in the closet" />
+        <SectionHeading kicker="The league, live" title="This week in the league" />
         <p className="landing-lede">Scores, standings, brackets and the ice ledger for all 14 teams. Sign in to see yours.</p>
         <LeagueStatus />
       </section>
@@ -107,8 +107,8 @@ export function Landing({ onSignIn }: LandingProps) {
       <section className="landing-band landing-band-mist">
         <SectionHeading kicker="Weeks 15-17" title="The Toilet Bowl" />
         <RuleDialog title="The Toilet Bowl.exe" icon={<ErrorIcon />} buttons={["Send Error Report", "Don't Send"]}>
-          <p className="font-bold">Smirnoff League has encountered a problem and needs to close you in a closet.</p>
-          <p>Lose every toilet bowl game and you spend a night in a dark closet with a head lamp and a 300-piece puzzle.</p>
+          <p className="font-bold">Smirnoff League has encountered a problem: you.</p>
+          <p>Lose every toilet bowl game and you finish dead last, with the league punishment to match.</p>
           <p>We are sorry for the inconvenience. We are not sorry.</p>
         </RuleDialog>
       </section>
@@ -123,7 +123,7 @@ export function Landing({ onSignIn }: LandingProps) {
             <Image src="/brand/robot-head.png" alt="" width={20} height={19} />
             Smirnoff League
           </span>
-          <span className="landing-taskbar-tray">A private league for friends. Not affiliated with any vodka, beverage or puzzle company.</span>
+          <span className="landing-taskbar-tray">A private league for friends. Not affiliated with any vodka or beverage company.</span>
         </div>
       </footer>
     </main>
