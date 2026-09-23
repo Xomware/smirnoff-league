@@ -2,6 +2,7 @@ import type { WindowKind } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
 import {
   BracketIcon,
+  CamcorderIcon,
   ChartIcon,
   ControlPanelIcon,
   DesktopIcon,
@@ -25,6 +26,7 @@ const ITEMS = [
   { kind: "watch", label: "Ice Watch", Icon: StopwatchIcon },
   { kind: "stats", label: "Ice Stats", Icon: ChartIcon },
   { kind: "ice-standings", label: "Ice Standings", Icon: IceStandingsIcon },
+  { kind: "videos", label: "Chug Videos", Icon: CamcorderIcon },
   { kind: "news", label: "League News", Icon: NewsFeedIcon },
   { kind: "writeup", label: "News Drop", Icon: NewspaperIcon },
 ] as const;

@@ -8,8 +8,8 @@ export type LedgerState = { status: "loading" } | { status: "ok"; ledger: Ledger
 
 const listeners = new Set<() => void>();
 
-// Admin edits call this so every open ledger view refetches, not only the
-// Control Panel that made the edit.
+// Admin edits and video uploads call this so every open ledger view refetches,
+// not only the window that made the change.
 export function refreshLedger() {
   for (const refetch of listeners) refetch();
 }

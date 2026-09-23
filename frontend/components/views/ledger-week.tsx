@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { TeamName } from "@/components/xp/TeamName";
 import type { LedgerIce } from "@/lib/api/ledger";
 import { byRoster } from "@/lib/league/drill";
@@ -22,9 +24,10 @@ function inLedgerOrder(ices: LedgerIce[]): LedgerIce[] {
 interface LedgerRowProps {
   ice: LedgerIce;
   players: Record<string, Player>;
+  action?: (ice: LedgerIce) => ReactNode;
 }
 
-function LedgerRow({ ice, players }: LedgerRowProps) {
+function LedgerRow({ ice, players, action }: LedgerRowProps) {
   const done = ice.status === "completed";
   const late = ice.reason === "late";
   const status = !done ? "Owed" : ice.completedAt ? `Completed ${paidOn(ice.completedAt)}` : "Completed";
@@ -36,6 +39,7 @@ function LedgerRow({ ice, players }: LedgerRowProps) {
       </span>
       <span className="xp-watch-tag">{status}</span>
       {ice.points !== undefined && <span className="xp-player-pts">{ice.points.toFixed(2)}</span>}
+      {action?.(ice)}
     </li>
   );
 }
@@ -44,9 +48,10 @@ interface LedgerWeekProps {
   ices: LedgerIce[];
   players: Record<string, Player>;
   teamFor: (rosterId: number) => Team;
+  action?: (ice: LedgerIce) => ReactNode;
 }
 
-export function LedgerWeek({ ices, players, teamFor }: LedgerWeekProps) {
+export function LedgerWeek({ ices, players, teamFor, action }: LedgerWeekProps) {
   if (ices.length === 0) return <p>No ices this week.</p>;
   return (
     <div className="grid gap-3">
@@ -59,7 +64,7 @@ export function LedgerWeek({ ices, players, teamFor }: LedgerWeekProps) {
             </DrillLink>
             <ul aria-label={`${teamFor(rosterId).name} ices`} className="mt-1 bg-(--xp-cream)">
               {inLedgerOrder(rows).map((ice) => (
-                <LedgerRow key={ice.iceId} ice={ice} players={players} />
+                <LedgerRow key={ice.iceId} ice={ice} players={players} action={action} />
               ))}
             </ul>
           </div>

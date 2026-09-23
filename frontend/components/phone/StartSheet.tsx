@@ -14,6 +14,7 @@ const VIEWS: { kind: WindowKind; label: string }[] = [
   { kind: "stats", label: "Ice Stats" },
   { kind: "watch", label: "Ice Watch" },
   { kind: "ice-standings", label: "Ice Standings" },
+  { kind: "videos", label: "Chug Videos" },
   { kind: "recap", label: "Draft Recap" },
 ];
 
