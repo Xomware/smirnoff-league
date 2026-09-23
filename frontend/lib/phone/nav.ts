@@ -1,7 +1,7 @@
 import type { WindowLink } from "@/lib/desktop/deep-link";
 import { windowId, type WindowView } from "@/lib/desktop/windows";
 
-export const TABS = ["home", "scores", "ices", "standings"] as const;
+export const TABS = ["home", "scores", "ices", "standings", "my-team"] as const;
 export type Tab = (typeof TABS)[number];
 
 export interface Nav {

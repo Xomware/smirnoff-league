@@ -12,6 +12,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { DesktopWindow } from "./DesktopWindow";
 
 const ICONS: { kind: WindowKind; label: string }[] = [
+  { kind: "my-team", label: "My Team" },
   { kind: "scores", label: "Scores" },
   { kind: "standings", label: "Standings" },
   { kind: "brackets", label: "Brackets" },

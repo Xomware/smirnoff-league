@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { BackArrowIcon, HomeIcon, IceBottleIcon, ScoresIcon, StandingsIcon } from "@/components/xp/icons";
+import { BackArrowIcon, HomeIcon, IceBottleIcon, ScoresIcon, StandingsIcon, StarIcon } from "@/components/xp/icons";
 import { useAuth } from "@/lib/auth/use-auth";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { windowId } from "@/lib/desktop/windows";
@@ -20,6 +20,7 @@ const TAB_BAR: Record<Tab, { label: string; Icon: typeof HomeIcon }> = {
   scores: { label: "Scores", Icon: ScoresIcon },
   ices: { label: "Ices", Icon: IceBottleIcon },
   standings: { label: "Standings", Icon: StandingsIcon },
+  "my-team": { label: "My Team", Icon: StarIcon },
 };
 
 export function PhoneShell() {

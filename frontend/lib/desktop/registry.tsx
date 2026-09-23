@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 
 import { IceStandingsView } from "@/components/views/ice-standings-view";
+import { MyTeamView } from "@/components/views/my-team-view";
 import { PlayerView } from "@/components/views/player-view";
 import { StatsView } from "@/components/views/stats-view";
 import { TeamView } from "@/components/views/team-view";
@@ -25,12 +26,14 @@ import {
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
+  StarIcon,
   StopwatchIcon,
 } from "@/components/xp/icons";
 import { useLeague } from "@/lib/league/use-league";
+import { useProfile } from "@/lib/profile/use-profile";
 import { HOME_H, type WindowParams, type WindowView } from "./windows";
 
-export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
+export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor"> & { myRosterId?: number | null };
 
 export interface WindowSpec {
   title: string | ((params: WindowParams, league: League) => string);
@@ -71,7 +74,13 @@ const SPECS = {
     title: (p, { data, teamFor }) => (data ? `Team Profile - ${teamFor(Number(p.rosterId)).name}` : "Team Profile"),
     Icon: ProfileIcon,
     component: TeamWindow,
-    defaultSize: { w: 600, h: 600 },
+    defaultSize: { w: 720, h: 640 },
+  },
+  "my-team": {
+    title: (_, { data, teamFor, myRosterId }) => (data && myRosterId ? `My Team - ${teamFor(myRosterId).name}` : "My Team"),
+    Icon: StarIcon,
+    component: MyTeamView,
+    defaultSize: { w: 720, h: 640 },
   },
   player: {
     title: (p, { data }) => data?.players[String(p.playerId)]?.name ?? "Player Card",
@@ -100,5 +109,6 @@ export function windowTitle({ kind, params }: WindowView, league: League): strin
 // screens all read titles through this hook.
 export function useWindowTitle(): (view: WindowView) => string {
   const { data, teamFor } = useLeague();
-  return (view) => windowTitle(view, { data, teamFor });
+  const { myRosterId } = useProfile();
+  return (view) => windowTitle(view, { data, teamFor, myRosterId });
 }

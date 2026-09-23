@@ -7,12 +7,12 @@ import type { Player, Team } from "@/lib/league/use-league";
 import { DrillLink } from "./drill-link";
 import { IceCause } from "./week-ices";
 
-const paidOn = (iso: string) =>
+export const paidOn = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
 
 // Each original ice followed by its late ices. A late row whose parent is gone
 // (voided after the late ice was paid) still counts, so it goes last.
-function inLedgerOrder(ices: LedgerIce[]): LedgerIce[] {
+export function inLedgerOrder(ices: LedgerIce[]): LedgerIce[] {
   const late = ices.filter((i) => i.reason === "late").sort((a, b) => a.iceId.localeCompare(b.iceId));
   const originals = ices.filter((i) => i.reason !== "late").sort((a, b) => a.iceId.localeCompare(b.iceId));
   const placed = originals.flatMap((o) => [o, ...late.filter((l) => l.parentIceId === o.iceId)]);
