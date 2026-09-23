@@ -89,6 +89,12 @@ describe("Landing hero", () => {
     expect(screen.getByRole("region", { name: "Welcome" }).nextElementSibling).toBe(target);
   });
 
+  it("links the privacy policy from the footer", () => {
+    render(<Landing onSignIn={() => {}} />);
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByRole("link", { name: /privacy/i }).getAttribute("href")).toBe("/privacy/");
+  });
+
   it("brings the mascot into the rules", () => {
     render(<Landing onSignIn={() => {}} />);
     const mascots = screen.getAllByRole("img", { name: /robot chugging a smirnoff ice/i });
