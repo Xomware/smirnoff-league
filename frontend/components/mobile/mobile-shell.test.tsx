@@ -34,6 +34,14 @@ const LANDSCAPE: Screen = { width: 852, height: 393, coarse: true };
 const DESKTOP: Screen = { width: 1440, height: 900, coarse: false };
 // SCENARIO_LEDGER's roster 13 owes W2's lowest score and a zero, plus a late ice for each.
 const ME = 13;
+// All of them are week 2's, so an upload ticks every one.
+const MY_OWED = SCENARIO_LEDGER.ices.filter((i) => i.rosterId === ME && i.status === "owed").map((i) => i.iceId).sort();
+const ticked = (dialog: HTMLElement) =>
+  within(dialog)
+    .getAllByRole("checkbox")
+    .filter((c) => (c as HTMLInputElement).checked)
+    .map((c) => (c as HTMLInputElement).value)
+    .sort();
 
 let screenNow = IPHONE_15_PRO;
 const listeners = new Set<() => void>();
@@ -97,6 +105,8 @@ const back = () => screen.getByRole("button", { name: "Back" });
 const top = () => within(document.querySelector<HTMLElement>(".m-screen:not([hidden])")!);
 
 beforeEach(() => {
+  // jsdom has no layout, so no scrollIntoView.
+  Element.prototype.scrollIntoView = vi.fn();
   stubSleeper();
   viewport(IPHONE_15_PRO);
   vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
@@ -190,11 +200,7 @@ describe("Home", () => {
 
     fireEvent.click(mine.getByRole("button", { name: "Upload your chug" }));
 
-    const dialog = within(screen.getByRole("dialog", { name: "Upload chug" }));
-    const ticked = dialog.getAllByRole("checkbox").filter((c) => (c as HTMLInputElement).checked);
-    expect(ticked.map((c) => (c as HTMLInputElement).value).sort()).toEqual(
-      SCENARIO_LEDGER.ices.filter((i) => i.rosterId === ME && i.status === "owed").map((i) => i.iceId).sort(),
-    );
+    expect(ticked(screen.getByRole("dialog", { name: "Upload chug" }))).toEqual(MY_OWED);
   });
 
   it("opens the Games tab from All games", async () => {
@@ -257,12 +263,68 @@ describe("scenario at 393px", () => {
 
     fireEvent.click(tab("Ices"));
     expect(title()).toBe("Ices");
-    const uploads = await top().findAllByRole("button", { name: "Upload chug" });
-    fireEvent.click(uploads[0]);
+    const owes = within(await top().findByRole("list", { name: "Who still owes" }));
+    fireEvent.click(owes.getByRole("button", { name: "Upload chug" }));
 
-    const dialog = within(screen.getByRole("dialog", { name: "Upload chug" }));
-    const ticked = dialog.getAllByRole("checkbox").filter((c) => (c as HTMLInputElement).checked);
-    expect(ticked).toHaveLength(1);
-    expect(SCENARIO_LEDGER.ices.find((i) => i.iceId === (ticked[0] as HTMLInputElement).value)?.rosterId).toBe(ME);
+    expect(ticked(screen.getByRole("dialog", { name: "Upload chug" }))).toEqual(MY_OWED);
+  });
+});
+
+describe("Ices", () => {
+  it("ranks the season or this week with a segmented control, not tabs", async () => {
+    renderShell();
+    fireEvent.click(tab("Ices"));
+    const ranks = within(await top().findByRole("list", { name: "Ice standings" }));
+    expect(ranks.getAllByRole("listitem").map((r) => parseInt(r.textContent!))).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
+
+    const views = within(top().getByRole("group", { name: "Ice standings for" }));
+    expect(views.getByRole("button", { name: "Season" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(views.getByRole("button", { name: "Week 3" }));
+    expect(views.getByRole("button", { name: "Week 3" }).getAttribute("aria-pressed")).toBe("true");
+    expect(top().getByText(/Week 3 is live/)).toBeTruthy();
+    expect(top().queryByRole("tablist")).toBeNull();
+  });
+
+  it("lists who still owes, most first, with only my own row offering an upload", async () => {
+    renderShell();
+    fireEvent.click(tab("Ices"));
+    const rows = within(await top().findByRole("list", { name: "Who still owes" })).getAllByRole("listitem");
+    expect(rows.map((r) => r.textContent?.match(/Team \d+/)?.[0])).toEqual(["Team 13", "Team 12"]);
+    expect(within(rows[0]).getByRole("button", { name: "Upload chug" })).toBeTruthy();
+    expect(within(rows[1]).queryByRole("button", { name: "Upload chug" })).toBeNull();
+  });
+});
+
+// Every screen may carry one chip row to jump between its sections, and no tab strip.
+function expectStacked(label: string, sections: string[]) {
+  expect(top().queryByRole("tablist")).toBeNull();
+  expect(document.querySelectorAll(".m-screen:not([hidden]) nav")).toHaveLength(1);
+  const chips = within(top().getByRole("navigation", { name: label }));
+  expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual(sections);
+  expect(top().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(expect.arrayContaining(sections));
+}
+
+describe("screens that were tabbed on the desktop", () => {
+  it("stacks Ice Stats' sections under one chip row", async () => {
+    renderShell();
+    fireEvent.click(tab("Menu"));
+    fireEvent.click(top().getByRole("button", { name: /^Ice Stats/ }));
+    await top().findByRole("navigation", { name: "Ice Stats sections" });
+    expectStacked("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
+  });
+
+  it("stacks a team profile, and drills from its lineup to a player and back", async () => {
+    window.history.replaceState(null, "", "/?open=team:6");
+    renderShell();
+    expect(tab("Menu").getAttribute("aria-current")).toBe("page");
+    await top().findByRole("navigation", { name: "Team 6 sections" });
+    expect(title()).toBe("Team 6");
+    expectStacked("Team 6 sections", ["Results", "Ices", "Moves", "Head-to-head", "Lineup"]);
+    expect(within(top().getByRole("list", { name: "Weekly results" })).getAllByRole("listitem")).toHaveLength(2);
+
+    fireEvent.click(within(top().getByRole("list", { name: /^Starters/ })).getAllByRole("button")[0]);
+    await waitFor(() => expect(window.location.search).toMatch(/^\?open=menu,team:6,player:\w+$/));
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Team 6"));
   });
 });
