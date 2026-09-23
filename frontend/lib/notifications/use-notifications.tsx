@@ -7,6 +7,7 @@ import { useLedger } from "@/lib/ices/use-ledger";
 import { leagueTransactions } from "@/lib/league/cache";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
+import { useTheme } from "@/lib/theme/theme";
 import type { SleeperTransaction } from "@/lib/sleeper/types";
 import { useVideos } from "@/lib/videos/use-videos";
 import { useWriteups } from "@/lib/writeups/use-writeups";
@@ -58,6 +59,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [txs, setTxs] = useState<SleeperTransaction[] | null>(null);
   const [txError, setTxError] = useState(false);
   const [now, setNow] = useState(Date.now);
+  const { theme } = useTheme();
   const ballooned = useRef(false);
   const week = data ? Math.max(1, data.nfl.week) : undefined;
 
@@ -104,13 +106,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !unread || ballooned.current) return;
     ballooned.current = true;
-    if (!firstBalloonThisSession()) return;
+    // Glacier's bell badge and toasts say it already.
+    if (theme === "glacier" || !firstBalloonThisSession()) return;
     notify({
       title: unread === 1 ? "1 new notification" : `${unread} new notifications`,
       body: `${items[0].title}. ${items[0].body}.`,
       icon: "info",
     });
-  }, [ready, unread, items, notify]);
+  }, [ready, unread, items, notify, theme]);
 
   const markAllSeen = useCallback(() => markNotificationsSeen(new Date().toISOString()), [markNotificationsSeen]);
 

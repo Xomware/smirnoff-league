@@ -9,6 +9,7 @@ import { MobileShell } from "@/components/mobile/MobileShell";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { Taskbar } from "@/components/xp/Taskbar";
 import { useDesktop } from "@/lib/desktop/desktop-context";
+import { TroubleProvider } from "@/lib/ices/use-trouble";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { useTheme } from "@/lib/theme/theme";
 import { PHONE, useMediaQuery } from "@/lib/use-media-query";
@@ -31,18 +32,20 @@ export function AppShell() {
   const { theme } = useTheme();
   return (
     <NotificationsProvider>
-      {phone ? (
-        <MobileShell theme={theme} />
-      ) : theme === "glacier" ? (
-        <GlacierShell />
-      ) : (
-        <>
-          <Desktop />
-          <Taskbar />
-          <DesktopSearch />
-          <XpCursor />
-        </>
-      )}
+      <TroubleProvider on={theme === "glacier"}>
+        {phone ? (
+          <MobileShell theme={theme} />
+        ) : theme === "glacier" ? (
+          <GlacierShell />
+        ) : (
+          <>
+            <Desktop />
+            <Taskbar />
+            <DesktopSearch />
+            <XpCursor />
+          </>
+        )}
+      </TroubleProvider>
     </NotificationsProvider>
   );
 }

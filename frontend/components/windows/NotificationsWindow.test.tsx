@@ -33,6 +33,7 @@ import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { play } from "@/lib/sound/sound";
 import { stubSleeper } from "@/lib/test/league-mock";
+import { THEME_KEY, ThemeProvider } from "@/lib/theme/theme";
 import { PHONE } from "@/lib/use-media-query";
 
 // Friday noon ET before the W3 deadline, Sunday 2026-10-04 13:00 EDT.
@@ -190,6 +191,24 @@ describe("balloon", () => {
     await bell("Notifications, 1 unread");
     expect(screen.queryByRole("status", { name: /new notification/ })).toBeNull();
     expect(vi.mocked(play).mock.calls.filter(([s]) => s === "notify")).toHaveLength(1);
+  });
+
+  it("leaves it to the bell under Glacier", async () => {
+    window.localStorage.setItem(THEME_KEY, "glacier");
+    render(
+      <ProfileProvider>
+        <AlertsProvider>
+          <ThemeProvider>
+            <AppShell />
+          </ThemeProvider>
+        </AlertsProvider>
+      </ProfileProvider>,
+    );
+    await bell("Notifications, 1 unread");
+    expect(document.querySelector("[data-theme=glacier]")).not.toBeNull();
+    expect(screen.queryByRole("status", { name: /new notification/ })).toBeNull();
+    expect(play).not.toHaveBeenCalledWith("notify");
+    window.localStorage.removeItem(THEME_KEY);
   });
 
   it("stays quiet with nothing unread", async () => {

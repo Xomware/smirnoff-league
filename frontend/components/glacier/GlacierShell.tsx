@@ -8,7 +8,6 @@ import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { track } from "@/lib/activity/tracker";
 import { parseOpen } from "@/lib/desktop/deep-link";
@@ -21,6 +20,7 @@ import { Effects } from "./Effects";
 import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
 import { GlacierTeams } from "./GlacierTeams";
+import { GlacierTrouble } from "./GlacierTrouble";
 import { ProfileMenu } from "./ProfileMenu";
 
 import "./glacier.css";
@@ -113,6 +113,7 @@ export function GlacierShell() {
         <button
           type="button"
           className="glacier-pill glacier-search"
+          aria-label="Search"
           aria-keyshortcuts="Meta+K Control+K"
           onClick={() => setSearching(true)}
         >
@@ -120,10 +121,9 @@ export function GlacierShell() {
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" />
           </svg>
-          Search
           <kbd aria-hidden="true">⌘K</kbd>
         </button>
-        <ThemeToggle />
+        <GlacierTrouble />
         <NotificationBell onOpen={() => go({ kind: "notifications", params: {} })} />
         <ProfileMenu urlOf={urlOf} onNav={onNav} />
       </header>
