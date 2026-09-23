@@ -2,8 +2,8 @@ import { CamcorderIcon, ChartIcon, ChugRankIcon, IceBottleIcon, IceStandingsIcon
 
 export const ICES_PATH = "C:\\Smirnoff\\Ices";
 
-// What the Ices folder holds. The desktop folder window, the Start menu's Ices
-// submenu and the phone's Ices tab and Start sheet all list these, in this order.
+// What the Ices folder holds. The desktop folder window and the Start menu's Ices
+// submenu list these, in this order.
 export const ICE_APPS = [
   { kind: "ices", label: "Ice Ledger", Icon: IceBottleIcon },
   { kind: "ice-standings", label: "Ice Standings", Icon: IceStandingsIcon },

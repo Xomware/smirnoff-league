@@ -19,6 +19,9 @@ describe("describeActivity", () => {
     ["upload", "chug:W03#R06#S5", "Uploaded a chug"],
     ["upload", "edition:3", "Uploaded the Week 3 edition"],
     ["publish", "edition:3", "Published the Week 3 edition"],
+    ["open", "tab:games", "Opened the Games tab"],
+    ["open", "game:4:3", "Opened a Week 3 game"],
+    ["open", "teams", "Opened Teams"],
     ["open", "something-new", "Opened something-new"],
   ] as const)("%s %s reads %s", (kind, target, text) => {
     expect(describeActivity(kind, target, names)).toBe(text);

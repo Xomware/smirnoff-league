@@ -1,4 +1,4 @@
-import type { WindowKind } from "@/lib/desktop/registry";
+import type { ScreenKind } from "@/lib/phone/nav";
 import type { ActivityKind } from "./tracker";
 
 export interface Names {
@@ -7,7 +7,7 @@ export interface Names {
 }
 
 // Short names for the timeline; several registry titles are window-bar length.
-const PLACES: Partial<Record<WindowKind, string>> = {
+const PLACES: Partial<Record<ScreenKind, string>> = {
   home: "Home",
   recap: "Draft Recap",
   news: "League News",
@@ -25,13 +25,14 @@ const PLACES: Partial<Record<WindowKind, string>> = {
   "my-team": "My Team",
   writeup: "Latest Edition",
   admin: "Control Panel",
+  teams: "Teams",
 };
 
 const PANELS: Record<string, string> = { ices: "Ices", rules: "Week Rules", toilet: "Toilet Bowl", users: "Users" };
 
 function place(target: string, names: Names): string {
-  const [kind, value] = target.split(":");
-  if (value === undefined) return PLACES[kind as WindowKind] ?? target;
+  const [kind, value, more] = target.split(":");
+  if (value === undefined) return PLACES[kind as ScreenKind] ?? target;
   switch (kind) {
     case "team":
       return `Team: ${names.team(Number(value))}`;
@@ -41,10 +42,14 @@ function place(target: string, names: Names): string {
       return `Week ${value}`;
     case "writeup":
       return `Week ${value} Edition`;
+    case "tab":
+      return `the ${value.charAt(0).toUpperCase()}${value.slice(1)} tab`;
+    case "game":
+      return `a Week ${more} game`;
     case "admin":
       return `Control Panel: ${PANELS[value] ?? value}`;
     default:
-      return PLACES[kind as WindowKind] ?? target;
+      return PLACES[kind as ScreenKind] ?? target;
   }
 }
 

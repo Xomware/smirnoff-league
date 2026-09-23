@@ -2,19 +2,17 @@
 
 import { useEffect, useReducer, useRef } from "react";
 
-import { track, viewTarget } from "@/lib/activity/tracker";
-import { parseOpen } from "@/lib/desktop/deep-link";
-import type { WindowView } from "@/lib/desktop/windows";
-import { type Nav, navFromLinks, navReducer, rootView, stackOf, stackUrl, type Tab } from "./nav";
+import { track } from "@/lib/activity/tracker";
+import { type Nav, navFromLinks, navReducer, parseScreens, type Screen, screenId, stackOf, stackUrl, type Tab } from "./nav";
 
 interface Entry {
   tab: Tab;
-  stack: WindowView[];
+  stack: Screen[];
 }
 
 const entryOf = (state: unknown): Entry | null => (state as { phone?: Entry } | null)?.phone ?? null;
 
-const initialNav = (): Nav => navFromLinks(parseOpen(window.location.search));
+const initialNav = (): Nav => navFromLinks(parseScreens(window.location.search));
 
 // Browser history mirrors the current tab's stack, one entry per screen, so
 // the browser's Back, Android's back button and iOS's edge swipe all pop a
@@ -66,14 +64,14 @@ export function usePhoneNav() {
 
   return {
     nav,
-    push: (view: WindowView) => {
-      dispatch({ type: "push", view });
-      track("open", viewTarget(view));
+    push: (screen: Screen) => {
+      dispatch({ type: "push", screen });
+      track("open", screenId(screen));
     },
     // A tab is how a phone gets to most screens, so it counts as an open.
     selectTab: (tab: Tab) => {
       dispatch({ type: "tab", tab });
-      track("open", viewTarget(rootView(tab)));
+      track("open", `tab:${tab}`);
     },
     back: () => window.history.back(),
   };

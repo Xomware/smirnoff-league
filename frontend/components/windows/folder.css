@@ -72,18 +72,3 @@
   font-size: 0.75rem;
   background: var(--xp-face);
 }
-
-.phone-screen .xp-explorer {
-  min-height: calc(100% + 1.75rem);
-  margin: -0.75rem -0.75rem -1rem;
-}
-
-.phone-screen .xp-folder-icons {
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-}
-
-.phone-screen .xp-folder-icons .xp-desktop-icon {
-  width: 100%;
-  min-height: 5.5rem;
-  font-size: 0.875rem;
-}

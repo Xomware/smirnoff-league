@@ -12,7 +12,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 
 import "./chugs.css";
 
-// The signed-in manager's own debt, in the taskbar tray and the phone title bar.
+// The signed-in manager's own debt, in the taskbar tray.
 export function DueWarning() {
   const ledger = useLedger();
   const { myRosterId } = useProfile();

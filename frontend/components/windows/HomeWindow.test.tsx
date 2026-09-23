@@ -9,7 +9,6 @@ vi.mock("@/lib/api/writeups", async (importOriginal) => ({
 import { listWriteups } from "@/lib/api/writeups";
 import { espnEvent, jsonResponse } from "@/lib/test/espn-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
-import { PHONE } from "@/lib/use-media-query";
 import { HomeWindow } from "./HomeWindow";
 
 // Sleeper already says week 3; its Thursday game kicks off 8:15pm ET on Sep 24.
@@ -60,23 +59,5 @@ describe("Home summary", () => {
     render(<HomeWindow />);
     const mascot = screen.getByRole("img", { name: /robot chugging a smirnoff ice/i });
     expect(mascot.getAttribute("src")).toContain("mascot.png");
-  });
-});
-
-describe("This Week's Edition", () => {
-  it("is left to the News Drop window on the desktop", async () => {
-    render(<HomeWindow />);
-    await screen.findByRole("list", { name: "Who owes" });
-    expect(screen.queryByRole("region", { name: "This Week's Edition" })).toBeNull();
-  });
-
-  it("stays on the phone Home", async () => {
-    vi.spyOn(window, "matchMedia").mockImplementation(
-      (query) =>
-        ({ matches: query === PHONE, media: query, addEventListener: () => {}, removeEventListener: () => {} }) as unknown as MediaQueryList,
-    );
-    render(<HomeWindow />);
-    const edition = await screen.findByRole("region", { name: "This Week's Edition" });
-    expect(await within(edition).findByText("Week 2: Ice Age")).toBeTruthy();
   });
 });
