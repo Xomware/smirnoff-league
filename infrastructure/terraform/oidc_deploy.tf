@@ -8,6 +8,9 @@ locals {
   deploy_subjects = [
     "repo:Xomware/smirnoff-league",
     "repo:Xomware@263047999/smirnoff-league@1382285884",
+    # Moving to Dom's personal account; the Xomware pair goes after the move.
+    "repo:domgiordano/smirnoff-league",
+    "repo:domgiordano@44783934/smirnoff-league@1382285884",
   ]
 }
 
