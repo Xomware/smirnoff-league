@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import { useId, useState, type FormEvent } from "react";
 
-import { IceBottleIcon, WarningIcon } from "@/components/xp/icons";
+import { RobotHeadIcon, WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import { Window } from "@/components/xp/Window";
 import { ApiError, updateMe, type Profile } from "@/lib/api/users";
@@ -123,10 +124,10 @@ export function OnboardingWizard({ initial, onDone, onCancel }: OnboardingWizard
 
   return (
     <main className="xp-page min-h-dvh justify-center">
-      <Window title={initial ? "My Profile" : "Smirnoff League Setup"} icon={<IceBottleIcon />} className="xp-wizard">
+      <Window title={initial ? "My Profile" : "Smirnoff League Setup"} icon={<RobotHeadIcon />} className="xp-wizard">
         <form onSubmit={onSubmit} noValidate className="xp-wizard-body">
           <aside className="xp-wizard-banner">
-            <IceBottleIcon width={40} height={40} />
+            <Image src="/brand/mascot.png" alt="" width={120} height={132} className="xp-wizard-mascot" />
             <p className="xp-wizard-banner-title">Welcome to the Smirnoff League</p>
             <ol className="xp-wizard-steps">
               {STEPS.map((s, i) => (

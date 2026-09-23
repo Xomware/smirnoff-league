@@ -171,6 +171,25 @@ describe("shared league data", () => {
   });
 });
 
+describe("league branding", () => {
+  it("brings Home back from the crest desktop icon, and titles Home with the robot head", () => {
+    renderDesktop();
+    const home = windowNamed("Smirnoff Fantasy Football League");
+    expect(home.querySelector('header img[src*="robot-head.png"]')).not.toBeNull();
+    fireEvent.click(tab("Smirnoff Fantasy Football League"));
+    expect(home.hidden).toBe(true);
+
+    const icon = within(screen.getByRole("list", { name: "Desktop" })).getByRole("button", {
+      name: "Smirnoff Fantasy Football League",
+    });
+    expect(icon.querySelector('img[src*="crest.png"]')).not.toBeNull();
+    fireEvent.doubleClick(icon);
+
+    expect(home.hidden).toBe(false);
+    expect(tab("Smirnoff Fantasy Football League").getAttribute("aria-pressed")).toBe("true");
+  });
+});
+
 describe("Taskbar tabs", () => {
   it("minimizes the focused window and restores it on a second click", () => {
     renderDesktop();

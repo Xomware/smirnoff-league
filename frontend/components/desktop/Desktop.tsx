@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { DrillContext } from "@/components/views/drill-link";
@@ -14,6 +15,7 @@ import { IconButton } from "./IconButton";
 
 // The ice apps live in the Ices folder rather than on the desktop.
 const ICONS: { kind: WindowKind; label: string; params?: WindowParams }[] = [
+  { kind: "home", label: "Smirnoff Fantasy Football League" },
   { kind: "folder", label: "Ices", params: { id: "ices" } },
   { kind: "my-team", label: "My Team" },
   { kind: "scores", label: "Scores" },
@@ -23,6 +25,10 @@ const ICONS: { kind: WindowKind; label: string; params?: WindowParams }[] = [
   { kind: "recap", label: "Draft Recap" },
   { kind: "writeup", label: "News Drop" },
 ];
+
+function CrestIcon() {
+  return <Image src="/brand/crest.png" alt="" width={56} height={68} className="xp-desktop-crest" />;
+}
 
 export function Desktop() {
   const { windows, open, active, dispatch } = useDesktop();
@@ -69,7 +75,7 @@ export function Desktop() {
         <ul className="xp-desktop-icons" aria-label="Desktop">
           {icons.map(({ kind, label, params }) => (
             <li key={kind}>
-              <IconButton Icon={REGISTRY[kind].Icon} label={label} onOpen={() => open(kind, params)} />
+              <IconButton Icon={kind === "home" ? CrestIcon : REGISTRY[kind].Icon} label={label} onOpen={() => open(kind, params)} />
             </li>
           ))}
         </ul>

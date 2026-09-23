@@ -5,7 +5,6 @@ import { useContext } from "react";
 
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
-import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import { type IceStanding, iceStandings } from "@/lib/ices/standings";
 import { useIceWatch } from "@/lib/ices/use-ice-watch";
@@ -157,8 +156,8 @@ export function HomeWindow() {
   return (
     <div className="grid gap-3">
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="xp-inset hidden shrink-0 place-items-center p-3 sm:grid">
-          <IceBottleIcon width={80} height={80} />
+        <div className="home-mascot xp-inset hidden shrink-0 place-items-center p-2 sm:grid">
+          <Image src="/brand/mascot.png" alt="The league mascot, a robot chugging a Smirnoff Ice" width={110} height={121} />
         </div>
         <div aria-live="polite" className="xp-inset min-w-0 flex-1 p-2">
           {error ? (

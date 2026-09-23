@@ -9,10 +9,10 @@ import {
   DesktopIcon,
   FolderIcon,
   HomeIcon,
-  IceBottleIcon,
   NewsFeedIcon,
   NewspaperIcon,
   ProfileIcon,
+  RobotHeadIcon,
   ScoresIcon,
   StandingsIcon,
   StarIcon,
@@ -92,7 +92,7 @@ export function StartMenu({ id, onOpen, onReset, onEditProfile, onSignOut }: Sta
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
         <span className="xp-start-menu-avatar">
-          <IceBottleIcon width={28} height={28} />
+          <RobotHeadIcon width={36} height={36} />
         </span>
         Smirnoff League
       </div>

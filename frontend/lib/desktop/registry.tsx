@@ -32,6 +32,7 @@ import {
   NewsFeedIcon,
   NewspaperIcon,
   ProfileIcon,
+  RobotHeadIcon,
   ScoresIcon,
   StandingsIcon,
   StarIcon,
@@ -68,7 +69,7 @@ function WeekWindow({ params }: ParamsProps) {
 
 // One entry per window kind.
 const SPECS = {
-  home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: HOME_H } },
+  home: { title: "Smirnoff Fantasy Football League", Icon: RobotHeadIcon, component: HomeWindow, defaultSize: { w: 640, h: HOME_H } },
   recap: { title: "Now Playing - Draft Recap", Icon: MediaPlayerIcon, component: RecapWindow, defaultSize: { w: 640, h: 420 } },
   news: { title: "League News", Icon: NewsFeedIcon, component: NewsWindow, defaultSize: { w: 600, h: 600 } },
   scores: { title: "Scores", Icon: ScoresIcon, component: ScoresWindow, defaultSize: { w: 560, h: 560 } },

@@ -46,3 +46,11 @@ describe("Home is ice-first", () => {
     expect(screen.queryByRole("region", { name: /news/i })).toBeNull();
   });
 });
+
+describe("Home summary", () => {
+  it("shows the league mascot", () => {
+    render(<HomeWindow />);
+    const mascot = screen.getByRole("img", { name: /robot chugging a smirnoff ice/i });
+    expect(mascot.getAttribute("src")).toContain("mascot.png");
+  });
+});

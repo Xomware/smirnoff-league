@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 
-import { ControlPanelIcon, IceBottleIcon, ProfileIcon, SpeakerIcon } from "@/components/xp/icons";
+import { ControlPanelIcon, ProfileIcon, RobotHeadIcon, SpeakerIcon } from "@/components/xp/icons";
 import { ICE_APPS } from "@/lib/desktop/ice-apps";
 import { REGISTRY, type WindowKind } from "@/lib/desktop/registry";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -45,7 +45,7 @@ export function StartSheet({ id, name, onOpen, onEditProfile, onSignOut }: Start
     <nav id={id} className="xp-start-menu phone-sheet" aria-label="Start menu">
       <div className="xp-start-menu-header">
         <span className="xp-start-menu-avatar">
-          <IceBottleIcon width={28} height={28} />
+          <RobotHeadIcon width={36} height={36} />
         </span>
         <span className="truncate">{name}</span>
       </div>

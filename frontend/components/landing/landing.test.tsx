@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -67,6 +67,34 @@ describe("Landing sign-in", () => {
     for (const b of screen.getAllByRole("button", { name: /sign in with google/i })) {
       expect((b as HTMLButtonElement).disabled).toBe(true);
     }
+  });
+});
+
+describe("Landing hero", () => {
+  it("leads with the crest, the league name and a sign-in button", () => {
+    render(<Landing onSignIn={() => {}} />);
+    const hero = screen.getByRole("region", { name: "Welcome" });
+
+    const crest = within(hero).getByRole("img", { name: /smirnoff ice fantasy football league crest/i });
+    expect(crest.getAttribute("src")).toContain("crest.png");
+    expect(within(hero).getByRole("heading", { level: 1 }).textContent).toMatch(/smirnoff league/i);
+    expect(within(hero).getByRole("button", { name: /sign in with google/i })).toBeTruthy();
+  });
+
+  it("points a scroll cue at the section right under the hero", () => {
+    render(<Landing onSignIn={() => {}} />);
+    const cue = screen.getByRole("link", { name: /scroll/i });
+    const target = document.getElementById(cue.getAttribute("href")!.slice(1));
+
+    expect(target).not.toBeNull();
+    expect(screen.getByRole("region", { name: "Welcome" }).nextElementSibling).toBe(target);
+  });
+
+  it("brings the mascot into the rules", () => {
+    render(<Landing onSignIn={() => {}} />);
+    const mascots = screen.getAllByRole("img", { name: /robot chugging a smirnoff ice/i });
+    expect(mascots.length).toBeGreaterThan(0);
+    expect(mascots[0].getAttribute("src")).toContain("mascot.png");
   });
 });
 

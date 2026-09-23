@@ -17,6 +17,12 @@
   background: linear-gradient(160deg, var(--xp-title-light), var(--xp-title-dark));
 }
 
+.xp-wizard-mascot {
+  width: 3.5rem;
+  height: auto;
+  filter: drop-shadow(1px 2px 2px rgb(10 30 80 / 0.5));
+}
+
 .xp-wizard-banner-title {
   font: bold 1rem var(--xp-title-font);
   text-shadow: 1px 1px var(--xp-frame);
@@ -57,6 +63,11 @@
     flex-direction: column;
     align-items: flex-start;
     padding: 1rem;
+  }
+
+  .xp-wizard-mascot {
+    align-self: center;
+    width: 7.5rem;
   }
 
   .xp-wizard-steps {

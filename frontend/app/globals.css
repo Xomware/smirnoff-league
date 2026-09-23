@@ -539,6 +539,23 @@
     }
   }
 
+  .brand-loading {
+    filter: drop-shadow(0 3px 4px rgb(10 30 80 / 0.35));
+    animation: brand-bob 1.2s ease-in-out infinite alternate;
+  }
+
+  @keyframes brand-bob {
+    to {
+      transform: translateY(-6px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brand-loading {
+      animation: none;
+    }
+  }
+
   .xp-backdrop {
     position: fixed;
     inset: 0;
@@ -898,11 +915,17 @@
     text-shadow: 1px 1px 1px var(--xp-screen);
   }
 
-  .xp-desktop-icon:hover svg {
+  .xp-desktop-icon:hover :is(svg, img) {
     filter: brightness(1.12);
   }
 
-  .xp-desktop-icon:focus svg {
+  .xp-desktop-crest {
+    width: auto;
+    height: 4.25rem;
+    filter: drop-shadow(1px 2px 2px rgb(10 30 80 / 0.6));
+  }
+
+  .xp-desktop-icon:focus :is(svg, img) {
     filter: brightness(0.8) sepia(1) hue-rotate(180deg) saturate(3);
   }
 

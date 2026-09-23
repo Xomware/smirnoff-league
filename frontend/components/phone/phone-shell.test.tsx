@@ -104,6 +104,13 @@ describe("AppShell", () => {
     expect(title()).toBe("Smirnoff Fantasy Football League");
   });
 
+  it("brands the Home title bar and Start with the robot head", () => {
+    renderShell();
+    expect(document.querySelector('.phone-bar img[src*="robot-head.png"]')).not.toBeNull();
+    const start = tabBar().getByRole("button", { name: /start/i });
+    expect(start.querySelector('img[src*="robot-head.png"]')).not.toBeNull();
+  });
+
   it("renders the desktop and its taskbar otherwise", () => {
     viewport(DESKTOP);
     renderShell();

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 
+import { RobotHeadIcon } from "@/components/xp/icons";
 import { SignInGreeting } from "@/components/xp/SignInGreeting";
 import { Window } from "@/components/xp/Window";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -33,6 +34,7 @@ export function ProfileGate({ children }: ProfileGateProps) {
   if (!me) {
     return (
       <main className="xp-page min-h-dvh justify-center">
+        <RobotHeadIcon width={72} height={72} className="brand-loading" />
         <p role="status" className="xp-note">
           Loading your profile...
         </p>
