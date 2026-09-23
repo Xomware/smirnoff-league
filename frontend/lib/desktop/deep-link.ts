@@ -1,3 +1,4 @@
+import { ADMIN_PANELS, type AdminPanel } from "@/components/admin/ControlPanel";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
@@ -22,10 +23,12 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
   player: (v) => (/^[A-Za-z0-9]+$/.test(v) ? { playerId: v } : null),
   week: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
   writeup: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
+  admin: (v) => (ADMIN_PANELS.includes(v as AdminPanel) ? { panel: v } : null),
 };
 
-// Kinds whose value may be left off: a bare `writeup` is the latest edition.
-const OPTIONAL = new Set<WindowKind>(["writeup"]);
+// Kinds whose value may be left off: a bare `writeup` is the latest edition,
+// a bare `admin` the category view.
+const OPTIONAL = new Set<WindowKind>(["writeup", "admin"]);
 
 const isKind = (kind: string): kind is WindowKind => Object.hasOwn(REGISTRY, kind);
 

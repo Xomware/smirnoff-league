@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 
+import { ControlPanelWindow } from "@/components/admin/ControlPanel";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { PlayerView } from "@/components/views/player-view";
 import { StatsView } from "@/components/views/stats-view";
@@ -19,6 +20,7 @@ import {
   BracketIcon,
   CamcorderIcon,
   ChartIcon,
+  ControlPanelIcon,
   IceBottleIcon,
   IceStandingsIcon,
   MediaPlayerIcon,
@@ -89,6 +91,7 @@ const SPECS = {
     component: WriteupWindow,
     defaultSize: { w: 760, h: 720 },
   },
+  admin: { title: "Control Panel", Icon: ControlPanelIcon, component: ControlPanelWindow, defaultSize: { w: 820, h: 620 } },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;

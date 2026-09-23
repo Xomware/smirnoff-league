@@ -15,6 +15,7 @@ import {
   type Slot,
   toiletBowl,
 } from "@/lib/league/brackets";
+import { useLedger } from "@/lib/ices/use-ledger";
 import { sortStandings } from "@/lib/league/standings";
 import { type Team, useLeague } from "@/lib/league/use-league";
 import { getLosersBracket, getMatchups, getWinnersBracket } from "@/lib/sleeper/client";
@@ -108,6 +109,9 @@ function BracketView({ bracket, roundNames, startWeek, exits, teamFor }: Bracket
 export function BracketsWindow() {
   const { data, error: leagueError, teamFor } = useLeague();
   const [playoffs, setPlayoffs] = useState<Playoffs | null>(null);
+  const ledger = useLedger();
+  // The admin's byes once the ledger loads; the default until then or without it.
+  const byes = ledger.status === "ok" ? ledger.ledger.toiletByes : undefined;
   const [error, setError] = useState<string | null>(null);
 
   const start = data?.league.settings.playoff_week_start ?? 15;
@@ -130,14 +134,14 @@ export function BracketsWindow() {
     if (!data || !playoffs) return null;
     const seeds = sortStandings(data.rosters).map((s) => s.rosterId);
     const sleeperWinners = seeded && playoffs.winners?.length ? playoffs.winners : null;
-    const toilet = toiletBowl(seeds, seeded ? playoffs.losers : null, seeded ? playoffs.results : []);
+    const toilet = toiletBowl(seeds, seeded ? playoffs.losers : null, seeded ? playoffs.results : [], byes && { byes });
     return {
       projected: !sleeperWinners,
       bracket: sleeperWinners ? fromSleeper(sleeperWinners, seeds) : projectedPlayoffBracket(seeds),
       toilet,
       risk: punishmentRisk(toilet),
     };
-  }, [data, playoffs, seeded]);
+  }, [data, playoffs, seeded, byes]);
 
   const failed = leagueError ?? error;
   if (failed) return <p role="alert">Could not reach Sleeper ({failed}). Refresh to try again.</p>;

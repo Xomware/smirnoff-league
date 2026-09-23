@@ -162,6 +162,40 @@ export function ProfileIcon(props: IconProps) {
   );
 }
 
+// XP's Control Panel: a window with two slider tracks.
+export function ControlPanelIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="2.5" width="13" height="11" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M1.5 4.5h13" className="stroke-(--xp-title) stroke-2" />
+      <path d="M4 8h8M4 11.5h8" className="stroke-(--xp-face-shadow)" />
+      <rect x="5" y="6.5" width="2" height="3" className="fill-(--xp-select)" />
+      <rect x="9" y="10" width="2" height="3" className="fill-(--xp-start)" />
+    </Icon>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="2.5" width="13" height="12" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M1.5 5.5h13" className="stroke-(--smirnoff-red) stroke-[3]" />
+      <path d="M4.5 1v3M11.5 1v3" className="stroke-(--xp-text)" />
+      <path d="M4 9h2M7 9h2M10 9h2M4 12h2M7 12h2" className="stroke-(--ice-deep)" />
+    </Icon>
+  );
+}
+
+export function ToiletIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="2.5" y="1.5" width="5" height="6" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M2.5 7.5h11c0 3-2 4.5-4.5 4.5l1 2.5h-5l1-2.5c-2 0-3.5-1.5-3.5-4.5z" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M4.5 9h7" className="stroke-(--ice-frost) stroke-[1.5]" />
+    </Icon>
+  );
+}
+
 export function InfoIcon(props: IconProps) {
   return (
     <Icon {...props}>

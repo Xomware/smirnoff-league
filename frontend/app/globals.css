@@ -841,7 +841,7 @@
     position: fixed;
     inset: 0 0 var(--taskbar-top) 0;
     overflow: hidden;
-    background: var(--xp-sky-bottom) url("/brand/wallpaper.jpg") center / cover no-repeat;
+    background: var(--xp-sky-bottom) url("/brand/wallpaper-hill-1600.jpg") center / cover no-repeat;
   }
 
   .xp-wallpaper-credit {
@@ -859,7 +859,10 @@
     left: 0.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.75rem 0.25rem;
+    /* A short screen wraps icons into a second column, as XP did, rather than under the taskbar. */
+    max-height: calc(100dvh - var(--taskbar-top) - 1.5rem);
   }
 
   .xp-desktop-icon {

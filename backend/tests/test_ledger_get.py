@@ -21,7 +21,7 @@ def seed():
     settings = boto3.resource("dynamodb").Table(os.environ["SETTINGS_TABLE"])
     settings.put_item(Item={"season": "2026", "key": "WEEK#01", "finalizedAt": NOW, "deadlineUtc": W1_DEADLINE})
     settings.put_item(Item={"season": "2026", "key": "WEEK#02", "finalizedAt": NOW, "deadlineUtc": W2_DEADLINE})
-    settings.put_item(Item={"season": "2026", "key": "WEEK#03"})
+    settings.put_item(Item={"season": "2026", "key": "WEEK#03", "iceRulesActive": False, "lowestScope": "played"})
 
     ice("W01#R02#S5", 1, 2, "zero", points=0.0)
     ice("W01#R06#LOWEST", 1, 6, "lowest", points=61.4)
@@ -46,12 +46,14 @@ def test_envelope_carries_rows_weeks_and_summary(aws):
     assert status == 200
     assert payload["error"] is None and payload["meta"] is None
     data = payload["data"]
-    assert set(data) == {"ices", "weeks", "summary"}
+    assert set(data) == {"ices", "weeks", "summary", "toiletByes"}
+    defaults = {"iceRulesActive": True, "lowestScope": "all"}
     assert data["weeks"] == [
-        {"week": 1, "finalizedAt": NOW, "deadlineUtc": W1_DEADLINE},
-        {"week": 2, "finalizedAt": NOW, "deadlineUtc": W2_DEADLINE},
-        {"week": 3, "finalizedAt": None, "deadlineUtc": None},
+        {"week": 1, "finalizedAt": NOW, "deadlineUtc": W1_DEADLINE, **defaults},
+        {"week": 2, "finalizedAt": NOW, "deadlineUtc": W2_DEADLINE, **defaults},
+        {"week": 3, "finalizedAt": None, "deadlineUtc": None, "iceRulesActive": False, "lowestScope": "played"},
     ]
+    assert data["toiletByes"] == [13, 14]
     lowest = next(i for i in data["ices"] if i["iceId"] == "W01#R06#LOWEST")
     assert lowest["points"] == 61.4 and lowest["status"] == "owed"
 
@@ -76,6 +78,14 @@ def test_summary_counts_owed_completed_late_and_overdue(aws):
         {"rosterId": 6, "owed": 2, "completed": 0, "late": 1, "lateOwed": 0, "overdue": 2},
         {"rosterId": 13, "owed": 1, "completed": 0, "late": 0, "lateOwed": 0, "overdue": 0},
     ]
+
+
+def test_toilet_byes_come_from_settings(aws):
+    settings = boto3.resource("dynamodb").Table(os.environ["SETTINGS_TABLE"])
+    settings.put_item(Item={"season": "2026", "key": "TOILET_BRACKET", "byes": [9, 12]})
+    _, payload = call()
+
+    assert payload["data"]["toiletByes"] == [9, 12]
 
 
 def test_missing_claims_is_401(aws):

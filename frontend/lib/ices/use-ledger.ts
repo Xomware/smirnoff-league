@@ -8,9 +8,10 @@ export type LedgerState = { status: "loading" } | { status: "ok"; ledger: Ledger
 
 const listeners = new Set<() => void>();
 
-// Every open window holds its own copy, so an upload in one refetches them all.
+// Admin edits and video uploads call this so every open ledger view refetches,
+// not only the window that made the change.
 export function refreshLedger() {
-  listeners.forEach((fn) => fn());
+  for (const refetch of listeners) refetch();
 }
 
 export function useLedger(): LedgerState {
@@ -18,10 +19,10 @@ export function useLedger(): LedgerState {
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    const bump = () => setVersion((v) => v + 1);
-    listeners.add(bump);
+    const refetch = () => setVersion((v) => v + 1);
+    listeners.add(refetch);
     return () => {
-      listeners.delete(bump);
+      listeners.delete(refetch);
     };
   }, []);
 

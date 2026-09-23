@@ -1,8 +1,10 @@
 import type { WindowKind } from "@/lib/desktop/registry";
+import { useProfile } from "@/lib/profile/use-profile";
 import {
   BracketIcon,
   CamcorderIcon,
   ChartIcon,
+  ControlPanelIcon,
   DesktopIcon,
   HomeIcon,
   IceBottleIcon,
@@ -38,6 +40,7 @@ interface StartMenuProps {
 }
 
 export function StartMenu({ id, onOpen, onReset, onEditProfile, onSignOut }: StartMenuProps) {
+  const isAdmin = useProfile().me?.isAdmin;
   return (
     <nav id={id} className="xp-start-menu" aria-label="Start menu">
       <div className="xp-start-menu-header">
@@ -55,6 +58,14 @@ export function StartMenu({ id, onOpen, onReset, onEditProfile, onSignOut }: Sta
             </button>
           </li>
         ))}
+        {isAdmin && (
+          <li>
+            <button type="button" className="xp-start-menu-link w-full" onClick={() => onOpen("admin")}>
+              <ControlPanelIcon width={24} height={24} />
+              Control Panel
+            </button>
+          </li>
+        )}
         <li>
           <button type="button" className="xp-start-menu-link w-full" onClick={onEditProfile}>
             <ProfileIcon width={24} height={24} />

@@ -28,7 +28,9 @@ const ICONS: { kind: WindowKind; label: string }[] = [
 export function Desktop() {
   const { windows, open, active, dispatch } = useDesktop();
   const activeId = active?.id;
-  const sub = useProfile().me?.sub;
+  const { me } = useProfile();
+  const sub = me?.sub;
+  const icons: typeof ICONS = me?.isAdmin ? [...ICONS, { kind: "admin", label: "Control Panel" }] : ICONS;
   const restored = useRef<WindowState[] | null>(null);
   const live = useRef(false);
 
@@ -66,7 +68,7 @@ export function Desktop() {
     <DrillContext.Provider value={({ kind, ...params }) => open(kind, params)}>
       <main className="xp-desktop">
         <ul className="xp-desktop-icons" aria-label="Desktop">
-          {ICONS.map(({ kind, label }) => {
+          {icons.map(({ kind, label }) => {
             const { Icon } = REGISTRY[kind];
             return (
               <li key={kind}>
