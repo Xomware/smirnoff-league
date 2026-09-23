@@ -47,7 +47,7 @@ function renderSignedOut() {
 }
 
 function renderSignedIn() {
-  render(
+  return render(
     <ProfileProvider>
       <ThemeProvider>
         <ThemeToggle />
@@ -147,7 +147,7 @@ describe("device default", () => {
     expect(updateMe).not.toHaveBeenCalled();
   });
 
-  it("comes back when a switch away from it fails to save", async () => {
+  it("keeps a switch away from the device default when the save fails", async () => {
     media({ phone: true });
     signedIn(null);
     vi.mocked(updateMe).mockRejectedValue(new Error("offline"));
@@ -157,8 +157,8 @@ describe("device default", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
     expect(updateMe).toHaveBeenCalledWith({ theme: "xp" });
-    await waitFor(() => expect(pressed("Glacier")).toBe("true"));
-    expect(localStorage.getItem(THEME_KEY)).toBeNull();
+    await waitFor(() => expect(pressed("Classic XP")).toBe("true"));
+    expect(localStorage.getItem(THEME_KEY)).toBe("xp");
   });
 });
 
@@ -176,7 +176,7 @@ describe("theme, signed in", () => {
     expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
   });
 
-  it("rolls back when the save fails", async () => {
+  it("keeps the choice when the save fails", async () => {
     signedIn("xp");
     vi.mocked(updateMe).mockRejectedValue(new Error("offline"));
     renderSignedIn();
@@ -186,9 +186,27 @@ describe("theme, signed in", () => {
     fireEvent.click(screen.getByRole("button", { name: "Glacier" }));
     expect(updateMe).toHaveBeenCalledWith({ theme: "glacier" });
 
-    await waitFor(() => expect(pressed("Classic XP")).toBe("true"));
-    expect(localStorage.getItem(THEME_KEY)).toBe("xp");
-    expect(htmlTheme()).toBe("xp");
+    await waitFor(() => expect(pressed("Glacier")).toBe("true"));
+    expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
+    expect(htmlTheme()).toBe("glacier");
+  });
+
+  it("retries an unsaved choice on the next load instead of taking the stale profile theme", async () => {
+    signedIn("xp");
+    vi.mocked(updateMe).mockRejectedValue(new Error("offline"));
+    const first = renderSignedIn();
+    await waitFor(() => expect(localStorage.getItem(THEME_KEY)).toBe("xp"));
+    fireEvent.click(screen.getByRole("button", { name: "Glacier" }));
+    await waitFor(() => expect(updateMe).toHaveBeenCalledWith({ theme: "glacier" }));
+    first.unmount();
+
+    vi.mocked(updateMe).mockClear();
+    vi.mocked(updateMe).mockResolvedValue(profile("glacier"));
+    renderSignedIn();
+
+    await waitFor(() => expect(updateMe).toHaveBeenCalledWith({ theme: "glacier" }));
+    expect(pressed("Glacier")).toBe("true");
+    expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
   });
 
   it("takes the profile's theme over localStorage", async () => {
