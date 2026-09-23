@@ -265,4 +265,27 @@ describe("Scores window", () => {
     await screen.findByText("82.10");
     expect(picker.value).toBe("2");
   });
+
+  it("follows Sleeper from week 3 to 4 in an open window", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setInterval", "clearInterval"] });
+    vi.setSystemTime(new Date("2026-10-02T01:00Z"));
+    stubFetch({ ...week4, "/state/nfl": responses["/state/nfl"] });
+    render(<ScoresWindow />);
+    const picker = (await screen.findByLabelText("Week")) as HTMLSelectElement;
+    expect(picker.value).toBe("3");
+    expect([...picker.options].map((o) => o.value)).toEqual(["3", "2", "1"]);
+
+    stubFetch(week4);
+    await act(() => vi.advanceTimersByTimeAsync(5 * 60_000));
+
+    await waitFor(() => expect(picker.value).toBe("4"));
+    expect([...picker.options].map((o) => o.value)).toEqual(["4", "3", "2", "1"]);
+    expect(screen.getByRole("button", { name: "Next week" })).toHaveProperty("disabled", true);
+    await screen.findByText("No matchups for week 4 yet.");
+
+    await act(() => vi.advanceTimersByTimeAsync(60_000));
+    await waitFor(() =>
+      expect(vi.mocked(fetch).mock.calls.filter(([url]) => String(url).endsWith("/matchups/4")).length).toBe(2),
+    );
+  });
 });

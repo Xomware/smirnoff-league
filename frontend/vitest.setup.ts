@@ -2,6 +2,7 @@ import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
 import { clearLeagueCache } from "@/lib/league/cache";
+import { clearNflState } from "@/lib/league/nfl-state";
 import { clearSharedResources } from "@/lib/shared-resource";
 
 // CI runners render the full desktop slower than a laptop; the 1s default
@@ -14,6 +15,7 @@ afterEach(cleanup);
 // The cache lives for the session, and each test stubs its own Sleeper.
 afterEach(clearLeagueCache);
 afterEach(clearSharedResources);
+afterEach(clearNflState);
 
 // jsdom implements neither. Defaults are "no preference" and an observer that
 // never fires; tests that care stub their own.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   SleeperLeague,
@@ -9,7 +9,8 @@ import type {
   SleeperRoster,
   SleeperUser,
 } from "@/lib/sleeper/types";
-import { league, leagueMatchups, nflState, players, rosters, users } from "./cache";
+import { league, leagueMatchups, players, rosters, users } from "./cache";
+import { useNflState } from "./nfl-state";
 
 export interface Player {
   name: string;
@@ -34,15 +35,19 @@ export interface Team {
 
 const POLL = 60_000;
 
-async function loadLeague(): Promise<LeagueData> {
-  const [l, u, r, nfl, p] = await Promise.all([league(), users(), rosters(), nflState(), players()]);
-  return { league: l, users: u, rosters: r, nfl, players: p };
+async function loadLeague(): Promise<Omit<LeagueData, "nfl">> {
+  const [l, u, r, p] = await Promise.all([league(), users(), rosters(), players()]);
+  return { league: l, users: u, rosters: r, players: p };
 }
 
 // Reads the shared league cache, plus matchups for `week` whenever it is set.
+// nfl/state is re-read while mounted, so the live week moves with Sleeper.
 // The live week polls, and refresh() refetches it now.
 export function useLeague(week?: number) {
-  const [data, setData] = useState<LeagueData | null>(null);
+  const [base, setBase] = useState<Omit<LeagueData, "nfl"> | null>(null);
+  const state = useNflState();
+  const nfl = state.status === "ok" ? state.nfl : null;
+  const data = useMemo(() => (base && nfl ? { ...base, nfl } : null), [base, nfl]);
   const [matchups, setMatchups] = useState<{ week: number; rows: SleeperMatchup[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const reload = useRef(() => {});
@@ -50,7 +55,7 @@ export function useLeague(week?: number) {
   useEffect(() => {
     let live = true;
     loadLeague()
-      .then((d) => live && setData(d))
+      .then((d) => live && setBase(d))
       .catch((e: Error) => live && setError(e.message));
     return () => {
       live = false;
@@ -59,7 +64,7 @@ export function useLeague(week?: number) {
 
   // Waits for nfl/state to know whether `week` is live. Every caller sets
   // `week` from that same state, so this adds no round trip in practice.
-  const liveWeek = data?.nfl.week;
+  const liveWeek = nfl?.week;
   useEffect(() => {
     if (week === undefined || liveWeek === undefined) return;
     let mounted = true;
@@ -98,7 +103,7 @@ export function useLeague(week?: number) {
     data,
     // Stale rows from the previous week never render under the new week's label.
     matchups: matchups && matchups.week === week ? matchups.rows : null,
-    error,
+    error: error ?? (state.status === "error" ? state.message : null),
     teamFor,
     refresh,
   };
