@@ -1,0 +1,102 @@
+/* Above every XP layer (the palette tops out at 71). It never takes a pointer. */
+.glacier-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.glacier-snow {
+  position: absolute;
+  inset: 0;
+}
+
+.glacier-flake {
+  position: absolute;
+  top: 0;
+  border-radius: 50%;
+  background: #f6fbff;
+  box-shadow: 0 0 8px rgb(200 240 255 / 0.95);
+  animation: glacier-fall linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 767.98px) {
+  .glacier-flake:nth-child(n + 36) {
+    display: none;
+  }
+}
+
+.glacier-trail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #f6fbff;
+  box-shadow: 0 0 10px #f6fbff, 0 0 2px #9ccfea;
+  transition: transform 0.25s ease-out;
+}
+
+.glacier-ball {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6fbff 0%, #eaf4fa 45%, #b9d6e6 100%);
+  box-shadow: 0 0 18px rgb(200 240 255 / 0.9), 0 6px 12px rgb(2 12 24 / 0.4);
+  animation: glacier-throw 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) forwards;
+}
+
+.glacier-splat {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(246 251 255 / 0.95) 0 22%,
+    rgb(246 251 255 / 0.6) 23% 40%,
+    rgb(246 251 255 / 0) 60%
+  );
+  opacity: 0;
+  animation: glacier-burst 0.7s ease-out 0.4s forwards;
+}
+
+@keyframes glacier-fall {
+  0% {
+    transform: translate3d(0, -40px, 0);
+  }
+  100% {
+    transform: translate3d(var(--drift), calc(100vh + 40px), 0);
+  }
+}
+
+@keyframes glacier-throw {
+  0% {
+    transform: translate(var(--from), -120px) scale(0.6);
+  }
+  70%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes glacier-burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
