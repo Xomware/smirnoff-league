@@ -17,6 +17,8 @@ function ActivityTracking() {
   return null;
 }
 
+const PUBLIC_PATHS = [CALLBACK_PATH, "/privacy"];
+
 interface AuthGateProps {
   children: ReactNode;
 }
@@ -36,8 +38,9 @@ export function AuthGate({ children }: AuthGateProps) {
   const pathname = usePathname();
   const { status, signInWithGoogle } = useAuth();
 
-  // The callback must render signed out: it is where the sign-in completes.
-  if (pathname.replace(/\/$/, "") === CALLBACK_PATH) return children;
+  // The callback must render signed out: it is where the sign-in completes. The
+  // privacy policy must too, as plain prerendered HTML for Google's OAuth review.
+  if (PUBLIC_PATHS.includes(pathname.replace(/\/$/, ""))) return children;
   if (status === "signedIn") {
     return (
       <ProfileProvider>

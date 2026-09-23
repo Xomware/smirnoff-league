@@ -123,7 +123,12 @@ export function Landing({ onSignIn }: LandingProps) {
             <Image src="/brand/robot-head.png" alt="" width={20} height={19} />
             Smirnoff League
           </span>
-          <span className="landing-taskbar-tray">A private league for friends. Not affiliated with any vodka or beverage company.</span>
+          <span className="landing-taskbar-tray">
+            <span>
+              A private league for friends. Not affiliated with any vodka or beverage company.{" "}
+              <a href="/privacy/">Privacy</a>
+            </span>
+          </span>
         </div>
       </footer>
     </main>

@@ -179,7 +179,7 @@
   color: var(--xp-face-shadow);
   background: var(--xp-face);
   box-shadow: none;
-  cursor: default;
+  cursor: var(--cursor-default, default);
 }
 
 .cp-rules th[scope="row"],
@@ -198,7 +198,7 @@
   align-items: center;
   gap: 0.375rem;
   min-height: 2.75rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer, pointer);
 }
 
 .cp-check input {
