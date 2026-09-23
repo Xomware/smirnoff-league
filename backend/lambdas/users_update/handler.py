@@ -7,6 +7,8 @@ Body: { "name": 1-40 chars, "username": 2-20 of [A-Za-z0-9_.-], "rosterId": int 
 `notificationsSeenAt` may also be sent alone, to mark notifications read
 without resending the profile.
 
+`theme` ("xp" or "glacier") is sent only on its own.
+
 `email` is sent only on its own: { "optIn": bool, "types": { <each EMAIL_TYPES key>: bool } },
 the whole object every time.
 
@@ -26,6 +28,8 @@ from lambdas.common.users_dynamo import save_profile, update_profile
 
 USERNAME = re.compile(r"[A-Za-z0-9_.-]{2,20}")
 ROSTERS = range(1, 15)
+# A tuple, not a set: a list or dict in the body is unhashable.
+THEMES = ("xp", "glacier")
 PROFILE_KEYS = {"name", "username", "rosterId"}
 # The browser stamps "now" with its own clock, which can run a little ahead of ours.
 CLOCK_SKEW = timedelta(minutes=2)
@@ -58,6 +62,13 @@ def handler(event, context):
         if len(data) > 1:
             raise _invalid("email", "must be sent on its own")
         return ok(update_profile(sub, {"email": parse_prefs(data["email"]), "emailAddress": address}))
+
+    if "theme" in data:
+        if len(data) > 1:
+            raise _invalid("theme", "must be sent on its own")
+        if data["theme"] not in THEMES:
+            raise _invalid("theme", "must be xp or glacier")
+        return ok(update_profile(sub, {"theme": data["theme"], "emailAddress": address}))
 
     seen_at = _seen_at(data["notificationsSeenAt"]) if "notificationsSeenAt" in data else None
     if seen_at is not None and PROFILE_KEYS.isdisjoint(data):

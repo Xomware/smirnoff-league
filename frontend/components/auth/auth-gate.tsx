@@ -5,16 +5,23 @@ import { type ReactNode, useEffect } from "react";
 
 import { Landing } from "@/components/landing/landing";
 import { ProfileGate } from "@/components/onboarding/profile-gate";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { startTracking } from "@/lib/activity/tracker";
 import { AlertsProvider } from "@/lib/alerts/alerts";
 import { authConfigured, CALLBACK_PATH } from "@/lib/auth/amplify";
 import { useAuth } from "@/lib/auth/use-auth";
 import { ProfileProvider } from "@/lib/profile/use-profile";
+import { ThemeProvider, useTheme } from "@/lib/theme/theme";
 
 // Mounted only in the signed-in branch, so the landing is never tracked.
 function ActivityTracking() {
   useEffect(startTracking, []);
   return null;
+}
+
+function ThemedLanding({ onSignIn }: { onSignIn?: () => void }) {
+  const { theme } = useTheme();
+  return <Landing theme={theme} onSignIn={onSignIn} headerAction={<ThemeToggle />} />;
 }
 
 const PUBLIC_PATHS = [CALLBACK_PATH, "/privacy"];
@@ -40,16 +47,22 @@ export function AuthGate({ children }: AuthGateProps) {
 
   // The callback must render signed out: it is where the sign-in completes. The
   // privacy policy must too, as plain prerendered HTML for Google's OAuth review.
-  if (PUBLIC_PATHS.includes(pathname.replace(/\/$/, ""))) return children;
+  if (PUBLIC_PATHS.includes(pathname.replace(/\/$/, ""))) return <ThemeProvider>{children}</ThemeProvider>;
   if (status === "signedIn") {
     return (
       <ProfileProvider>
         <ActivityTracking />
         <AlertsProvider>
-          <ProfileGate>{children}</ProfileGate>
+          <ThemeProvider>
+            <ProfileGate>{children}</ProfileGate>
+          </ThemeProvider>
         </AlertsProvider>
       </ProfileProvider>
     );
   }
-  return <Landing onSignIn={authConfigured ? signInWithGoogle : undefined} />;
+  return (
+    <ThemeProvider>
+      <ThemedLanding onSignIn={authConfigured ? signInWithGoogle : undefined} />
+    </ThemeProvider>
+  );
 }

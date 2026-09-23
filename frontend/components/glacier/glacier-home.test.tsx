@@ -32,7 +32,7 @@ function renderHome() {
     <ProfileProvider>
       <AlertsProvider>
         <NotificationsProvider>
-          <GlacierShell onSwitchTheme={() => {}} />
+          <GlacierShell />
         </NotificationsProvider>
       </AlertsProvider>
     </ProfileProvider>,

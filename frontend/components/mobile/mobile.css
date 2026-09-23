@@ -267,6 +267,12 @@
   overflow: hidden;
 }
 
+.m-theme-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
 .m-rows > li + li {
   border-top: 1px solid var(--m-line);
 }
