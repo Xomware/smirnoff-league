@@ -42,6 +42,6 @@ build_commands:
 - The client-side gate is UX, not security. Ledger, video and write-up data are served only through Cognito-authorized endpoints or presigned URLs.
 - Ices are snapshotted when a week finalizes and never recomputed. Sleeper stat corrections are ignored, and admins adjust ices by hand.
 - No emoji glyphs in the UI. Use SVG/pixel icons.
-- The domain is a Terraform variable. The site launches on `smirnoff.xomware.com` and moves to a standalone domain later.
+- The domain is `smirnoff-league.com` (Route53-registered, zone created by the registrar), set by `var.domain_name`; `www` 301s to the bare domain.
 
 ## Lessons

@@ -8,6 +8,10 @@ module "web" {
   domain_name = var.domain_name
   zone_id     = data.aws_route53_zone.web_zone.zone_id
 
+  # www gets the same distribution and 301s to the bare domain.
+  subject_alternative_names = ["www.${var.domain_name}"]
+  canonical_host            = var.domain_name
+
   # Required for a trailingSlash static export. CloudFront's default root
   # object applies to "/" only, so without the rewrite every deep route falls
   # through to the SPA error path and serves the home page with a 200.

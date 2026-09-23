@@ -41,7 +41,7 @@ re-run the deploy. A dispatched Terraform run on the same commit counts.
 - The sync has no `--delete`: hashed assets go first with a one-year immutable cache,
   then HTML with `no-cache`. `_next/static/` objects older than 7 days are pruned so
   open tabs keep working across a deploy.
-- The bucket name is hard-coded as `S3_BUCKET: smirnoff.xomware.com` in the workflow.
+- The bucket name is hard-coded as `S3_BUCKET: smirnoff-league.com` in the workflow.
 
 ### Backend deploy and the layer
 
@@ -171,7 +171,7 @@ deploy runs; dispatch `deploy-backend.yml` for that folder.
 
 ## Move to a standalone domain
 
-The domain is `var.domain_name` (default `smirnoff.xomware.com`) in
+The domain is `var.domain_name` (default `smirnoff-league.com`) in
 `infrastructure/terraform/variables.tf`.
 
 1. **Cognito first.** In `xomware-infrastructure`, add

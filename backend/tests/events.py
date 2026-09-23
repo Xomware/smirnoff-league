@@ -4,7 +4,7 @@ SUB = "3f1c2b9a-0000-4000-8000-000000000001"
 
 
 def authorized_event(
-    origin="https://smirnoff.xomware.com",
+    origin="https://smirnoff-league.com",
     path="/users/me",
     method="GET",
     body=None,
