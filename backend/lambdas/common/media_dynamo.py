@@ -1,4 +1,4 @@
-"""smirnoff-media video rows, plus the media bucket they point into."""
+"""smirnoff-media rows (ice videos and commish write-ups), plus the media bucket they point into."""
 
 from __future__ import annotations
 
@@ -56,5 +56,60 @@ def ready_videos(week: int | None = None) -> list[dict]:
         key &= Key("mediaId").begins_with(f"W{week:02d}#")
     items = query_all(
         table("MEDIA_TABLE"), KeyConditionExpression=key, FilterExpression=Attr("status").eq("ready")
+    )
+    return [from_dynamo(i) for i in items]
+
+
+def put_writeup(media_id: str, fields: dict) -> None:
+    item = {"kind": "writeup", "mediaId": media_id, **fields, "pageKeys": [], "status": "pending"}
+    table("MEDIA_TABLE").put_item(Item=to_dynamo(item))
+
+
+def get_writeup(media_id: str) -> dict | None:
+    item = table("MEDIA_TABLE").get_item(Key={"kind": "writeup", "mediaId": media_id}).get("Item")
+    return from_dynamo(item) if item else None
+
+
+def writeup_for_pdf(pdf_key: str) -> dict | None:
+    # The S3 key carries only the uuid, not the week half of the sort key. A
+    # season holds a couple dozen write-ups, so filtering the partition is fine.
+    items = query_all(
+        table("MEDIA_TABLE"),
+        KeyConditionExpression=Key("kind").eq("writeup"),
+        FilterExpression=Attr("pdfKey").eq(pdf_key),
+    )
+    return from_dynamo(items[0]) if items else None
+
+
+def set_writeup_status(media_id: str, status: str, page_keys: list[str]) -> None:
+    table("MEDIA_TABLE").update_item(
+        Key={"kind": "writeup", "mediaId": media_id},
+        UpdateExpression="SET #status = :status, pageKeys = :pages",
+        ExpressionAttributeNames={"#status": "status"},
+        ExpressionAttributeValues={":status": status, ":pages": page_keys},
+    )
+
+
+def set_published(media_id: str, published_at: str | None) -> dict:
+    key = {"kind": "writeup", "mediaId": media_id}
+    if published_at is None:
+        res = table("MEDIA_TABLE").update_item(
+            Key=key, UpdateExpression="REMOVE publishedAt", ReturnValues="ALL_NEW"
+        )
+    else:
+        res = table("MEDIA_TABLE").update_item(
+            Key=key,
+            UpdateExpression="SET publishedAt = :at",
+            ExpressionAttributeValues={":at": published_at},
+            ReturnValues="ALL_NEW",
+        )
+    return from_dynamo(res["Attributes"])
+
+
+def published_writeups() -> list[dict]:
+    items = query_all(
+        table("MEDIA_TABLE"),
+        KeyConditionExpression=Key("kind").eq("writeup"),
+        FilterExpression=Attr("publishedAt").exists(),
     )
     return [from_dynamo(i) for i in items]
