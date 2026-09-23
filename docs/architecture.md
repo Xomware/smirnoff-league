@@ -48,7 +48,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 | `smirnoff-users` | `sub` | name, username, rosterId, notificationsSeenAt, createdAt, updatedAt | `common/users_dynamo.py` |
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes` | `common/ices_dynamo.py`, `ledger_get/handler.py` |
-| `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status, publishedAt | `common/media_dynamo.py` |
+| `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |
 
 The season is hard-coded as `SEASON = "2026"` in `common/ices_dynamo.py`.
 
@@ -143,12 +143,18 @@ changes them.
      completed exactly at the deadline, no `updatedBy` and no `videoId`. Anything
      else was really completed and is left alone (`_auto_paid`).
 4. **Completion.** Two paths:
-   - **Upload.** `POST /videos/presign` takes `iceIds` (1 to 10, one week, any
-     rosters when teams chug together), returns a presigned POST (15 min, 1 byte
-     to 200 MB, `video/*`) and writes a `pending` media row. The browser uploads to
-     S3, then `POST /videos/confirm` HEADs the object, marks the media `ready`, and
-     sets every listed `owed` ice to `completed` with `source: "upload"` and
-     `completedBySub` the uploader. An already completed ice only gains the `videoId`.
+   - **Upload.** `POST /videos/presign` takes `iceIds` (1 to 10, distinct, one
+     week, any rosters when teams chug together; a lone `iceId` still works). The
+     caller's roster must own at least one of them unless they are an admin, and
+     none may be voided. It returns a presigned POST (15 min, 1 byte to 200 MB,
+     `video/*`) and writes a `pending` media row carrying `iceIds` and the distinct
+     `rosterIds`. The browser uploads to S3, then `POST /videos/confirm` HEADs the
+     object (409 if it has not landed), marks the media `ready`, and sets every
+     listed `owed` ice to `completed` with `source: "upload"` and `completedBySub`
+     the uploader. An already completed ice only gains the `videoId`; a voided or
+     missing one is skipped. Older single-ice rows (`iceId`, `rosterId`) are read
+     through `media.covered` (`videos_presign/handler.py`,
+     `videos_confirm/handler.py`, `common/media_dynamo.py`).
    - **Admin.** `POST /admin/ice-complete` marks completed (optionally backdated
      with `at`) or undoes it; `/admin/ice-adjust` adds an `admin` ice or voids any
      ice; `/admin/chug-time` sets `chugSeconds`. All go through
@@ -161,6 +167,41 @@ Late rows catch up with any admin change on the next tick, within 15 minutes.
 (default `[13, 14]`) and a per-roster summary of owed, completed, overdue, late and
 late-owed counts. It strips `updatedBy`, the editing admin's email, from every ice
 (`ledger_get/handler.py`).
+
+### Uploading one video for two teams' ices
+
+Roster 3 and roster 7 chugged together for week 4. Roster 3's manager opens the
+upload dialog from their own ice (`initialIceIds`), ticks roster 7's same-week owed
+ice under the other teams, and uploads (`components/videos/UploadChug.tsx`).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser, UploadChug
+  participant P as videos_presign
+  participant C as videos_confirm
+  participant DB as DynamoDB
+  participant S3 as Media bucket
+  participant LG as ledger_get
+  B->>P: POST /videos/presign, iceIds W04#R03#LOWEST and W04#R07#S2
+  P->>DB: get each ice, and the caller's profile
+  Note over P: one week, none voided, caller owns roster 3
+  P->>DB: put media row, pending, iceIds and rosterIds 3 and 7
+  P-->>B: mediaId and presigned POST
+  B->>S3: POST videos/W04#R03#LOWEST/uuid.mp4
+  B->>C: POST /videos/confirm with mediaId
+  C->>S3: HEAD the object
+  C->>DB: media row to ready
+  C->>DB: both ices owed to completed, source upload, videoId
+  C-->>B: video and settled ices
+  B->>B: refreshLedger and refreshVideos
+  B->>LG: GET /ledger/get
+  LG-->>B: both ices completed
+```
+
+The key is `videos/{first iceId}/{uuid}.{ext}` and the media id `W{ww}#{uuid}`
+(`videos_presign/handler.py`). The refreshes reach every mounted view through the
+shared resources (Frontend structure, below).
 
 ## Write-ups
 
@@ -184,8 +225,53 @@ A write-up ("edition") is a PDF an admin uploads, shown to everyone as page imag
 
 The upload dialog (`components/windows/UploadEdition.tsx`) polls the publish route
 with `published: false` every 3 s until the row renders, and gives up after 60 polls.
+The poll response is the whole row (`set_published` returns `ALL_NEW`), so a failed
+row's `failReason` is in it, but the dialog shows only a generic "could not be
+rendered" message.
+
+```mermaid
+flowchart TD
+  A["Admin: UploadEdition"] -->|"POST /admin/writeup-presign"| P["admin_writeup_presign"]
+  P -->|"media row, pending"| DB[("smirnoff-media")]
+  P -->|"presigned POST"| A
+  A -->|"POST writeups/uuid/source.pdf"| S3[("Media bucket")]
+  S3 -->|"ObjectCreated, suffix source.pdf"| R["writeup_render, own role"]
+  R -->|"query kind = writeup by pdfKey"| DB
+  R --> C{"40 pages or fewer, sane page sizes, PDFium opens it?"}
+  C -->|"yes"| W["put p1.webp .. pN.webp"]
+  W --> S3
+  W -->|"rendered, pageKeys"| DB
+  C -->|"no"| F["failed, failReason"]
+  F --> DB
+  A -->|"poll POST /admin/writeup-publish, published false"| PUB["admin_writeup_publish"]
+  PUB --> DB
+  A -->|"published true, rendered rows only"| PUB
+  L["GET /writeups/list"] -->|"published rows, 1-hour page GETs"| V["WriteupWindow"]
+```
 
 ## Frontend structure
+
+```mermaid
+flowchart TD
+  L["app/layout.tsx: DesktopProvider"] --> G{"AuthGate: signed in?"}
+  G -->|"no"| LAND["Landing"]
+  G -->|"yes"| PP["ProfileProvider, AlertsProvider, ProfileGate"]
+  PP --> APP["app/page.tsx: AppShell"]
+  APP --> NP["NotificationsProvider"]
+  NP --> Q{"useMediaQuery PHONE"}
+  Q -->|"desktop"| D["Desktop and Taskbar"]
+  Q -->|"phone"| PH["PhoneShell"]
+  D -->|"one window per open view"| REG["REGISTRY in lib/desktop/registry.tsx"]
+  PH -->|"one screen per tab stack entry"| REG
+  REG --> K1["home: HomeWindow"]
+  REG --> K2["ices, ice-standings, stats, watch, videos"]
+  REG --> K3["scores, standings, brackets, news, writeup"]
+  REG --> K4["team, my-team, player, week"]
+  REG --> K5["folder, notifications, recap, admin"]
+```
+
+The kinds are the keys of `REGISTRY` (`lib/desktop/registry.tsx`). A kind's view is
+the same component in either shell.
 
 - **One real page.** `app/page.tsx` renders `AppShell`. The old routes
   (`/scores`, `/standings`, `/brackets`, `/ices`, `/stats`) are client redirects to
@@ -241,17 +327,51 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
   expire; the live week's matchups and transactions expire after 30 s, `nfl/state`
   and scoreboards after 5 min. A rejected promise is dropped so the next caller
   retries.
-- **Ledger state.** `lib/ices/use-ledger.ts` fetches `/ledger/get`;
-  `refreshLedger()` makes every mounted ledger view refetch after an admin edit or
-  upload.
+- **Shared API caches.** `lib/shared-resource.ts` `sharedResource(load, maxAge)`
+  holds one request per session for an API list, read through
+  `useSyncExternalStore`, so every hook instance shares a result. The ledger
+  (`lib/ices/use-ledger.ts`), chug videos (`lib/videos/use-videos.ts`) and
+  write-ups (`lib/writeups/use-writeups.ts`) use it. Home, the tray warning, the
+  Chug Board, the reel and the notifications provider all read the one ledger
+  call.
+  - `refresh()` (`refreshLedger`, `refreshVideos`, `refreshWriteups`) refetches for
+    every subscriber; a slower earlier response is dropped. An admin edit or upload
+    calls it.
+  - The ledger never expires. Videos and write-ups expire after 50 minutes because
+    their presigned GETs last an hour.
+  - A `<video>` or `<img>` error on a list older than 60 s refreshes it, on the
+    assumption the presigned URL expired.
+  - A failed load goes to `error` and the next subscriber retries.
+    `clearSharedResources()` resets them between tests (`vitest.setup.ts`).
+- **Home.** `components/windows/HomeWindow.tsx`. Once the ledger loads it shows the
+  **Chug Board** and **Chug Reel** (`components/home/`), then the week summary, Who
+  owes, and on phones the Ice Standings top five and the latest edition.
+  - **Chug Board** (`ChugBoard.tsx`, `lib/ices/chug-board.ts` `chugBoard`): per team,
+    every non-late ice still owed plus ices completed in the newest finalized week
+    or the one before. Owed cells show a countdown to the week's `deadlineUtc`
+    (`LATE` or `LATE +n` after it) and, on the manager's own team, an upload button.
+    Completed cells show the video thumbnail. Teams owing most sort first.
+  - **Chug Reel** (`ChugReel.tsx`): videos from the week before the newest
+    finalized week onward, newest first, auto-advancing every 5 s. It pauses on hover or focus
+    and becomes a static strip under reduced motion.
+  - **Countdowns** tick every minute, and every second once a deadline is under an
+    hour off (`lib/ices/use-now.ts`). They use real elapsed time.
+- **Due warning.** `components/home/DueWarning.tsx`, in the taskbar tray
+  (`components/xp/Taskbar.tsx`) and the phone title bar (`PhoneShell.tsx`). It
+  shows the signed-in manager's owed count and the nearest deadline (`myDue` in
+  `chug-board.ts`). The level is `due`, `soon` (24 hours or less) or `late` (any
+  late ice owed or a deadline passed). Clicking it opens the upload dialog on the
+  first owed ice. Nothing renders when they owe nothing.
 - **Ice Watch.** `lib/ices/use-ice-watch.ts` polls Sleeper and ESPN every 45 s while
   a game is in progress, otherwise sleeps until the next kickoff.
 - **Notifications.** Derived in the browser, not stored:
-  `lib/notifications/derive.ts` builds items from the caller's ledger rows (iced,
-  ice due from the Friday before the deadline, late ice added), published editions,
-  chug videos and completed trades involving their roster. Unread means newer than
-  the user's `notificationsSeenAt`; opening the list sends a new mark through
-  `POST /users/update`. `use-notifications.tsx` re-derives every minute, shows one
+  `lib/notifications/derive.ts` builds items from the caller's ledger rows (iced;
+  ice due from the Friday before the deadline, plus 48-hour and 6-hour reminders;
+  late ice added), published editions, chug videos and completed trades involving
+  their roster. Unread means newer than the user's `notificationsSeenAt`, or their
+  profile `createdAt` when they have never opened the list, so history from before
+  signup is not news (`use-notifications.tsx`). Opening the list sends a new mark
+  through `POST /users/update`. `use-notifications.tsx` re-derives every minute, shows one
   balloon per session, and flags `partial` when a source failed. The bell sits in
   the taskbar tray and the phone title bar (`components/xp/NotificationBell.tsx`).
 - **News.** `lib/news/feed.ts` merges Sleeper transactions (adds, drops, waivers,
@@ -267,10 +387,13 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
 - **Chug videos.** `components/videos/UploadChug.tsx` uploads through
   `/videos/presign` and `/videos/confirm` (see Ledger lifecycle). A manager can
   upload for their own team's owed ices, adding other teams' same-week owed ices
-  when they chugged together; admins can backfill any ice. The upload button
-  appears in the Ice Ledger, Chug Videos and team Ices views and opens the dialog
-  with `initialIceIds`. The gallery shows one card per video, listing every ice;
-  `ChugPlayer.tsx` plays from the presigned GET.
+  when they chugged together; ices from another week lock once one is ticked.
+  Admins can backfill any ice. The upload button appears in the Ice Ledger, Chug
+  Videos and team Ices views, the Chug Board and the due warning, and opens the
+  dialog with `initialIceIds`. On success it calls `refreshLedger()` and
+  `refreshVideos()`. The gallery shows one card per video, listing every ice;
+  `videoFor` matches an ice to its video by `videoId`, then by `iceIds`
+  (`lib/videos/use-videos.ts`). `ChugPlayer.tsx` plays from the presigned GET.
 - **Write-ups.** `components/windows/WriteupWindow.tsx` ("News Drop") shows the
   latest edition's pages, or a week's with `?open=writeup:<week>`, plus an archive.
   Admins get **Upload edition** (`UploadEdition.tsx`).
@@ -305,6 +428,20 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
   presigned POSTs whose policy enforces `content-length-range`; reads use 1-hour
   presigned GETs from `/videos/list` and `/writeups/list`. The S3 client signs with
   SigV4 because S3 rejects SigV2 for SSE-KMS objects (`common/media_dynamo.py`).
+- **Least-privilege Lambda roles.** Every API and cron Lambda shares
+  `smirnoff-lambda-exec`. On DynamoDB it gets only `GetItem`, `PutItem`,
+  `UpdateItem` and `Query` on `smirnoff-*` tables; no handler deletes, scans,
+  batches or transacts. On the media bucket it may put and get `videos/*`, put
+  `writeups/*/source.pdf` (to sign the upload), get `writeups/*`, and list the bucket
+  so a HEAD on a missing key is a 404, not a 403 (`iam_lambda.tf`).
+  `smirnoff-writeup-render` runs PDFium over uploaded bytes, so it has its own role,
+  `smirnoff-writeup-render-exec`: `Query` and `UpdateItem` on the media table only
+  where the partition key is `writeup`, get `writeups/*/source.pdf`, put
+  `writeups/*`, and its own log group (`iam_writeup_render.tf`). A PDFium exploit
+  cannot reach the ledger. It also refuses more than 40 pages and any page whose
+  rendered height would pass 14,000 px (`writeup_render/handler.py`).
+- **No admin emails to managers.** `GET /ledger/get` strips `updatedBy` from every
+  ice (`ledger_get/handler.py`).
 - **Admins.** `require_admin` reads SSM `/smirnoff/admin-emails` on every call, no
   cache, and compares against the caller's lowercased `email` claim
   (`common/admins.py`). Terraform writes that parameter from `var.admin_emails`,
@@ -322,6 +459,10 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
   reads their ARNs from the `AWS_TERRAFORM_PLAN_ROLE_ARN` and
   `AWS_TERRAFORM_APPLY_ROLE_ARN` secrets, and a pull request can only assume the plan
   role (`.github/workflows/terraform.yml`).
+- **Branch protection.** `main` requires a pull request (zero approvals) and
+  `enforce_admins` is on, so admins cannot push directly; force pushes and deletion
+  are off. It is set in the repo settings, not in code (GitHub API
+  `repos/domgiordano/smirnoff-league/branches/main/protection`).
 - **Repo secrets.** `AWS_TERRAFORM_PLAN_ROLE_ARN`, `AWS_TERRAFORM_APPLY_ROLE_ARN`,
   `AWS_ROLE_ARN` (the deploy role) and `ADMIN_EMAILS`. Secrets do not transfer when a
   repo moves; see the runbook.
@@ -342,14 +483,17 @@ with `published: false` every 3 s until the row renders, and gives up after 60 p
 | `frontend/components/windows/`, `frontend/components/views/` | Window and view bodies |
 | `frontend/components/admin/` | Control Panel (ices, week rules and finalize, toilet bowl) |
 | `frontend/components/videos/` | Chug video upload and player |
+| `frontend/components/home/` | Chug Board, Chug Reel, due warning |
 | `frontend/lib/desktop/` | Window reducer, registry, Ices folder apps, deep links, layout persistence |
 | `frontend/lib/notifications/` | Notification derivation and provider |
 | `frontend/lib/news/` | League News feed |
 | `frontend/public/brand/` | Crest, mascot, robot head, ice bottle, wallpaper |
 | `frontend/lib/phone/` | Phone tab stacks and history sync |
 | `frontend/lib/league/` | League cache, standings, brackets, drill-down data |
-| `frontend/lib/ices/` | Ice rule (TS), tally, stats, ledger and watch hooks |
-| `frontend/lib/api/` | Authorized API client and per-route wrappers |
+| `frontend/lib/ices/` | Ice rule (TS), tally, stats, Chug Board data, ledger, watch and clock hooks |
+| `frontend/lib/shared-resource.ts` | Session-wide shared cache for API lists |
+| `frontend/lib/videos/`, `frontend/lib/writeups/` | Shared video and write-up list hooks |
+| `frontend/lib/api/` | Authorized API client, per-route wrappers, presigned upload |
 | `frontend/lib/auth/` | Amplify config and auth hook |
 | `frontend/scripts/` | `build-players.mjs` (prebuild), `verify-build.mjs` (postbuild) |
 | `backend/lambdas/<name>/handler.py` | One Lambda per folder; `smirnoff-<name with dashes>` |
@@ -370,8 +514,11 @@ Recheck a section when a file matching its globs changes.
 | API surface | `infrastructure/terraform/lambda.tf`, `infrastructure/terraform/api_gateway.tf`, `backend/lambdas/*/handler.py` |
 | Request flow | `infrastructure/terraform/*.tf`, `frontend/lib/api/**`, `backend/lambdas/common/api.py` |
 | The ice rule | `backend/lambdas/common/ices.py`, `frontend/lib/ices/compute.ts`, `fixtures/ices-golden.json` |
-| Ledger lifecycle | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**` |
-| Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `infrastructure/terraform/{lambda,iam}_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
-| Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news}/**`, `frontend/lib/ices/{stats,analysis,use-*}.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
-| Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
+| Ledger lifecycle, upload sequence | `backend/lambdas/common/{finalize,late,ice_admin,ices_dynamo,media_dynamo}.py`, `backend/lambdas/cron_tick/**`, `backend/lambdas/videos_*/**`, `backend/lambdas/admin_*/**`, `backend/lambdas/ledger_get/**`, `frontend/components/videos/UploadChug.tsx`, `frontend/lib/api/{videos,upload}.ts` |
+| Write-ups | `backend/lambdas/{admin_writeup_presign,admin_writeup_publish,writeup_render,writeups_list}/**`, `backend/lambdas/common/media_dynamo.py`, `infrastructure/terraform/{lambda,iam}_writeup_render.tf`, `frontend/components/windows/{WriteupWindow,UploadEdition}.tsx` |
+| Frontend structure | `frontend/app/**`, `frontend/components/**`, `frontend/lib/{desktop,phone,league,notifications,news,videos,writeups,profile}/**`, `frontend/lib/ices/{stats,analysis,chug-board,use-*}.ts`, `frontend/lib/shared-resource.ts`, `frontend/lib/use-media-query.ts`, `frontend/public/brand/**` |
+| Auth and security | `backend/lambdas/common/{api,admins,media_dynamo}.py`, `backend/lambdas/ledger_get/handler.py`, `backend/lambdas/writeup_render/handler.py`, `infrastructure/terraform/{api_gateway,ssm,s3_media,oidc_deploy,locals,iam_lambda,iam_writeup_render}.tf`, `frontend/lib/auth/**`, `frontend/components/auth/**`, `.github/workflows/terraform.yml` |
 | File index | any new top-level folder under `frontend/`, `backend/` or `infrastructure/` |
+| `README.md` diagrams and features | `infrastructure/terraform/*.tf`, `backend/lambdas/common/{finalize,late,ice_admin}.py`, `frontend/lib/desktop/registry.tsx` |
+| `frontend/README.md` | `frontend/lib/*`, `frontend/components/*` (new or removed folders), `frontend/lib/shared-resource.ts`, `frontend/lib/{league,ices,videos,writeups,profile,alerts,notifications}/use-*.ts*`, `frontend/components/auth/auth-gate.tsx`, `frontend/components/phone/AppShell.tsx` |
+| Branch protection (Auth and security, runbook) | repo settings; recheck with `gh api repos/domgiordano/smirnoff-league/branches/main/protection` |
