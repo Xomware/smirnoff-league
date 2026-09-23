@@ -162,7 +162,10 @@ jobs:
           cp -r lambdas/common python/lambdas/
           touch python/lambdas/__init__.py
           python -m pip install --upgrade pip
-          pip install --platform manylinux2014_x86_64 --only-binary=:all: -t python/ -r requirements.txt
+          # Pillow 12.1+ publishes only manylinux_2_28 wheels. The python3.12
+          # runtime is Amazon Linux 2023 (glibc 2.34), so they load fine.
+          pip install --platform manylinux2014_x86_64 --platform manylinux_2_28_x86_64 \
+            --only-binary=:all: -t python/ -r requirements.txt
           # Layer must keep the python/ prefix at root so Lambda adds it to sys.path.
           zip -r ${APP_NAME}-shared-packages.zip python >/dev/null
 

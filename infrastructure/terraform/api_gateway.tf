@@ -19,6 +19,11 @@ locals {
       invoke_arn = aws_lambda_function.api["videos_${l.name}"].invoke_arn
     })
   ]
+  writeups_endpoints = [
+    for l in local.writeups_lambdas : merge(l, {
+      invoke_arn = aws_lambda_function.api["writeups_${l.name}"].invoke_arn
+    })
+  ]
 }
 
 module "api" {
@@ -38,9 +43,10 @@ module "api" {
   allow_origin = local.cors_allowed_origins
 
   services = {
-    users  = { path_prefix = "users", endpoints = local.users_endpoints }
-    admin  = { path_prefix = "admin", endpoints = local.admin_endpoints }
-    ledger = { path_prefix = "ledger", endpoints = local.ledger_endpoints }
-    videos = { path_prefix = "videos", endpoints = local.videos_endpoints }
+    users    = { path_prefix = "users", endpoints = local.users_endpoints }
+    admin    = { path_prefix = "admin", endpoints = local.admin_endpoints }
+    ledger   = { path_prefix = "ledger", endpoints = local.ledger_endpoints }
+    videos   = { path_prefix = "videos", endpoints = local.videos_endpoints }
+    writeups = { path_prefix = "writeups", endpoints = local.writeups_endpoints }
   }
 }

@@ -3,3 +3,9 @@
 # zoneinfo's IANA data. The Lambda image may not ship /usr/share/zoneinfo, and
 # a missing zone would make every late-ice deadline fail to compute.
 tzdata==2026.4
+
+# writeup_render. pypdfium2 is Apache-2.0/BSD-3-Clause and its bundled PDFium
+# is BSD-3-Clause; PyMuPDF was ruled out as AGPL. Pillow (MIT-CMU) encodes the
+# WebP. Together about 30MB unzipped, far under the 250MB layer limit.
+pypdfium2==5.13.0
+pillow==12.3.0

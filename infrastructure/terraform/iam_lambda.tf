@@ -54,6 +54,14 @@ data "aws_iam_policy_document" "lambda_policy" {
     resources = ["${aws_s3_bucket.media.arn}/videos/*"]
   }
 
+  # Presign signs the PDF POST, writeup_render reads it and writes the pages,
+  # and /writeups/list signs page GETs.
+  statement {
+    sid       = "MediaWriteups"
+    actions   = ["s3:PutObject", "s3:GetObject"]
+    resources = ["${aws_s3_bucket.media.arn}/writeups/*"]
+  }
+
   # Without ListBucket, HEAD on a missing key returns 403 instead of 404, and
   # /videos/confirm could not tell "not uploaded yet" from a permissions fault.
   statement {
