@@ -147,7 +147,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
         </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
-      <PushContext value={push}>
+      <PushContext value={go}>
         <DrillContext.Provider value={open}>
           <NavigateContext value={open}>
             <main className="m-screens">

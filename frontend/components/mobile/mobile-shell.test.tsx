@@ -252,7 +252,7 @@ describe("tabs", () => {
   it("reaches the draft recap, my profile and settings from Menu", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /Draft Recap/ }));
+    fireEvent.click(top().getByRole("button", { name: "Draft recap" }));
     await waitFor(() => expect(title()).toBe("Now Playing - Draft Recap"));
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Menu"));
@@ -398,7 +398,7 @@ describe("Ice Rankings", () => {
     expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
 
     fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /^Ice Rankings/ }));
+    fireEvent.click(top().getByRole("button", { name: "Rankings" }));
     await waitFor(() => expect(title()).toBe("Ice Rankings"));
     expect(window.location.search).toBe("?open=menu,chug-rankings");
   });
@@ -408,7 +408,7 @@ describe("screens that were tabbed on the desktop", () => {
   it("stacks Ice Stats' sections under one chip row", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /^Ice Stats/ }));
+    fireEvent.click(top().getByRole("button", { name: "Stats" }));
     await top().findByRole("navigation", { name: "Ice Stats sections" });
     expectStacked("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
   });

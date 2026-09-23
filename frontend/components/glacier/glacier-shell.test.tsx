@@ -63,10 +63,10 @@ afterEach(() => {
 });
 
 describe("GlacierShell", () => {
-  it("marks its root as the Glacier theme and lists the six pages", () => {
+  it("marks its root as the Glacier theme and lists the five sections", () => {
     const { container } = renderShell();
     expect(container.firstElementChild!.getAttribute("data-theme")).toBe("glacier");
-    expect(nav().getAllByRole("link").map((a) => a.textContent)).toEqual(["Home", "Games", "Ices", "Rankings", "League", "News Drop"]);
+    expect(nav().getAllByRole("link").map((a) => a.textContent)).toEqual(["Home", "Games", "Ices", "League", "News Drop"]);
     expect(nav().getByRole("link", { name: "Home" }).getAttribute("aria-current")).toBe("page");
   });
 
@@ -87,7 +87,9 @@ describe("GlacierShell", () => {
     window.history.replaceState(null, "", "/?open=chug-rankings");
     renderShell();
     expect(heading()).toBe("Ice Rankings");
-    expect(nav().getByRole("link", { name: "Rankings" }).getAttribute("aria-current")).toBe("page");
+    expect(nav().getByRole("link", { name: "Ices" }).getAttribute("aria-current")).toBe("page");
+    const sub = within(screen.getByRole("navigation", { name: "Ices pages" }));
+    expect(sub.getByRole("link", { name: "Rankings" }).getAttribute("aria-current")).toBe("page");
   });
 
   it("opens the palette on Cmd+K and goes where the pick points", async () => {

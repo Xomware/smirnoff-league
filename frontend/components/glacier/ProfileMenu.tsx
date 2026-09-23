@@ -6,14 +6,14 @@ import { type MouseEvent, useEffect, useId, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/use-auth";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
-import type { GlacierView } from "./GlacierShell";
+import type { PageView } from "@/lib/sections";
 
 interface ProfileMenuProps {
-  urlOf: (to: GlacierView) => string;
-  onNav: (e: MouseEvent, to: GlacierView) => void;
+  urlOf: (to: PageView) => string;
+  onNav: (e: MouseEvent, to: PageView) => void;
 }
 
-const page = (kind: GlacierView["kind"]): GlacierView => ({ kind, params: {} });
+const page = (kind: PageView["kind"]): PageView => ({ kind, params: {} });
 
 export function ProfileMenu({ urlOf, onNav }: ProfileMenuProps) {
   const { me, myRosterId } = useProfile();
@@ -44,7 +44,7 @@ export function ProfileMenu({ urlOf, onNav }: ProfileMenuProps) {
 
   const name = me?.profile?.name ?? "Account";
   const team = data && myRosterId !== null ? teamFor(myRosterId) : null;
-  const items: [string, GlacierView][] = [
+  const items: [string, PageView][] = [
     ["My Profile", page("profile")],
     ["My Team", page("my-team")],
     ["Settings", page("settings")],

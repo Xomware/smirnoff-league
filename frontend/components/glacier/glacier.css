@@ -288,6 +288,71 @@
   outline-offset: -3px;
 }
 
+.glacier-subnav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  /* Clears the header's icicles, with room for the focus ring. */
+  padding: 26px 42px 6px;
+  overflow-x: auto;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.glacier-subnav a {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--g-text);
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.glacier-subnav a:hover {
+  background: rgb(170 225 255 / 0.12);
+  text-decoration: none;
+}
+
+.glacier-subnav a:active {
+  background: rgb(170 225 255 / 0.2);
+}
+
+.glacier-subnav a[aria-current="page"] {
+  border-color: var(--g-frost-edge);
+  background: rgb(170 225 255 / 0.18);
+  color: var(--g-text-strong);
+}
+
+.glacier-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.glacier-teams .xp-drill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 14px;
+}
+
+.glacier-teams .xp-drill:hover {
+  background: rgb(170 225 255 / 0.1);
+}
+
+.glacier-record {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
 /* The header's Search button replaces the palette's floating one. */
 .glacier .palette-fab {
   display: none;
@@ -297,6 +362,10 @@
   flex-grow: 1;
   overflow-y: auto;
   padding: 48px 48px 64px;
+}
+
+.glacier-subnav ~ .glacier-page {
+  padding-top: 24px;
 }
 
 .glacier-title {
@@ -357,22 +426,20 @@
     padding-inline: 24px;
   }
 
-  .glacier-brand span {
-    display: none;
+  .glacier-subnav {
+    padding-inline: 18px;
   }
 
-}
-
-/* Six nav links, search, the theme switch, the bell and the account menu only
-   fit a 1440 header without the manager's name. */
-@media (max-width: 1519.98px) {
+  .glacier-brand span,
   .glacier-account-name {
     display: none;
   }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   .glacier-nav a,
+  .glacier-subnav a,
   .glacier-pill,
   .glacier-header .notif-bell {
     transition: none;
