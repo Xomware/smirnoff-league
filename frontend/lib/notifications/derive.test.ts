@@ -120,7 +120,7 @@ describe("deriveNotifications", () => {
 });
 
 describe("due window", () => {
-  const due = (now: string) => deriveNotifications(sources({ now: ms(now) })).find((n) => n.kind === "due");
+  const due = (now: string) => deriveNotifications(sources({ now: ms(now) })).find((n) => n.id.startsWith("due:"));
 
   it("opens at Friday 00:00 ET and closes at the deadline", () => {
     expect(due("2026-10-02T03:59:59Z")).toBeUndefined();
@@ -156,6 +156,33 @@ describe("due window", () => {
     expect(deriveNotifications(sources({ ledger: two, now: ms("2026-10-03T12:00:00Z") })).find((n) => n.kind === "due")?.body).toBe(
       "You owe 2 ices for Week 3",
     );
+  });
+});
+
+describe("deadline warnings", () => {
+  const warnings = (now: string, over: Partial<NotificationSources> = {}) =>
+    deriveNotifications(sources({ now: ms(now), ...over })).filter((n) => /^due\d+h:/.test(n.id));
+
+  it("adds a warning 48h and 6h before the deadline, until it passes", () => {
+    expect(warnings("2026-10-02T16:59:59Z")).toEqual([]);
+    expect(warnings("2026-10-02T17:00:00Z")).toEqual([
+      { id: "due48h:W03", kind: "due", at: ms("2026-10-02T17:00:00Z"), title: "Ice due in 48 hours", body: "You owe 1 ice for Week 3", target: { kind: "ices" } },
+    ]);
+    expect(warnings("2026-10-04T11:00:00Z").map((n) => [n.id, n.at, n.title])).toEqual([
+      ["due6h:W03", ms("2026-10-04T11:00:00Z"), "Ice due in 6 hours"],
+      ["due48h:W03", ms("2026-10-02T17:00:00Z"), "Ice due in 48 hours"],
+    ]);
+    expect(warnings("2026-10-04T17:00:00Z")).toEqual([]);
+  });
+
+  it("counts real hours across the fall-back", () => {
+    expect(warnings("2026-10-30T18:00:00Z").map((n) => n.id)).toEqual(["due48h:W09"]);
+    expect(warnings("2026-11-01T12:00:00Z").map((n) => n.id)).toEqual(["due6h:W09", "due48h:W09"]);
+  });
+
+  it("skips a week I have paid", () => {
+    const paid = { ...LEDGER, ices: LEDGER.ices.map((i) => ({ ...i, status: "completed" as const })) };
+    expect(warnings("2026-10-04T12:00:00Z", { ledger: paid })).toEqual([]);
   });
 });
 

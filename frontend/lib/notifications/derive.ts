@@ -23,7 +23,8 @@ export interface NotificationSources {
   now: number;
 }
 
-const DAY = 24 * 60 * 60 * 1000;
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const CAUSE: Record<LedgerIce["reason"], string> = {
   zero: "a starter scored zero",
@@ -113,8 +114,12 @@ function iceItems({ ledger, myRosterId, now }: NotificationSources): Notificatio
     const friday = etToMs(p.year, p.month, p.day - ((p.weekday + 2) % 7), 0);
     if (!owed || now < friday || now >= due) continue;
     const body = `You owe ${owed} ${owed === 1 ? "ice" : "ices"} for Week ${week.week}`;
-    const id = `due:W${String(week.week).padStart(2, "0")}`;
-    items.push({ id, kind: "due", at: friday, title: dueLabel(due), body, target: { kind: "ices" } });
+    const w = `W${String(week.week).padStart(2, "0")}`;
+    items.push({ id: `due:${w}`, kind: "due", at: friday, title: dueLabel(due), body, target: { kind: "ices" } });
+    for (const hours of [48, 6]) {
+      const at = due - hours * HOUR;
+      if (now >= at) items.push({ id: `due${hours}h:${w}`, kind: "due", at, title: `Ice due in ${hours} hours`, body, target: { kind: "ices" } });
+    }
   }
   return items;
 }
