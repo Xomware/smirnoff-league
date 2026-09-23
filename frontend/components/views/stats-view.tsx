@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { type ReactElement, useMemo } from "react";
 
-import { Tabs } from "@/components/xp/Tabs";
+import { type Tab, Tabs } from "@/components/xp/Tabs";
 import { iceAnalysis, pct, takeaways } from "@/lib/ices/analysis";
 import { iceStats } from "@/lib/ices/stats";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
@@ -21,7 +21,8 @@ const REASONS = { zero: "Zero", empty: "Empty", lowest: "Lowest" } as const;
 
 const rank = (pos: string) => (POSITION_ORDER.indexOf(pos) + 1 || POSITION_ORDER.length + 1);
 
-export function StatsView() {
+// The desktop shows these as tabs, the phone as stacked sections.
+export function useStatsSections(): { fallback: ReactElement } | { sections: Tab[] } {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { finishedWeeks, error: icesError } = useSeasonIces(currentWeek);
@@ -33,10 +34,10 @@ export function StatsView() {
     return { stats: iceStats(finishedWeeks, positionOf), analysis: iceAnalysis(finishedWeeks, positionOf) };
   }, [data, finishedWeeks]);
 
-  if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
-  if (!data || !all) return <p role="status">Counting the ices...</p>;
+  if (error) return { fallback: <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p> };
+  if (!data || !all) return { fallback: <p role="status">Counting the ices...</p> };
   if (all.stats.byWeek.length === 0) {
-    return <p>No finished weeks yet. The Hall of Shame is still taking applications.</p>;
+    return { fallback: <p>No finished weeks yet. The Hall of Shame is still taking applications.</p> };
   }
 
   const { stats, analysis } = all;
@@ -152,16 +153,18 @@ export function StatsView() {
     </ChartCard>
   );
 
-  return (
-    <Tabs
-      label="Ice Stats sections"
-      tabs={[
-        { label: "Overview", panel: overview },
-        { label: "Race", panel: racePanel },
-        { label: "Lineups", panel: () => <StatsLineups analysis={analysis} notes={notes} teamName={teamName} playerName={playerName} /> },
-        { label: "Positions", panel: positionsPanel },
-        { label: "Hall of Shame", panel: () => <HallOfShame stats={stats} teamName={teamName} playerName={playerName} /> },
-      ]}
-    />
-  );
+  return {
+    sections: [
+      { label: "Overview", panel: overview },
+      { label: "Race", panel: racePanel },
+      { label: "Lineups", panel: () => <StatsLineups analysis={analysis} notes={notes} teamName={teamName} playerName={playerName} /> },
+      { label: "Positions", panel: positionsPanel },
+      { label: "Hall of Shame", panel: () => <HallOfShame stats={stats} teamName={teamName} playerName={playerName} /> },
+    ],
+  };
+}
+
+export function StatsView() {
+  const stats = useStatsSections();
+  return "fallback" in stats ? stats.fallback : <Tabs label="Ice Stats sections" tabs={stats.sections} />;
 }

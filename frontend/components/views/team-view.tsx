@@ -43,16 +43,15 @@ function OpponentLink({ rosterId, teamFor }: OpponentLinkProps) {
   );
 }
 
-export function TeamView({ rosterId }: TeamViewProps) {
+// Everything a manager profile shows, for the desktop's tabbed profile and the phone's stacked one.
+export function useTeamProfile(rosterId: number) {
   const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
   const shown = useDefaultWeek();
   const ledger = useLedger();
   const { myRosterId } = useProfile();
 
-  if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
-  if (!data || !tally || !weeks || !live || currentWeek === undefined || shown === undefined) {
-    return <p role="status">Loading the team...</p>;
-  }
+  if (error) return { status: "error" as const, error };
+  if (!data || !tally || !weeks || !live || currentWeek === undefined || shown === undefined) return { status: "loading" as const };
 
   const team = teamFor(rosterId);
   const roster = data.rosters.find((r) => r.roster_id === rosterId);
@@ -88,7 +87,98 @@ export function TeamView({ rosterId }: TeamViewProps) {
       : [],
   );
   const points = seasonPoints([...weeks, { week: currentWeek, matchups: live }]);
-  const playerName = (id: string) => data.players[id]?.name ?? id;
+  const bench = mine?.starters
+    ? (mine.players ?? []).filter((id) => !mine.starters!.includes(id)).sort((a, b) => (points.get(b) ?? 0) - (points.get(a) ?? 0))
+    : [];
+
+  return {
+    status: "ok" as const,
+    rosterId,
+    data,
+    teamFor,
+    currentWeek,
+    ledger,
+    isMine: rosterId === myRosterId,
+    team,
+    manager,
+    pf,
+    pa,
+    rank,
+    teamCount: standings.length,
+    playoffTeams,
+    danger,
+    results,
+    provisional,
+    ices,
+    lineup,
+    mine,
+    bench,
+    icedSlots,
+    points,
+    playerName: (id: string) => data.players[id]?.name ?? id,
+    headToHead: headToHead(weeks, rosterId, data.rosters.map((r) => r.roster_id)),
+  };
+}
+
+export type TeamProfile = Extract<ReturnType<typeof useTeamProfile>, { status: "ok" }>;
+
+export function ProfileHead({ profile: p }: { profile: TeamProfile }) {
+  return (
+    <section aria-label={p.team.name} className="profile-head">
+      <span className={`profile-avatar${p.provisional ? " ice" : ""}`} aria-hidden>
+        {p.team.avatarUrl ? <Image src={p.team.avatarUrl} alt="" width={56} height={56} className="size-full object-cover" /> : p.team.name.charAt(0).toUpperCase()}
+      </span>
+      <div className="min-w-0">
+        <h3 className="profile-name">
+          {p.team.name}
+          {p.isMine && <StarIcon width={18} height={18} className="shrink-0" role="img" aria-hidden={false} aria-label="Your team" />}
+        </h3>
+        {p.manager && p.manager !== p.team.name && <p className="truncate">{p.manager}</p>}
+      </div>
+      <dl className="profile-stats">
+        <div>
+          <dt>Record</dt>
+          <dd>
+            {p.team.record.wins}-{p.team.record.losses}
+            {p.team.record.ties > 0 && `-${p.team.record.ties}`}
+          </dd>
+        </div>
+        <div>
+          <dt>PF / PA</dt>
+          <dd>
+            {p.pf.toFixed(2)} / {p.pa.toFixed(2)}
+          </dd>
+        </div>
+        <div>
+          <dt>Rank</dt>
+          <dd>
+            {ordinal(p.rank)} of {p.teamCount}{" "}
+            {p.danger ? (
+              <span className="profile-chip" data-tone="danger">
+                <WarningIcon width={12} height={12} />
+                Danger zone
+              </span>
+            ) : (
+              <span className="profile-chip" data-tone={p.rank <= p.playoffTeams ? "in" : "out"}>
+                {p.rank <= p.playoffTeams ? "Playoff spot" : "Out"}
+              </span>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Ices</dt>
+          <dd>{p.ices}</dd>
+        </div>
+      </dl>
+    </section>
+  );
+}
+
+export function TeamView({ rosterId }: TeamViewProps) {
+  const profile = useTeamProfile(rosterId);
+  if (profile.status === "error") return <p role="alert">Could not reach Sleeper ({profile.error}). Refresh to try again.</p>;
+  if (profile.status === "loading") return <p role="status">Loading the team...</p>;
+  const { data, teamFor, currentWeek, ledger, team, results, lineup, mine, bench, icedSlots, points, playerName } = profile;
 
   const resultsPanel = () => (
     <div className="grid gap-3">
@@ -160,7 +250,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
           </tr>
         </thead>
         <tbody>
-          {headToHead(weeks, rosterId, data.rosters.map((r) => r.roster_id)).map((h) => {
+          {profile.headToHead.map((h) => {
             const played = h.wins + h.losses + h.ties > 0;
             return (
               <tr key={h.rosterId}>
@@ -180,9 +270,6 @@ export function TeamView({ rosterId }: TeamViewProps) {
 
   const rosterPanel = () => {
     if (!lineup || !mine?.starters) return <p>No lineup from Sleeper yet.</p>;
-    const bench = (mine.players ?? [])
-      .filter((id) => !mine.starters!.includes(id))
-      .sort((a, b) => (points.get(b) ?? 0) - (points.get(a) ?? 0));
     const player = (id: string) => <DrillLink to={{ kind: "player", playerId: id }}>{playerName(id)}</DrillLink>;
     return (
       <div className="grid gap-3 @2xl:grid-cols-2 @2xl:items-start">
@@ -221,53 +308,7 @@ export function TeamView({ rosterId }: TeamViewProps) {
 
   return (
     <div className="profile grid gap-3">
-      <section aria-label={team.name} className="profile-head">
-        <span className={`profile-avatar${provisional ? " ice" : ""}`} aria-hidden>
-          {team.avatarUrl ? <Image src={team.avatarUrl} alt="" width={56} height={56} className="size-full object-cover" /> : team.name.charAt(0).toUpperCase()}
-        </span>
-        <div className="min-w-0">
-          <h3 className="profile-name">
-            {team.name}
-            {rosterId === myRosterId && <StarIcon width={18} height={18} className="shrink-0" role="img" aria-hidden={false} aria-label="Your team" />}
-          </h3>
-          {manager && manager !== team.name && <p className="truncate">{manager}</p>}
-        </div>
-        <dl className="profile-stats">
-          <div>
-            <dt>Record</dt>
-            <dd>
-              {team.record.wins}-{team.record.losses}
-              {team.record.ties > 0 && `-${team.record.ties}`}
-            </dd>
-          </div>
-          <div>
-            <dt>PF / PA</dt>
-            <dd>
-              {pf.toFixed(2)} / {pa.toFixed(2)}
-            </dd>
-          </div>
-          <div>
-            <dt>Rank</dt>
-            <dd>
-              {ordinal(rank)} of {standings.length}{" "}
-              {danger ? (
-                <span className="profile-chip" data-tone="danger">
-                  <WarningIcon width={12} height={12} />
-                  Danger zone
-                </span>
-              ) : (
-                <span className="profile-chip" data-tone={rank <= playoffTeams ? "in" : "out"}>
-                  {rank <= playoffTeams ? "Playoff spot" : "Out"}
-                </span>
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt>Ices</dt>
-            <dd>{ices}</dd>
-          </div>
-        </dl>
-      </section>
+      <ProfileHead profile={profile} />
 
       <Tabs
         label={`${team.name} profile`}
@@ -288,7 +329,7 @@ interface PointsChartProps {
   name: string;
 }
 
-function PointsChart({ results, name }: PointsChartProps) {
+export function PointsChart({ results, name }: PointsChartProps) {
   const round = (n: number) => Math.round(n * 100) / 100;
   const above = results.filter((r) => r.points > r.leagueAvg).length;
   return (
