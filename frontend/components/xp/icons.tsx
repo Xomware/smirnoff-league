@@ -319,6 +319,16 @@ export function BellIcon(props: IconProps) {
   );
 }
 
+export function SearchIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9.5 9.5l4.5 4.5" className="stroke-(--xp-wood) stroke-[2.5]" />
+      <circle cx="6.5" cy="6.5" r="4.5" className="fill-(--xp-sky-bottom) stroke-(--xp-text) stroke-[1.5]" />
+      <path d="M4.5 5a2.5 2.5 0 0 1 2-1.5" className="fill-none stroke-(--xp-cream)" />
+    </Icon>
+  );
+}
+
 export const ALERT_ICONS = {
   ice: IceBottleIcon,
   info: InfoIcon,

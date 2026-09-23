@@ -1,10 +1,11 @@
 "use client";
 
-import { type ComponentType, useEffect, useRef } from "react";
+import { type ComponentType, useEffect, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
+import { CommandPalette } from "@/components/palette/CommandPalette";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon } from "@/components/xp/icons";
+import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import type { WindowParams } from "@/lib/desktop/windows";
@@ -85,6 +86,7 @@ export function MobileShell() {
   const top = stack[stack.length - 1];
   const topKey = `${nav.tab}/${stack.length}/${screenId(top)}`;
   const shown = useRef(topKey);
+  const [searching, setSearching] = useState(false);
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
   useEffect(() => {
@@ -93,11 +95,12 @@ export function MobileShell() {
     heading.current?.focus({ preventScroll: true });
   }, [topKey]);
 
-  const open = ({ kind, ...params }: DrillTarget) => {
+  const go = ({ kind, params }: Screen) => {
     const tab = foldedInto(kind);
     if (tab) return selectTab(tab);
     push({ kind, params });
   };
+  const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
 
   return (
     <div className="m-app">
@@ -110,6 +113,9 @@ export function MobileShell() {
         <h1 ref={heading} tabIndex={-1} className="m-title">
           {title(top)}
         </h1>
+        <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
+          <SearchIcon width={24} height={24} />
+        </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
       </header>
       <PushContext value={push}>
@@ -156,6 +162,12 @@ export function MobileShell() {
           );
         })}
       </nav>
+      <CommandPalette
+        phone
+        open={searching}
+        onOpenChange={setSearching}
+        onGo={(to) => go(to.type === "game" ? { kind: "game", params: { matchup: to.matchup, week: to.week } } : to)}
+      />
     </div>
   );
 }
