@@ -70,6 +70,19 @@
   box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
 }
 
+.chug-player {
+  width: min(36rem, 100%);
+  font-size: 0.8125rem;
+  box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
+}
+
+.chug-player video {
+  display: block;
+  width: 100%;
+  max-height: min(36rem, 100dvh - 10rem);
+  background: var(--xp-screen);
+}
+
 .chug-dialog input[type="file"] {
   max-width: 100%;
   font-weight: normal;
