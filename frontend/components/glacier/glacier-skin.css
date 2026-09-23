@@ -836,3 +836,33 @@
     transition: none;
   }
 }
+
+/* The Control Panel's task-pane blue reads XP tokens Glacier leaves alone, so
+   Glacier drops it for two frosted columns. */
+[data-theme="glacier"] .cp {
+  gap: 16px;
+  margin: 0;
+  background: none;
+}
+
+[data-theme="glacier"] .cp-side {
+  padding: 0;
+}
+
+[data-theme="glacier"] :is(.cp-side-box, .cp-main) {
+  border: 1px solid var(--g-line);
+  border-radius: 16px;
+}
+
+[data-theme="glacier"] .cp-main {
+  padding: 20px;
+}
+
+[data-theme="glacier"] .cp-side-title {
+  border-radius: 16px 16px 0 0;
+  background: none;
+}
+
+[data-theme="glacier"] :is(.cp-timeline, .cp-users tr) {
+  background: var(--g-row);
+}

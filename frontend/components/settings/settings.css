@@ -1,0 +1,81 @@
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 640px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.settings-group + .settings-group {
+  padding-top: 24px;
+  border-top: 1px solid rgb(127 127 127 / 0.3);
+}
+
+.settings-group h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+[data-theme="glacier"] .settings-group h2 {
+  font-family: var(--g-display);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.settings-group .xp-email-alerts {
+  align-self: stretch;
+}
+
+.settings-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+[data-theme="glacier"] .settings input[type="checkbox"] {
+  accent-color: var(--g-red);
+}
+
+.settings-check input {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-form {
+  gap: 16px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field label {
+  font-weight: 700;
+}
+
+.settings-field :is(.xp-input, .xp-select) {
+  min-height: 40px;
+}
+
+.settings-hint {
+  margin: -8px 0 0;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
