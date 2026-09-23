@@ -1,15 +1,27 @@
-/* Above every XP layer (the palette tops out at 71). It never takes a pointer. */
+/* The snow sits at -1 inside each Glacier root, which needs its own stacking
+   context for that to land above the root's background and below its content.
+   The phone app is position: fixed, which already makes one. */
+.glacier,
+.gl {
+  z-index: 0;
+}
+
+.glacier-snow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Snowballs are momentary, so they fly over everything, above every XP layer
+   (the palette tops out at 71). It never takes a pointer. */
 .glacier-effects {
   position: fixed;
   inset: 0;
   z-index: 80;
   overflow: hidden;
   pointer-events: none;
-}
-
-.glacier-snow {
-  position: absolute;
-  inset: 0;
 }
 
 .glacier-flake {
@@ -26,19 +38,6 @@
   .glacier-flake:nth-child(n + 36) {
     display: none;
   }
-}
-
-.glacier-trail {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 10px;
-  height: 10px;
-  margin: -5px 0 0 -5px;
-  border-radius: 50%;
-  background: #f6fbff;
-  box-shadow: 0 0 10px #f6fbff, 0 0 2px #9ccfea;
-  transition: transform 0.25s ease-out;
 }
 
 .glacier-ball {
@@ -98,5 +97,68 @@
   100% {
     opacity: 0;
     transform: scale(1.6);
+  }
+}
+
+[data-wobble] {
+  animation: glacier-wobble 0.6s ease-out;
+}
+
+[data-wobble="left"] {
+  --wobble: -1;
+}
+
+@keyframes glacier-wobble {
+  20% {
+    transform: skewX(calc(var(--wobble, 1) * -8deg)) scaleY(1.04);
+  }
+  45% {
+    transform: skewX(calc(var(--wobble, 1) * 5deg)) scaleY(0.98);
+  }
+  70% {
+    transform: skewX(calc(var(--wobble, 1) * -2deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-wobble] {
+    animation: none;
+  }
+}
+
+/* Set on body by Effects, so only while a Glacier view is mounted. The CSS
+   elsewhere reads the two variables; the rest sets plain pointer and default
+   cursors on its controls, which the !important rules override. */
+@media (pointer: fine) {
+  .glacier-cursor {
+    --cursor-default: url("/cursors/glacier-bottle.svg") 6 0, default;
+    --cursor-pointer: url("/cursors/glacier-bottle-tilt.svg") 9 4, pointer;
+    cursor: var(--cursor-default);
+  }
+
+  .glacier-cursor
+    :is(
+      a[href],
+      button,
+      [role="button"],
+      summary,
+      select,
+      label[for],
+      input:is([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="color"])
+    ):not(:disabled) {
+    cursor: var(--cursor-pointer) !important;
+  }
+
+  .glacier-cursor :disabled {
+    cursor: var(--cursor-default) !important;
+  }
+
+  .glacier-cursor
+    :is(
+      textarea,
+      [contenteditable],
+      input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"], [type="reset"], [type="file"], [type="color"])
+    ) {
+    cursor: text !important;
   }
 }
