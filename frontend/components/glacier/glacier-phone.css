@@ -1,16 +1,11 @@
-/* The phone app in Glacier: mobile.css keeps the layout, this swaps the chrome and
-   the m-* surfaces. Views pushed from the desktop registry get the shared
-   [data-theme="glacier"] view skin. */
+/* The phone app in Glacier. mobile.css keeps the layout and glacier-skin.css
+   repoints the XP tokens it reads; this swaps the chrome and the surfaces the
+   token swap alone leaves wrong. */
 
 .m-app.glacier {
-  --m-bg: rgb(8 30 52 / 0.94);
-  --m-muted: #b3cfdf;
-  --m-line: rgb(190 235 255 / 0.16);
-  --gp-link: #8fe3ff;
-  /* The brand red is under 3:1 on the navy; small red text uses this. */
-  --gp-red-text: #ffa3aa;
-  --gp-row: rgb(255 255 255 / 0.06);
-  --gp-press: rgb(143 227 255 / 0.18);
+  --m-bg: var(--g-sticky);
+  --m-muted: var(--g-muted);
+  --m-line: var(--g-line);
   --gp-bar: calc(68px + 16px + env(safe-area-inset-bottom));
 
   /* .glacier is position: relative for the desktop page; the phone app stays pinned. */
@@ -114,7 +109,7 @@
 }
 
 .m-app.glacier .m-tab:active {
-  background: var(--gp-press);
+  background: var(--g-press);
 }
 
 .m-app.glacier .m-tab[aria-current="page"] {
@@ -203,8 +198,7 @@
   position: relative;
   border: 1px solid var(--g-frost-edge);
   border-radius: 20px;
-  color: var(--g-text);
-  background: linear-gradient(160deg, rgb(170 225 255 / 0.13) 0%, rgb(120 190 235 / 0.06) 45%, rgb(170 225 255 / 0.1) 100%);
+  background: var(--g-frost);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.45),
     0 10px 28px rgb(2 12 24 / 0.3);
@@ -226,7 +220,7 @@
 }
 
 .m-app.glacier :is(.m-matchup, .m-nav-row):active {
-  background: var(--gp-press);
+  background: var(--g-press);
 }
 
 .m-app.glacier .m-section-title {
@@ -234,29 +228,15 @@
   color: var(--g-text-strong);
 }
 
-.m-app.glacier :is(.m-link, .m-section-head .xp-drill) {
-  color: var(--gp-link);
+/* These read --xp-close-dark, which stays the brand red: under 3:1 as text. */
+.m-app.glacier :is(.m-danger, .m-minus, .m-chip[data-state="FINAL_ICE"]) {
+  color: var(--g-red-text);
 }
 
-.m-app.glacier :is(.m-kicker, .m-slot) {
-  color: var(--g-focus);
-}
-
-.m-app.glacier .m-slot {
-  background: rgb(143 227 255 / 0.16);
-}
-
-.m-app.glacier :is(.m-owe-count, .m-danger, .m-minus) {
-  color: var(--gp-red-text);
-}
-
-.m-app.glacier :is(.m-square, .m-done, .m-plus) {
-  color: #7ef0b5;
-}
-
+/* Due pills match Glacier Home's, red rather than ice blue. */
 .m-app.glacier .m-due {
   border: 0;
-  color: var(--gp-red-text);
+  color: var(--g-red-text);
   background: rgb(210 31 43 / 0.2);
 }
 
@@ -265,18 +245,23 @@
   background: var(--g-red);
 }
 
-.m-app.glacier :is(.m-button, .m-play, .m-step, .m-week-pick select, .m-jump-chip) {
+.m-app.glacier .m-chip[data-state="WATCH"],
+.m-app.glacier .m-danger-chip {
+  border-color: #f5c96b;
+  color: #ffe2a3;
+  background: rgb(245 201 107 / 0.14);
+  box-shadow: none;
+}
+
+.m-app.glacier :is(.m-button, .m-jump-chip) {
   border: 1px solid var(--g-frost-edge);
+  border-radius: 999px;
   color: var(--g-text-strong);
   background: rgb(170 225 255 / 0.12);
 }
 
-.m-app.glacier :is(.m-button, .m-play, .m-step, .m-jump-chip):active {
-  background: rgb(170 225 255 / 0.24);
-}
-
-.m-app.glacier .m-button {
-  border-radius: 999px;
+.m-app.glacier :is(.m-button, .m-jump-chip):active {
+  background: var(--g-press);
 }
 
 .m-app.glacier .m-button-go {
@@ -292,80 +277,12 @@
   background: #a8121d;
 }
 
-.m-app.glacier .m-step:disabled {
-  border-color: var(--m-line);
-  background: none;
-}
-
-.m-app.glacier .m-week-pick select {
-  font: 18px var(--g-display);
-}
-
-.m-app.glacier .m-week-pick select option {
-  color: var(--g-text);
-  background: var(--g-night);
-}
-
-.m-app.glacier .m-week-pick::after {
-  border-color: var(--gp-link);
-}
-
-.m-app.glacier :is(.m-rank, .m-score-top) {
-  color: var(--gp-link);
-}
-
-.m-app.glacier .m-rank {
-  font-family: var(--g-display);
-  font-weight: 400;
-}
-
-.m-app.glacier .m-mine {
-  background: rgb(143 227 255 / 0.12);
-  box-shadow: inset 3px 0 var(--gp-link);
-}
-
-.m-app.glacier .m-cut {
-  color: var(--g-snow);
-  background: rgb(210 31 43 / 0.55);
-}
-
-.m-app.glacier .m-chip {
-  border-color: rgb(143 227 255 / 0.45);
-  color: var(--g-focus);
-  background: rgb(143 227 255 / 0.12);
-}
-
-.m-app.glacier .m-chip[data-state="FINAL_ICE"] {
-  border-color: var(--g-red);
-  color: var(--gp-red-text);
-  background: rgb(210 31 43 / 0.16);
-}
-
-.m-app.glacier .m-chip[data-state="WATCH"],
-.m-app.glacier .m-danger-chip {
-  border-color: #f5c96b;
-  color: #ffe2a3;
-  background: rgb(245 201 107 / 0.14);
-  box-shadow: none;
-}
-
-.m-app.glacier .m-player:is(.ice, .ice-watch) {
-  box-shadow: inset 4px 0 var(--gp-link);
-}
-
-.m-app.glacier .m-segmented {
-  border-color: var(--g-frost-edge);
-  background: var(--gp-row);
-}
-
-.m-app.glacier .m-segmented [aria-pressed="true"] {
+/* Selected states take the tab bar's red. */
+.m-app.glacier .m-segmented [aria-pressed="true"],
+.m-app.glacier [aria-pressed="true"] > .m-switch {
   color: var(--g-snow);
   background: var(--g-red);
   box-shadow: none;
-}
-
-.m-app.glacier .m-jump {
-  backdrop-filter: blur(10px);
 }
 
 .m-app.glacier .m-jump-chip[aria-current="true"] {
@@ -374,16 +291,21 @@
   background: var(--g-snow);
 }
 
-.m-app.glacier .m-switch {
-  background: rgb(190 235 255 / 0.25);
+.m-app.glacier .m-jump {
+  backdrop-filter: blur(10px);
 }
 
-.m-app.glacier [aria-pressed="true"] > .m-switch {
-  background: var(--g-red);
+.m-app.glacier .m-week-pick option {
+  color: var(--g-text);
+  background: var(--g-surface);
 }
 
-.m-app.glacier .m-edition img {
-  border-color: var(--g-frost-edge);
+/* Toasts hang under the red bar, as the desktop's hang under its header. */
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  :root[data-theme="glacier"] .xp-balloon {
+    top: calc(62px + env(safe-area-inset-top) + 20px);
+    right: 0.75rem;
+  }
 }
 
 /* A phone on its side: a slimmer pill, icons beside their labels. */
@@ -412,18 +334,5 @@
 @media (prefers-reduced-motion: reduce) {
   .m-app.glacier .m-tab {
     transition: none;
-  }
-}
-
-/* Toasts sit above the floating pill rather than the XP tab bar. */
-@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
-  :root[data-theme="glacier"] {
-    --taskbar-height: 92px;
-  }
-}
-
-@media (max-height: 500px) and (pointer: coarse) {
-  :root[data-theme="glacier"] {
-    --taskbar-height: 66px;
   }
 }
