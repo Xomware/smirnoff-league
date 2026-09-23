@@ -5,7 +5,7 @@ scores, standings, the playoff and toilet-bowl brackets, and the Smirnoff Ice le
 and it watches live games for ices. Everything past the landing page is behind Google
 sign-in.
 
-Live at https://smirnoff.xomware.com.
+Live at https://smirnoff-league.com.
 
 - [`docs/architecture.md`](docs/architecture.md): how it fits together
 - [`docs/runbook.md`](docs/runbook.md): deploys, admins, finalizing weeks, failures, logs
