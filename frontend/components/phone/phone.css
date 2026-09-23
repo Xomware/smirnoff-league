@@ -236,3 +236,51 @@
     animation: none;
   }
 }
+
+/* Phone-first view layouts. Scoped to the shell, so desktop windows keep their look. */
+.phone-screen .xp-player-pos,
+.phone-screen .xp-tag,
+.phone-screen .xp-seed,
+.phone-screen .xp-slot-from,
+.phone-screen .xp-watch-tag,
+.phone-screen .xp-game-chip,
+.phone-screen .ice-badge,
+.phone-screen .xp-cut td,
+.phone-screen .xp-note,
+.phone-screen .xp-dialog-title,
+.phone-screen .text-xs {
+  font-size: 0.875rem;
+}
+
+.phone-screen .xp-player-pos {
+  width: 2.75rem;
+}
+
+.phone-screen .xp-seed {
+  width: 1.5rem;
+}
+
+/* The team column is pinned as the grid scrolls sideways, so its header is too. */
+.phone-screen .ice-grid thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+/* Rank, team, record and PF in one screen width: the team column takes what
+   is left and its name truncates, instead of the table growing sideways. */
+.phone-screen .xp-standings {
+  table-layout: fixed;
+}
+
+.phone-screen .xp-standings th:first-child {
+  width: 3rem;
+}
+
+.phone-screen .xp-standings th:nth-child(3) {
+  width: 3.25rem;
+}
+
+.phone-screen .xp-standings th:last-child {
+  width: 4.5rem;
+}
