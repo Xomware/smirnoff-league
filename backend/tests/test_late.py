@@ -241,6 +241,35 @@ def test_scenario_weeks_paid_before_launch_never_go_late(monkeypatch):
 
 
 @pytest.mark.usefixtures("aws", "web")
+def test_a_week_dropped_from_paid_before_launch_goes_back_to_owed(monkeypatch):
+    monkeypatch.setattr(late, "PAID_BEFORE_LAUNCH", (1, 2))
+    finalize_both_weeks()
+    reconcile(W1_DEADLINE + timedelta(days=1))
+    w2 = sorted(expected_ids(2))
+    by_hand, by_video = w2[0], w2[1]
+    ices_table().update_item(
+        Key={"season": "2026", "iceId": by_hand},
+        UpdateExpression="SET updatedBy = :by",
+        ExpressionAttributeValues={":by": "admin@example.com"},
+    )
+    ices_table().update_item(
+        Key={"season": "2026", "iceId": by_video},
+        UpdateExpression="SET videoId = :v",
+        ExpressionAttributeValues={":v": "W02#abc"},
+    )
+
+    monkeypatch.setattr(late, "PAID_BEFORE_LAUNCH", (1,))
+    reconcile(W1_DEADLINE + timedelta(days=2))
+
+    after = rows()
+    assert {after[i]["status"] for i in expected_ids(1)} == {"completed"}
+    assert after[by_hand]["status"] == after[by_video]["status"] == "completed"
+    for ice_id in set(w2) - {by_hand, by_video}:
+        assert after[ice_id]["status"] == "owed"
+        assert "completedAt" not in after[ice_id]
+
+
+@pytest.mark.usefixtures("aws", "web")
 def test_complete_defaults_to_now_and_rejects_an_unknown_ice():
     finalize_both_weeks()
     ice_admin(["complete", PARENT])

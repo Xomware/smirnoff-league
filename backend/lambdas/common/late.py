@@ -64,9 +64,21 @@ def week_deadlines() -> dict[int, datetime]:
     return deadlines
 
 
-# Weeks 1-2 were chugged before the site existed (Dom, 2026-09-22), so their
-# ices count as paid at the deadline and never go late.
-PAID_BEFORE_LAUNCH = (1, 2)
+# Week 1 was chugged before the site existed, so its ices count as paid at the
+# deadline and never go late. Week 2 was in this list until 2026-09-23; its
+# auto-paid rows are reverted below.
+PAID_BEFORE_LAUNCH = (1,)
+
+
+def _auto_paid(ice: dict, deadline: datetime) -> bool:
+    # The signature PAID_BEFORE_LAUNCH leaves: completed exactly at the deadline
+    # with no admin hand on it and no video. Anything else was really completed.
+    return (
+        ice["status"] == "completed"
+        and ice.get("completedAt") == deadline.isoformat()
+        and "updatedBy" not in ice
+        and "videoId" not in ice
+    )
 
 
 def reconcile(now: datetime) -> dict:
@@ -82,6 +94,9 @@ def reconcile(now: datetime) -> dict:
         # added weeks later, and would otherwise arrive already late.
         if parent["reason"] not in db.COMPUTED_REASONS or deadline is None:
             continue
+        if parent["week"] not in PAID_BEFORE_LAUNCH and _auto_paid(parent, deadline):
+            db.update_ice(parent["iceId"], {"status": "owed", "updatedAt": stamp}, remove=("completedAt",))
+            parent = {k: v for k, v in parent.items() if k != "completedAt"} | {"status": "owed"}
         if parent["week"] in PAID_BEFORE_LAUNCH and parent["status"] == "owed":
             paid_at = deadline.isoformat()
             db.update_ice(parent["iceId"], {"status": "completed", "completedAt": paid_at, "updatedAt": stamp})
