@@ -40,9 +40,9 @@ const WRITEUP: Writeup = { mediaId: "wu1", week: 2, title: "The Week 2 Edition",
 
 const video = (over: Partial<Video>): Video => ({
   mediaId: "v1",
-  iceId: "W02#9#0",
+  iceIds: ["W02#9#0"],
   week: 2,
-  rosterId: 9,
+  rosterIds: [9],
   uploaderName: "Uploader",
   createdAt: "2026-09-23T02:00:00+00:00",
   bytes: 1,
@@ -71,7 +71,7 @@ const sources = (over: Partial<NotificationSources> = {}): NotificationSources =
   myRosterId: ME,
   ledger: LEDGER,
   writeups: [WRITEUP],
-  videos: [video({}), video({ mediaId: "v2", rosterId: ME, createdAt: "2026-09-23T03:00:00+00:00" })],
+  videos: [video({}), video({ mediaId: "v2", rosterIds: [9, ME], createdAt: "2026-09-23T03:00:00+00:00" })],
   transactions: [
     trade({}),
     trade({ transaction_id: "t2", roster_ids: [2, 7] }),

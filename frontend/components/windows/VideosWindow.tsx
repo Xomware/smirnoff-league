@@ -3,7 +3,7 @@
 import { type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { canUpload, teamList, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceCause } from "@/components/views/week-ices";
 import { TeamName } from "@/components/xp/TeamName";
@@ -68,7 +68,7 @@ export function VideosWindow() {
   const isAdmin = me?.isAdmin ?? false;
   const [week, setWeek] = useState("all");
   const [team, setTeam] = useState("all");
-  const [upload, setUpload] = useState<{ iceId?: string } | null>(null);
+  const [upload, setUpload] = useState<{ iceIds?: string[] } | null>(null);
 
   if (ledgerState.status === "error") return <p role="alert">Could not load the ledger ({ledgerState.message}). Refresh to try again.</p>;
   if (ledgerState.status === "loading" || !data) return <p role="status">Rewinding the chug tapes...</p>;
@@ -80,10 +80,15 @@ export function VideosWindow() {
     .filter((i) => (week === "all" || i.week === Number(week)) && (team === "all" || i.rosterId === Number(team)))
     .sort(newestFirst);
   const owes = shown.filter((i) => i.status === "owed");
-  const filmed = shown.flatMap((ice) => {
-    const video = ice.status === "completed" && videoFor(ice);
-    return video ? [{ ice, video }] : [];
-  });
+  // One card per video listing every ice it covers, so a shared chug shows under each team's filter.
+  const shownDone = new Set(shown.filter((i) => i.status === "completed").map((i) => i.iceId));
+  const byId = new Map(ices.map((i) => [i.iceId, i]));
+  const filmed = videos
+    .filter((v) => v.iceIds.some((id) => shownDone.has(id)))
+    .map((video) => {
+      const covered = video.iceIds.flatMap((id) => byId.get(id) ?? []);
+      return { video, covered, teams: teamList([...new Set(covered.map((i) => i.rosterId))].map((r) => teamFor(r).name)) };
+    });
   const unfilmed = shown.filter((i) => i.status === "completed" && !videoFor(i));
   const weeks = [...new Set(ices.map((i) => i.week))].sort((a, b) => a - b);
   const teams = [...new Set(ices.map((i) => i.rosterId))].sort((a, b) => teamFor(a).name.localeCompare(teamFor(b).name));
@@ -125,7 +130,7 @@ export function VideosWindow() {
           {owes.map((ice) => (
             <li key={ice.iceId} className="xp-player-row ice">
               {line(ice)}
-              {canUpload(ice, myRosterId, isAdmin) && <UploadChugButton onClick={() => setUpload({ iceId: ice.iceId })} />}
+              {canUpload(ice, myRosterId, isAdmin) && <UploadChugButton onClick={() => setUpload({ iceIds: [ice.iceId] })} />}
             </li>
           ))}
         </ul>
@@ -133,12 +138,16 @@ export function VideosWindow() {
 
       <Group label="Completed" count={filmed.length} empty="No chug videos yet.">
         <ul className="chug-grid">
-          {filmed.map(({ ice, video }) => (
-            <li key={ice.iceId} className="chug-card">
+          {filmed.map(({ video, covered, teams }) => (
+            <li key={video.mediaId} className="chug-card" aria-label={`${teams} chug video`}>
               {/* Safari paints nothing for preload="metadata" until a seek; the
                   media fragment asks for the first frame and never reaches S3. */}
-              <video src={`${video.url}#t=0.1`} controls playsInline preload="metadata" onError={onVideoError} aria-label={`${teamFor(ice.rosterId).name}, week ${ice.week} chug`} />
-              {line(ice)}
+              <video src={`${video.url}#t=0.1`} controls playsInline preload="metadata" onError={onVideoError} aria-label={`${teams}, week ${video.week} chug`} />
+              <ul className="chug-card-ices">
+                {covered.map((ice) => (
+                  <li key={ice.iceId}>{line(ice)}</li>
+                ))}
+              </ul>
               <p className="chug-meta">
                 {video.uploaderName ? `Posted by ${video.uploaderName}` : "Posted"} &middot; {shortDate(video.createdAt)}
               </p>
@@ -163,7 +172,7 @@ export function VideosWindow() {
         </ul>
       </Group>
 
-      {upload && createPortal(<UploadChug ices={ices} iceId={upload.iceId} onClose={() => setUpload(null)} />, document.body)}
+      {upload && createPortal(<UploadChug ices={ices} initialIceIds={upload.iceIds} onClose={() => setUpload(null)} />, document.body)}
     </div>
   );
 }

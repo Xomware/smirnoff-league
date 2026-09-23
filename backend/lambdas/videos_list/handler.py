@@ -30,9 +30,9 @@ def handler(event, context):
         [
             {
                 "mediaId": v["mediaId"],
-                "iceId": v["iceId"],
+                "iceIds": media.covered(v)[0],
                 "week": int(v["mediaId"][1:3]),
-                "rosterId": v["rosterId"],
+                "rosterIds": media.covered(v)[1],
                 "uploaderName": profiles[v["uploaderSub"]].get("name"),
                 "bytes": v["bytes"],
                 "createdAt": v["createdAt"],

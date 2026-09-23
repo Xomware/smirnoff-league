@@ -40,17 +40,53 @@ export function UploadChugButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+// The server only lets a video through when the uploader owns one of its ices.
+const MINE_REQUIRED = "Tick at least one of your own team's ices. Other teams can only ride along.";
+
+export const teamList = (names: string[]) =>
+  names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+
 function failureCopy(stage: Stage, err: Error): string {
   const status = err instanceof ApiError ? err.status : 0;
-  if (stage === "presign" && status === 403) return "That ice isn't yours. You can only upload chugs for your own team's ices.";
+  if (stage === "presign" && status === 403) return MINE_REQUIRED;
   if (stage === "presign" && status === 400) return `The server refused this upload (${err.message}).`;
-  if (stage === "presign" && status === 404) return "That ice is no longer on the ledger.";
+  if (stage === "presign" && status === 404) return "One of those ices is no longer on the ledger.";
   if (stage === "upload") return `The video didn't make it to the server (${err.message}). Check your connection and retry.`;
   if (stage === "confirm" && status === 409) return "The video never finished landing on the server. Retry the upload.";
   return err.message;
 }
 
 const mb = (bytes: number) => (bytes / 1024 / 1024).toFixed(1);
+
+interface IcePicksProps {
+  legend: string;
+  ices: LedgerIce[];
+  picked: string[];
+  week?: number;
+  label: (ice: LedgerIce) => string;
+  onToggle: (iceId: string) => void;
+}
+
+// One video covers one week, so ices from other weeks lock once any is ticked.
+function IcePicks({ legend, ices, picked, week, label, onToggle }: IcePicksProps) {
+  return (
+    <fieldset className="chug-picks">
+      <legend>{legend}</legend>
+      {ices.map((ice) => (
+        <label key={ice.iceId}>
+          <input
+            type="checkbox"
+            value={ice.iceId}
+            checked={picked.includes(ice.iceId)}
+            disabled={week !== undefined && ice.week !== week}
+            onChange={() => onToggle(ice.iceId)}
+          />
+          {label(ice)}
+        </label>
+      ))}
+    </fieldset>
+  );
+}
 
 function CopyAnimation() {
   const folder = "M2 6h9l3 3h16v19H2z";
@@ -71,24 +107,36 @@ function CopyAnimation() {
 
 interface UploadChugProps {
   ices: LedgerIce[];
-  iceId?: string;
+  /** Ices ticked when the dialog opens. */
+  initialIceIds?: string[];
   onClose: () => void;
 }
 
-export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
+export function UploadChug({ ices, initialIceIds = [], onClose }: UploadChugProps) {
   const { data, teamFor } = useLeague();
   const { myRosterId, me } = useProfile();
   const phone = useMediaQuery(PHONE);
   const choices = ices.filter((i) => canUpload(i, myRosterId, me?.isAdmin ?? false));
-  const [picked, setPicked] = useState(iceId ?? choices[0]?.iceId ?? "");
+  const [picked, setPicked] = useState(initialIceIds);
+  const [withOthers, setWithOthers] = useState(false);
+  const [team, setTeam] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<Phase>({ step: "form" });
   const box = useRef<HTMLDivElement>(null);
   const busy = phase.step === "uploading" || phase.step === "confirming";
 
+  const byId = new Map(ices.map((i) => [i.iceId, i]));
+  const mine = new Set(choices.map((i) => i.iceId));
+  const week = byId.get(picked[0])?.week;
+  const others = ices.filter((i) => i.week === week && i.status === "owed" && !mine.has(i.iceId));
+  const otherTeams = [...new Set(others.map((i) => i.rosterId))].sort((a, b) => teamFor(a).name.localeCompare(teamFor(b).name));
+  const covers = teamList([...new Set(picked.flatMap((id) => byId.get(id)?.rosterId ?? []))].map((r) => teamFor(r).name));
+  const label = (ice: LedgerIce) => iceLabel(ice, teamFor, data?.players ?? {});
+  const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
-    box.current?.querySelector("select")?.focus();
+    box.current?.querySelector<HTMLElement>("input:not(:disabled)")?.focus();
     return () => opener?.focus();
   }, []);
 
@@ -100,7 +148,7 @@ export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
     let stage: Stage = "presign";
     setPhase({ step: "uploading", progress: 0 });
     try {
-      const { mediaId, ...post } = await presignVideo({ iceId: picked, contentType: video.type, bytes: video.size });
+      const { mediaId, ...post } = await presignVideo({ iceIds: picked, contentType: video.type, bytes: video.size });
       stage = "upload";
       await uploadFile(post, video, (progress) => setPhase({ step: "uploading", progress }));
       stage = "confirm";
@@ -118,6 +166,8 @@ export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (picked.length === 0) return setPhase({ step: "form", error: "Tick at least one ice." });
+    if (!picked.some((id) => mine.has(id))) return setPhase({ step: "form", error: MINE_REQUIRED });
     if (!file || !file.type.startsWith("video/")) return setPhase({ step: "form", error: "Choose a video file." });
     if (file.size > MAX_VIDEO_BYTES) return setPhase({ step: "form", error: `The video is ${mb(file.size)} MB. The limit is 200 MB.` });
     void send(file);
@@ -126,7 +176,7 @@ export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape" && !busy) return onClose();
     if (e.key !== "Tab") return;
-    const all = [...(box.current?.querySelectorAll<HTMLElement>("select, input, button:not(:disabled)") ?? [])];
+    const all = [...(box.current?.querySelectorAll<HTMLElement>("select, input:not(:disabled), button:not(:disabled)") ?? [])];
     const edge = e.shiftKey ? all[0] : all[all.length - 1];
     if (document.activeElement !== edge) return;
     e.preventDefault();
@@ -145,17 +195,38 @@ export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
             {choices.length === 0 ? (
               <p>Your team owes nothing right now. Nothing to upload.</p>
             ) : (
-              <label className="grid gap-1 font-bold">
-                Ice
-                <select className="xp-select" value={picked} onChange={(e) => setPicked(e.target.value)}>
-                  {choices.map((ice) => (
-                    <option key={ice.iceId} value={ice.iceId}>
-                      {iceLabel(ice, teamFor, data?.players ?? {})}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <IcePicks legend="Your ices" ices={choices} picked={picked} week={week} label={label} onToggle={toggle} />
             )}
+            {otherTeams.length > 0 &&
+              (withOthers ? (
+                <div className="grid gap-2">
+                  <label className="flex items-center gap-2 font-bold">
+                    Team
+                    <select className="xp-select min-w-0 flex-1" value={team} onChange={(e) => setTeam(e.target.value)}>
+                      <option value="">Pick a team</option>
+                      {otherTeams.map((id) => (
+                        <option key={id} value={id}>
+                          {teamFor(id).name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {team && (
+                    <IcePicks
+                      legend={`${teamFor(Number(team)).name} ices`}
+                      ices={others.filter((i) => i.rosterId === Number(team))}
+                      picked={picked}
+                      label={label}
+                      onToggle={toggle}
+                    />
+                  )}
+                </div>
+              ) : (
+                <button type="button" className="xp-button justify-self-start" onClick={() => setWithOthers(true)}>
+                  Chugged with someone?
+                </button>
+              ))}
+            {picked.length > 0 && <p className="xp-note">Covers {covers}.</p>}
             <label className="grid gap-1 font-bold">
               Video file
               <input type="file" accept="video/*" onChange={(e) => pickFile(e.target.files)} />
@@ -211,6 +282,7 @@ export function UploadChug({ ices, iceId, onClose }: UploadChugProps) {
                 ICE.EXE completed successfully
               </p>
             )}
+            {phase.step === "done" && <p>Chug logged for {covers}.</p>}
             {phase.step === "failed" && (
               <p role="alert" className="upload-error flex items-start gap-3">
                 <ErrorIcon width={32} height={32} className="shrink-0" />
