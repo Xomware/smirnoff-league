@@ -5,11 +5,23 @@ vi.mock("@/lib/activity/tracker", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/lib/activity/tracker")>();
   return { ...real, track: vi.fn(real.track) };
 });
+vi.mock("@/lib/api/users", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/users")>()),
+  getMe: vi.fn(),
+}));
+vi.mock("@/lib/api/ledger", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/ledger")>()),
+  getLedger: vi.fn(),
+}));
 
+import { AppShell } from "@/components/AppShell";
 import { track } from "@/lib/activity/tracker";
+import { getLedger } from "@/lib/api/ledger";
+import { getMe } from "@/lib/api/users";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
-import { stubSleeper } from "@/lib/test/league-mock";
-import { AppShell } from "./AppShell";
+import { ProfileProvider } from "@/lib/profile/use-profile";
+import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
+import { golden, stubSleeper } from "@/lib/test/league-mock";
 
 interface Screen {
   width: number;
@@ -17,11 +29,13 @@ interface Screen {
   coarse: boolean;
 }
 
-const PORTRAIT: Screen = { width: 390, height: 844, coarse: true };
-const LANDSCAPE: Screen = { width: 844, height: 390, coarse: true };
+const IPHONE_15_PRO: Screen = { width: 393, height: 852, coarse: true };
+const LANDSCAPE: Screen = { width: 852, height: 393, coarse: true };
 const DESKTOP: Screen = { width: 1440, height: 900, coarse: false };
+// SCENARIO_LEDGER's roster 13 owes W2's lowest score and a zero, plus a late ice for each.
+const ME = 13;
 
-let screenNow = PORTRAIT;
+let screenNow = IPHONE_15_PRO;
 const listeners = new Set<() => void>();
 
 // A tiny media query engine for the features the app queries, so the tests
@@ -57,44 +71,41 @@ function viewport(s: Screen) {
   );
 }
 
-function rotate(s: Screen) {
-  act(() => {
-    screenNow = s;
-    listeners.forEach((fn) => fn());
-  });
+// stubSleeper's week 3 has no matchups yet; give it W2's lineups so Home has games to show.
+function withWeek3() {
+  const base = vi.mocked(fetch).getMockImplementation()!;
+  vi.mocked(fetch).mockImplementation(async (input, init) =>
+    String(input).endsWith("/matchups/3") ? new Response(JSON.stringify(golden.weeks[1].matchups)) : base(input, init),
+  );
 }
 
 function renderShell() {
   return render(
-    <DesktopProvider>
-      <AppShell />
-    </DesktopProvider>,
+    <ProfileProvider>
+      <DesktopProvider>
+        <AppShell />
+      </DesktopProvider>
+    </ProfileProvider>,
   );
 }
 
 const title = () => screen.getByRole("heading", { level: 1 }).textContent;
 const tabBar = () => within(screen.getByRole("navigation", { name: "Tabs" }));
 const tab = (name: string) => tabBar().getByRole("button", { name });
-const sheet = () => screen.getByRole("navigation", { name: "Start menu" });
 const back = () => screen.getByRole("button", { name: "Back" });
 // Screens under the top one stay mounted but hidden, so query the visible one.
-const top = () => within(document.querySelector<HTMLElement>(".phone-screen:not([hidden])")!);
-const drillTo = async (pattern: RegExp) => {
-  const links = await waitFor(() => {
-    const found = top()
-      .getAllByRole("button")
-      .filter((b) => b.classList.contains("xp-drill") && pattern.test(b.textContent ?? ""));
-    expect(found.length).toBeGreaterThan(0);
-    return found;
-  });
-  const text = links[0].textContent!;
-  fireEvent.click(links[0]);
-  return text;
-};
+const top = () => within(document.querySelector<HTMLElement>(".m-screen:not([hidden])")!);
 
 beforeEach(() => {
   stubSleeper();
-  viewport(PORTRAIT);
+  viewport(IPHONE_15_PRO);
+  vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
+  vi.mocked(getMe).mockResolvedValue({
+    sub: "s",
+    email: "e",
+    isAdmin: false,
+    profile: { name: "Thirteen", username: "t", rosterId: ME, createdAt: "", updatedAt: "" },
+  });
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -102,206 +113,156 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-describe("AppShell", () => {
-  it("renders the phone shell instead of the desktop when the phone query matches", () => {
-    renderShell();
-    expect(document.querySelector(".xp-desktop")).toBeNull();
-    expect(tab("Home").getAttribute("aria-current")).toBe("page");
-    expect(title()).toBe("Smirnoff Fantasy Football League");
-  });
-
-  it("brands the Home title bar and Start with the robot head", () => {
-    renderShell();
-    expect(document.querySelector('.phone-bar img[src*="robot-head.png"]')).not.toBeNull();
-    const start = tabBar().getByRole("button", { name: /start/i });
-    expect(start.querySelector('img[src*="robot-head.png"]')).not.toBeNull();
-  });
-
-  it("renders the desktop and its taskbar otherwise", () => {
-    viewport(DESKTOP);
-    renderShell();
-    expect(document.querySelector(".xp-desktop")).not.toBeNull();
-    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
-    expect(screen.getByRole("list", { name: "Open windows" })).toBeTruthy();
-  });
-});
-
 describe("shell choice", () => {
   it.each([
-    ["a portrait phone", true, PORTRAIT],
+    ["an iPhone 15 Pro", true, IPHONE_15_PRO],
+    ["an iPhone SE", true, { width: 375, height: 667, coarse: true }],
     ["a landscape phone", true, LANDSCAPE],
-    ["a large landscape phone", true, { width: 932, height: 430, coarse: true }],
     ["a narrow desktop window", true, { width: 600, height: 900, coarse: false }],
     ["a short desktop window with a mouse", false, { width: 1280, height: 420, coarse: false }],
-    ["a landscape tablet", false, { width: 1024, height: 768, coarse: true }],
     ["a portrait tablet", false, { width: 768, height: 1024, coarse: true }],
     ["a desktop", false, DESKTOP],
-  ])("%s: phone shell %s", (_, phone, s) => {
+  ])("%s: phone app %s", (_, phone, s) => {
     viewport(s);
     renderShell();
     expect(screen.queryByRole("navigation", { name: "Tabs" }) !== null).toBe(phone);
     expect(document.querySelector(".xp-desktop") !== null).toBe(!phone);
   });
 
-  it("keeps the screen and every tab's stack when the phone rotates", async () => {
+  it("keeps the screen when the phone rotates", async () => {
     renderShell();
-    fireEvent.click(tab("Standings"));
-    const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
-    fireEvent.click(tab("Scores"));
-    await waitFor(() => expect(title()).toBe("Scores"));
-    const scores = document.querySelector(".phone-screen:not([hidden])");
-
-    rotate(LANDSCAPE);
-
-    expect(title()).toBe("Scores");
-    expect(document.querySelector(".phone-screen:not([hidden])")).toBe(scores);
-    fireEvent.click(tab("Standings"));
-    await waitFor(() => expect(title()).toBe(`Team Profile - ${team}`));
-
-    rotate(PORTRAIT);
-
-    expect(title()).toBe(`Team Profile - ${team}`);
-    fireEvent.click(back());
+    fireEvent.click(tab("League"));
+    fireEvent.click(top().getByRole("button", { name: /Standings/ }));
     await waitFor(() => expect(title()).toBe("League Standings"));
+
+    act(() => {
+      screenNow = LANDSCAPE;
+      listeners.forEach((fn) => fn());
+    });
+
+    expect(title()).toBe("League Standings");
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("League"));
   });
 });
 
-describe("phone stack", () => {
-  it("pushes a drilled screen, and Back pops it through history", async () => {
+describe("tabs", () => {
+  it("has exactly four: Home, Games, Ices and League", () => {
     renderShell();
-    fireEvent.click(tab("Standings"));
-    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
-
-    const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
-
-    expect(title()).toBe(`Team Profile - ${team}`);
-    expect(window.location.search).toMatch(/^\?open=standings,team:\d+$/);
-    fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("League Standings"));
-    expect(window.location.search).toBe("?open=standings");
-  });
-
-  it("pops on the browser's own back", async () => {
-    renderShell();
-    fireEvent.click(tab("Standings"));
-    await drillTo(/Team \d+/);
-
-    window.history.back();
-
-    await waitFor(() => expect(title()).toBe("League Standings"));
-    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
-  });
-
-  it("keeps each tab's stack, and tapping the current tab returns to its root", async () => {
-    renderShell();
-    fireEvent.click(tab("Standings"));
-    const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
-    fireEvent.click(tab("Scores"));
-    await waitFor(() => expect(title()).toBe("Scores"));
-
-    fireEvent.click(tab("Standings"));
-    await waitFor(() => expect(title()).toBe(`Team Profile - ${team}`));
-    expect(tab("Standings").getAttribute("aria-current")).toBe("page");
-
-    fireEvent.click(tab("Standings"));
-    await waitFor(() => expect(title()).toBe("League Standings"));
-  });
-
-  it("opens a deep link as a stack with the last item on top", async () => {
-    window.history.replaceState(null, "", "/?open=scores,team:3");
-    renderShell();
-
-    expect(tab("Scores").getAttribute("aria-current")).toBe("page");
-    await waitFor(() => expect(title()).toBe("Team Profile - Team 3"));
-    fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("Scores"));
-  });
-
-  it("opens Start sheet items on the current tab and closes on Escape", async () => {
-    renderShell();
-    const start = tabBar().getByRole("button", { name: "start" });
-    fireEvent.click(start);
-    expect(within(sheet()).getByRole("button", { name: "Sign out" })).toBeTruthy();
-    fireEvent.keyDown(document, { key: "Escape" });
-    expect(screen.queryByRole("navigation", { name: "Start menu" })).toBeNull();
-    expect(document.activeElement).toBe(start);
-
-    fireEvent.click(start);
-    fireEvent.click(within(sheet()).getByRole("button", { name: "Brackets" }));
-    expect(screen.queryByRole("navigation", { name: "Start menu" })).toBeNull();
-    expect(title()).toBe("Brackets");
+    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "League"]);
     expect(tab("Home").getAttribute("aria-current")).toBe("page");
-    fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("Smirnoff Fantasy Football League"));
+    expect(title()).toBe("Smirnoff League");
   });
-});
 
-describe("ices on the phone", () => {
-  const APPS = ["Ice Ledger", "Ice Standings", "Ice Stats", "Ice Watch", "Chug Videos"];
+  it.each(["Home", "Games", "League"])("%s has no tab strip of its own", async (name) => {
+    withWeek3();
+    renderShell();
+    fireEvent.click(tab(name));
+    await waitFor(() => expect(top().queryByRole("status")).toBeNull());
+    expect(top().queryByRole("tablist")).toBeNull();
+  });
 
   it("tracks each tab and each pushed screen as an open", async () => {
     vi.mocked(track).mockClear();
     renderShell();
-    fireEvent.click(tab("Ices"));
-    fireEvent.click(within(top().getByRole("list", { name: "Ices" })).getByRole("button", { name: "Ice Stats" }));
-    await waitFor(() => expect(title()).toBe("Ice Stats"));
+    fireEvent.click(tab("League"));
+    fireEvent.click(top().getByRole("button", { name: /Brackets/ }));
+    await waitFor(() => expect(title()).toBe("Brackets"));
     expect(vi.mocked(track).mock.calls).toEqual([
-      ["open", "folder:ices"],
-      ["open", "stats"],
+      ["open", "tab:league"],
+      ["open", "brackets"],
     ]);
   });
 
-  it("opens the Ices tab on the folder grid and drills into an app, Back returning to the grid", async () => {
+  it("lists the Control Panel only for an admin", async () => {
     renderShell();
-    fireEvent.click(tab("Ices"));
-
-    expect(title()).toBe("Ices");
-    const grid = within(top().getByRole("list", { name: "Ices" }));
-    expect(grid.getAllByRole("button").map((b) => b.textContent)).toEqual(APPS);
-
-    fireEvent.click(grid.getByRole("button", { name: "Ice Stats" }));
-    await waitFor(() => expect(title()).toBe("Ice Stats"));
-    expect(window.location.search).toBe("?open=folder:ices,stats");
-    fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("Ices"));
-  });
-
-  it("groups the ice apps under an Ices heading in the Start sheet", () => {
-    renderShell();
-    fireEvent.click(tabBar().getByRole("button", { name: "start" }));
-
-    const ices = within(within(sheet()).getByRole("list", { name: "Ices" }));
-    expect(ices.getAllByRole("button").map((b) => b.textContent)).toEqual(APPS);
-    fireEvent.click(ices.getByRole("button", { name: "Ice Watch" }));
-    expect(title()).toBe("Ice Watch");
+    fireEvent.click(tab("League"));
+    await top().findByRole("heading", { name: "Thirteen" });
+    expect(top().queryByRole("button", { name: /Control Panel/ })).toBeNull();
   });
 });
 
-describe("at 390px", () => {
-  it("Home, Scores, a matchup, a team, a player, Back twice lands on Scores with the matchup still open", async () => {
+describe("Home", () => {
+  it("shows what I owe and uploads for the oldest owed week", async () => {
     renderShell();
-    expect(title()).toBe("Smirnoff Fantasy Football League");
+    const mine = within(await screen.findByRole("region", { name: "Your ices" }));
+    expect((await mine.findByRole("list", { name: "Your owed ices" })).children).toHaveLength(4);
 
-    fireEvent.click(tab("Scores"));
-    fireEvent.change(await top().findByRole("combobox"), { target: { value: "1" } });
-    const toggle = within(await top().findByRole("region", { name: "Matchup 1" })).getByRole("button", { expanded: false });
-    fireEvent.click(toggle);
+    fireEvent.click(mine.getByRole("button", { name: "Upload your chug" }));
 
-    const team = (await drillTo(/Team \d+/)).match(/Team \d+/)![0];
-    expect(title()).toBe(`Team Profile - ${team}`);
-    fireEvent.click(await top().findByRole("tab", { name: "Roster" }));
-    const starters = await top().findByRole("region", { name: "Starters" });
-    fireEvent.click(within(starters).getAllByRole("button")[0]);
-    await waitFor(() => expect(screen.getByRole("button", { name: "Back" })).toBeTruthy());
-    expect(window.location.search).toMatch(/^\?open=scores,team:\d+,player:\w+$/);
+    const dialog = within(screen.getByRole("dialog", { name: "Upload chug" }));
+    const ticked = dialog.getAllByRole("checkbox").filter((c) => (c as HTMLInputElement).checked);
+    expect(ticked.map((c) => (c as HTMLInputElement).value).sort()).toEqual(
+      SCENARIO_LEDGER.ices.filter((i) => i.rosterId === ME && i.status === "owed").map((i) => i.iceId).sort(),
+    );
+  });
+
+  it("opens the Games tab from All games", async () => {
+    renderShell();
+    fireEvent.click(await top().findByRole("button", { name: "All games" }));
+    expect(tab("Games").getAttribute("aria-current")).toBe("page");
+    expect(window.location.search).toBe("?open=games");
+  });
+});
+
+describe("Games", () => {
+  it("steps weeks and pushes a game with both lineups, Back and the browser's back both returning", async () => {
+    renderShell();
+    fireEvent.click(tab("Games"));
+    expect(await top().findByText("No matchups for week 3 yet.")).toBeTruthy();
+
+    fireEvent.click(top().getByRole("button", { name: "Previous week" }));
+    const games = await top().findByRole("list", { name: "Week 2 matchups" });
+    expect(within(games).getAllByRole("button")).toHaveLength(7);
+
+    fireEvent.click(within(games).getByRole("button", { name: /Team 13/ }));
+    await waitFor(() => expect(title()).toBe("Week 2"));
+    expect(window.location.search).toMatch(/^\?open=games,game:\d+:2$/);
+    expect(top().getAllByRole("region", { name: /lineup$/ })).toHaveLength(2);
+    expect(top().getByRole("region", { name: "Team 13 lineup" })).toBeTruthy();
 
     fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe(`Team Profile - ${team}`));
-    fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("Scores"));
+    await waitFor(() => expect(title()).toBe("Games"));
+    expect(top().getByRole("list", { name: "Week 2 matchups" })).toBeTruthy();
 
-    expect(tab("Scores").getAttribute("aria-current")).toBe("page");
-    expect(top().getByRole("region", { name: "Matchup 1" })).toBeTruthy();
-    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    fireEvent.click(within(top().getByRole("list", { name: "Week 2 matchups" })).getAllByRole("button")[0]);
+    await waitFor(() => expect(title()).toBe("Week 2"));
+    act(() => window.history.back());
+    await waitFor(() => expect(title()).toBe("Games"));
+    expect(screen.queryByRole("button", { name: "Back" })).toBeNull();
+  });
+
+  it("opens a deep-linked game over the Games tab", async () => {
+    window.history.replaceState(null, "", "/?open=games,game:1:1");
+    renderShell();
+    expect(tab("Games").getAttribute("aria-current")).toBe("page");
+    expect(title()).toBe("Week 1");
+    expect(await top().findAllByRole("region", { name: /lineup$/ })).toHaveLength(2);
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Games"));
+  });
+});
+
+describe("scenario at 393px", () => {
+  it("Home, a matchup, Back, the Ices tab, then Upload for my owed ice", async () => {
+    withWeek3();
+    renderShell();
+    const row = await screen.findByRole("list", { name: "This week's matchups" });
+    fireEvent.click(within(row).getAllByRole("button")[0]);
+    await waitFor(() => expect(title()).toBe("Week 3"));
+    expect(tab("Home").getAttribute("aria-current")).toBe("page");
+
+    fireEvent.click(back());
+    await waitFor(() => expect(title()).toBe("Smirnoff League"));
+
+    fireEvent.click(tab("Ices"));
+    expect(title()).toBe("Ices");
+    const uploads = await top().findAllByRole("button", { name: "Upload chug" });
+    fireEvent.click(uploads[0]);
+
+    const dialog = within(screen.getByRole("dialog", { name: "Upload chug" }));
+    const ticked = dialog.getAllByRole("checkbox").filter((c) => (c as HTMLInputElement).checked);
+    expect(ticked).toHaveLength(1);
+    expect(SCENARIO_LEDGER.ices.find((i) => i.iceId === (ticked[0] as HTMLInputElement).value)?.rosterId).toBe(ME);
   });
 });

@@ -10,7 +10,7 @@ const { fetchAuthSession } = vi.hoisted(() => {
 vi.mock("aws-amplify/auth", () => ({ fetchAuthSession }));
 
 import { Desktop } from "@/components/desktop/Desktop";
-import { StartSheet } from "@/components/phone/StartSheet";
+import { LeagueScreen } from "@/components/mobile/LeagueScreen";
 import { IcesWindow } from "@/components/windows/IcesWindow";
 import { Taskbar } from "@/components/xp/Taskbar";
 import { AlertsProvider } from "@/lib/alerts/alerts";
@@ -83,7 +83,7 @@ const dialog = () => screen.findByRole("alertdialog");
 const choose = async (button: string) => fireEvent.click(within(await dialog()).getByRole("button", { name: button }));
 
 describe("Control Panel visibility", () => {
-  it("has no desktop icon, Start entry or Start-sheet entry for a non-admin", async () => {
+  it("has no desktop icon, Start entry or phone League row for a non-admin", async () => {
     isAdmin = false;
     render(
       <ProfileProvider>
@@ -91,13 +91,13 @@ describe("Control Panel visibility", () => {
           <Desktop />
           <Taskbar />
         </DesktopProvider>
-        <StartSheet id="sheet" name="n" onOpen={() => {}} onEditProfile={() => {}} onSignOut={() => {}} />
+        <LeagueScreen />
       </ProfileProvider>,
     );
     await act(() => new Promise((done) => setTimeout(done, 0)));
     fireEvent.click(screen.getByRole("button", { name: /start/i, expanded: false }));
 
-    expect(screen.queryByRole("button", { name: "Control Panel" })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Control Panel/ })).toBeNull();
   });
 
   it("shows all three entries to an admin", async () => {
@@ -107,12 +107,12 @@ describe("Control Panel visibility", () => {
           <Desktop />
           <Taskbar />
         </DesktopProvider>
-        <StartSheet id="sheet" name="n" onOpen={() => {}} onEditProfile={() => {}} onSignOut={() => {}} />
+        <LeagueScreen />
       </ProfileProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /start/i, expanded: false }));
 
-    await waitFor(() => expect(screen.getAllByRole("button", { name: "Control Panel" })).toHaveLength(3));
+    await waitFor(() => expect(screen.getAllByRole("button", { name: /^Control Panel/ })).toHaveLength(3));
   });
 
   it("refuses a non-admin who deep-links to it", async () => {

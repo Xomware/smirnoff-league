@@ -269,7 +269,7 @@ describe("My Team", () => {
     expect(within(head).getByRole("img", { name: "Your team" })).toBeTruthy();
   });
 
-  it("is a phone tab that opens your roster", async () => {
+  it("opens your team from the phone's League tab", async () => {
     viewport(true);
     render(
       <ProfileProvider>
@@ -279,7 +279,8 @@ describe("My Team", () => {
       </ProfileProvider>,
     );
     const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    fireEvent.click(tabs.getByRole("button", { name: "My Team" }));
+    fireEvent.click(tabs.getByRole("button", { name: "League" }));
+    fireEvent.click(screen.getByRole("button", { name: /^My Team/ }));
 
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("My Team - Team 6"));
     expect(await screen.findByRole("region", { name: "Team 6" })).toBeTruthy();

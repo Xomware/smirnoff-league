@@ -214,10 +214,13 @@ describe("scenario: an owed W3 ice on the Friday before the deadline", () => {
     await waitFor(() => expect(stored).toBe(FRIDAY.toISOString()));
 
     fireEvent.click(within(due).getByRole("button"));
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Ice Ledger");
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Ices");
+    await waitFor(() => expect(window.location.search).toBe("?open=ices"));
     first.unmount();
 
     renderApp();
+    // The link reopens on the Ices tab; its upload button means the profile has loaded.
+    await screen.findAllByRole("button", { name: "Upload chug" });
     fireEvent.click(await bell("Notifications"));
     const again = within(await list()).getAllByRole("listitem")[0];
     expect(again.textContent).toMatch(/^Ice due Sunday 1 PM ET/);

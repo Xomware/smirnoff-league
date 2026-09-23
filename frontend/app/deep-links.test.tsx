@@ -112,17 +112,18 @@ describe("?open=", () => {
     await waitFor(() => expect(window.location.search).toBe("?open=standings"));
   });
 
-  it("opens the link as a phone stack, last window on top", async () => {
+  it("opens the link as a phone stack on its tab, last window on top", async () => {
     vi.spyOn(window, "matchMedia").mockImplementation(
       (query) =>
         ({ matches: query.includes("max-width"), addEventListener() {}, removeEventListener() {} }) as unknown as MediaQueryList,
     );
     renderAt("/?open=standings,team:6");
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Team Profile - Team 6" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "Team 6" })).toBeTruthy();
     const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    expect(tabs.getByRole("button", { name: "Standings" }).getAttribute("aria-current")).toBe("page");
-    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
+    expect(tabs.getByRole("button", { name: "League" }).getAttribute("aria-current")).toBe("page");
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "League Standings" })).toBeTruthy();
     expect(document.querySelector(".xp-desktop")).toBeNull();
   });
 

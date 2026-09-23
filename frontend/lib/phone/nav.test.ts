@@ -1,71 +1,77 @@
 import { describe, expect, it } from "vitest";
 
-import { parseOpen } from "@/lib/desktop/deep-link";
-import { navFromLinks, navReducer, stackOf, stackUrl } from "./nav";
+import { navFromLinks, navReducer, parseScreens, type Screen, stackOf, stackUrl } from "./nav";
 
-const team = { kind: "team", params: { rosterId: 3 } } as const;
-const player = { kind: "player", params: { playerId: "4046" } } as const;
+const team: Screen = { kind: "team", params: { rosterId: 3 } };
+const player: Screen = { kind: "player", params: { playerId: "4046" } };
+const game: Screen = { kind: "game", params: { matchup: 4, week: 3 } };
+const root = (kind: Screen["kind"]): Screen => ({ kind, params: {} });
+const open = (search: string) => navFromLinks(parseScreens(search));
 
-describe("navFromLinks", () => {
+describe("deep links", () => {
   it("starts on Home with nothing linked", () => {
-    expect(navFromLinks([])).toEqual({ tab: "home", stacks: { home: [{ kind: "home", params: {} }] } });
+    expect(open("")).toEqual({ tab: "home", stacks: { home: [root("home")] } });
   });
 
-  it("opens a linked tab with the rest of the links on top, last item on top", () => {
-    const nav = navFromLinks(parseOpen("?open=scores,team:3,player:4046"));
-    expect(nav.tab).toBe("scores");
-    expect(stackOf(nav)).toEqual([{ kind: "scores", params: {} }, team, player]);
+  it.each([
+    ["?open=scores", "games", [root("games")]],
+    ["?open=watch", "games", [root("games")]],
+    ["?open=week:2", "games", [root("games"), { kind: "week", params: { week: 2 } }]],
+    ["?open=games,game:4:3", "games", [root("games"), game]],
+    ["?open=ices", "ices", [root("ices")]],
+    ["?open=ice-standings", "ices", [root("ices")]],
+    ["?open=videos", "ices", [root("ices")]],
+    ["?open=folder:ices,stats", "ices", [root("ices"), root("stats")]],
+    ["?open=standings", "league", [root("league"), root("standings")]],
+    ["?open=team:3", "league", [root("league"), team]],
+    ["?open=admin:users", "league", [root("league"), { kind: "admin", params: { panel: "users" } }]],
+    ["?open=notifications", "home", [root("home"), root("notifications")]],
+    ["?open=scores,team:3,player:4046", "games", [root("games"), team, player]],
+  ])("%s opens the %s tab", (search, tab, stack) => {
+    const nav = open(search);
+    expect(nav.tab).toBe(tab);
+    expect(stackOf(nav)).toEqual(stack);
   });
 
-  it("opens the Ices tab on its folder", () => {
-    const nav = navFromLinks(parseOpen("?open=folder:ices,stats"));
-    expect(nav.tab).toBe("ices");
-    expect(stackOf(nav).map((v) => v.kind)).toEqual(["folder", "stats"]);
-    expect(stackOf(navReducer(nav, { type: "tab", tab: "ices" }))).toEqual([{ kind: "folder", params: { id: "ices" } }]);
+  it("drops what it cannot read", () => {
+    expect(parseScreens("?open=bogus,game:0:3,game:4,team:3")).toEqual([team]);
   });
 
-  it("stacks links that are not a tab on Home", () => {
-    const nav = navFromLinks(parseOpen("?open=brackets,team:3"));
-    expect(nav.tab).toBe("home");
-    expect(stackOf(nav).map((v) => v.kind)).toEqual(["home", "brackets", "team"]);
+  it("writes a stack the way it reads one back", () => {
+    const stack = [root("games"), game, team, player];
+    expect(stackUrl([root("home")])).toBe("/");
+    expect(stackUrl(stack)).toBe("/?open=games,game:4:3,team:3,player:4046");
+    expect(stackOf(open(stackUrl(stack).slice(1)))).toEqual(stack);
   });
 });
 
 describe("navReducer", () => {
-  const start = navFromLinks([]);
+  const start = open("");
 
   it("pushes onto the current tab", () => {
-    const nav = navReducer(start, { type: "push", view: team });
-    expect(stackOf(nav)).toEqual([{ kind: "home", params: {} }, team]);
+    expect(stackOf(navReducer(start, { type: "push", screen: team }))).toEqual([root("home"), team]);
   });
 
   it("keeps each tab's stack when switching tabs", () => {
-    let nav = navReducer(start, { type: "tab", tab: "standings" });
-    nav = navReducer(nav, { type: "push", view: team });
-    nav = navReducer(nav, { type: "tab", tab: "scores" });
-    expect(stackOf(nav)).toEqual([{ kind: "scores", params: {} }]);
+    let nav = navReducer(start, { type: "tab", tab: "league" });
+    nav = navReducer(nav, { type: "push", screen: team });
+    nav = navReducer(nav, { type: "tab", tab: "games" });
+    expect(stackOf(nav)).toEqual([root("games")]);
 
-    nav = navReducer(nav, { type: "tab", tab: "standings" });
-    expect(stackOf(nav)).toEqual([{ kind: "standings", params: {} }, team]);
+    nav = navReducer(nav, { type: "tab", tab: "league" });
+    expect(stackOf(nav)).toEqual([root("league"), team]);
   });
 
   it("resets to the root when the current tab is tapped again", () => {
-    let nav = navReducer(start, { type: "push", view: team });
+    let nav = navReducer(start, { type: "push", screen: team });
     nav = navReducer(nav, { type: "tab", tab: "home" });
-    expect(stackOf(nav)).toEqual([{ kind: "home", params: {} }]);
+    expect(stackOf(nav)).toEqual([root("home")]);
   });
 
   it("sets a tab's stack from a history entry", () => {
-    const nav = navReducer(start, { type: "set", tab: "scores", stack: [{ kind: "scores", params: {} }, team] });
-    expect(nav.tab).toBe("scores");
+    const nav = navReducer(start, { type: "set", tab: "games", stack: [root("games"), game] });
+    expect(nav.tab).toBe("games");
     expect(stackOf(nav)).toHaveLength(2);
     expect(nav.stacks.home).toHaveLength(1);
-  });
-});
-
-describe("stackUrl", () => {
-  it("links the stack the way ?open= reads it back", () => {
-    expect(stackUrl([{ kind: "home", params: {} }])).toBe("/");
-    expect(stackUrl([{ kind: "scores", params: {} }, team, player])).toBe("/?open=scores,team:3,player:4046");
   });
 });

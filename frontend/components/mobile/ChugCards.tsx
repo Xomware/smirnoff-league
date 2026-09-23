@@ -4,7 +4,9 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
+import { iceCauseText } from "@/components/videos/ice-label";
 import { DrillLink } from "@/components/views/drill-link";
+import { IceBadge } from "@/components/xp/IceBadge";
 import { MediaPlayerIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger } from "@/lib/api/ledger";
@@ -39,7 +41,7 @@ interface ChugBoardCardsProps {
 
 // One row per team with ices this week or last: what it owes and when, or its chug.
 export function ChugBoardCards({ ledger, videos, onVideoError }: ChugBoardCardsProps) {
-  const { teamFor } = useLeague();
+  const { data, teamFor } = useLeague();
   const { myRosterId } = useProfile();
   const { play, player } = usePlayer(onVideoError);
   const board = chugBoard(ledger);
@@ -62,12 +64,18 @@ export function ChugBoardCards({ ledger, videos, onVideoError }: ChugBoardCardsP
             return (
               <li key={rosterId} className="m-row">
                 <DrillLink to={{ kind: "team", rosterId }}>
-                  <TeamName name={name} iced={owed.length > 0} ices={owed.length} isMine={rosterId === myRosterId} />
+                  <TeamName name={name} iced={owed.length > 0} ices={0} isMine={rosterId === myRosterId} />
                 </DrillLink>
                 {first ? (
-                  <span className="m-due" data-level={first.deadline === null ? "due" : urgency(first.deadline, now)}>
-                    {first.deadline === null ? "owed" : countdown(first.deadline, now, first.late)}
-                  </span>
+                  <>
+                    <IceBadge count={owed.length} />
+                    <span className="m-row-sub">
+                      <span className="m-due" data-level={first.deadline === null ? "due" : urgency(first.deadline, now)}>
+                        {first.deadline === null ? "owed" : countdown(first.deadline, now, first.late)}
+                      </span>
+                      {owed.map((r) => `W${r.ice.week} ${iceCauseText(r.ice, data?.players ?? {})}`).join(", ")}
+                    </span>
+                  </>
                 ) : video ? (
                   <button type="button" className="m-play" onClick={() => play({ video, label: `${name} · Week ${video.week}` })}>
                     <MediaPlayerIcon width={20} height={20} />
@@ -113,7 +121,7 @@ export function ChugReelRow({ ledger, videos, onVideoError }: ChugReelRowProps) 
       ) : clips.length === 0 ? (
         <p className="m-empty">No chugs yet this week. Somebody&apos;s stalling.</p>
       ) : (
-        <ul aria-label="Recent chugs" className="m-hscroll">
+        <ul aria-label="Recent chugs" className="m-hscroll m-clips">
           {clips.map((v) => (
             <li key={v.mediaId}>
               <button type="button" className="m-clip" aria-label={`Watch ${label(v)} chug`} onClick={() => play({ video: v, label: label(v) })}>

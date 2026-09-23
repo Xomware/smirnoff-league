@@ -157,38 +157,3 @@
     transition: none;
   }
 }
-
-.home-edition {
-  display: grid;
-  grid-template-columns: 4.5rem 1fr;
-  align-content: start;
-  gap: 0.25rem 0.5rem;
-  width: 100%;
-  min-width: 0;
-  padding: 0.25rem;
-  border: 1px solid transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.home-edition img {
-  grid-row: span 2;
-  order: -1;
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--xp-face-shadow);
-}
-
-.home-edition:hover {
-  border-color: var(--xp-face-shadow);
-  background: var(--xp-menu-side);
-}
-
-.home-edition:active {
-  background: var(--xp-face);
-}
-
-.home-edition:focus-visible {
-  outline: 2px dotted var(--xp-text);
-  outline-offset: 1px;
-}
