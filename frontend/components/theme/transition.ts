@@ -1,10 +1,9 @@
 import { flushSync } from "react-dom";
 
 import { PANEL_ICICLES } from "@/components/glacier/Frost";
+import type { Theme } from "@/lib/theme/theme";
 
 import "./transition.css";
-
-export type Theme = "xp" | "glacier";
 
 // The moment each overlay fully covers the screen. The CSS keyframe delays in
 // transition.css are written against these and TOTAL_MS.

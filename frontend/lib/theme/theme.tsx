@@ -2,6 +2,7 @@
 
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useSyncExternalStore } from "react";
 
+import { runThemeTransition } from "@/components/theme/transition";
 import { useAlerts } from "@/lib/alerts/alerts";
 import { updateMe } from "@/lib/api/users";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -85,11 +86,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = useCallback(
     (next: Theme) => {
       if (next === theme) return;
-      write(next);
-      if (!onboarded) return;
-      updateMe({ theme: next }).catch(() => {
-        write(theme);
-        notify({ title: "Theme not saved", body: "Couldn't save your theme. Try again in a moment.", icon: "error" });
+      // Saved from inside apply: the transition drops a switch made while one is
+      // running, and a fast failure must not roll back before the swap lands.
+      void runThemeTransition(next, () => {
+        write(next);
+        if (!onboarded) return;
+        updateMe({ theme: next }).catch(() => {
+          write(theme);
+          notify({ title: "Theme not saved", body: "Couldn't save your theme. Try again in a moment.", icon: "error" });
+        });
       });
     },
     [theme, onboarded, notify],

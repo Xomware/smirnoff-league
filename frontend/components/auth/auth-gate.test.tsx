@@ -50,6 +50,15 @@ function signedIn() {
   });
 }
 
+// Reduced motion swaps the theme at once instead of behind the 1.2s transition overlay.
+const reducedMotion = (matches: boolean) =>
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: matches && query.includes("reduced-motion"),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+
 function signedOut() {
   vi.mocked(getCurrentUser).mockRejectedValue(new Error("not signed in"));
   // The landing's league status fetches Sleeper; offline, it just hides.
@@ -61,6 +70,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  reducedMotion(false);
   cleanup();
   vi.restoreAllMocks();
 });
@@ -78,6 +88,7 @@ describe("AuthGate", () => {
 
   it("puts the theme switch on the signed-out landing, saved to this browser only", async () => {
     signedOut();
+    reducedMotion(true);
     localStorage.clear();
     nav.pathname = "/";
     const { container } = render(<AuthGate>home</AuthGate>);

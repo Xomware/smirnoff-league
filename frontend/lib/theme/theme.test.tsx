@@ -24,6 +24,16 @@ const profile = (theme?: Profile["theme"]): Profile => ({
 const signedIn = (theme?: Profile["theme"]) =>
   vi.mocked(getMe).mockResolvedValue({ sub: "s", email: "e", isAdmin: false, profile: profile(theme) });
 
+// Under reduced motion the switch goes through runThemeTransition but applies at
+// once, since jsdom has no View Transitions; without it every switch waits 1.2s.
+const reducedMotion = (matches: boolean) =>
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: matches && query.includes("reduced-motion"),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+
 const pressed = (name: string) => screen.getByRole("button", { name }).getAttribute("aria-pressed");
 const htmlTheme = () => document.documentElement.dataset.theme;
 
@@ -46,10 +56,12 @@ function renderSignedIn() {
 }
 
 beforeEach(() => {
+  reducedMotion(true);
   localStorage.clear();
   delete document.documentElement.dataset.theme;
 });
 afterEach(() => {
+  reducedMotion(false);
   vi.restoreAllMocks();
   vi.clearAllMocks();
 });
@@ -70,6 +82,17 @@ describe("theme, signed out", () => {
     expect(localStorage.getItem(THEME_KEY)).toBe("glacier");
     expect(htmlTheme()).toBe("glacier");
     expect(updateMe).not.toHaveBeenCalled();
+  });
+
+  it("covers the swap with the transition overlay when motion is allowed", async () => {
+    reducedMotion(false);
+    renderSignedOut();
+    fireEvent.click(screen.getByRole("button", { name: "Glacier" }));
+
+    expect(document.querySelector(".theme-transition.tt-to-glacier")).not.toBeNull();
+    expect(pressed("Classic XP")).toBe("true");
+    await waitFor(() => expect(pressed("Glacier")).toBe("true"));
+    await waitFor(() => expect(document.querySelector(".theme-transition")).toBeNull());
   });
 
   it("starts from the stored choice", () => {
@@ -113,7 +136,7 @@ describe("theme, signed in", () => {
     await waitFor(() => expect(localStorage.getItem(THEME_KEY)).toBe("xp"));
 
     fireEvent.click(screen.getByRole("button", { name: "Glacier" }));
-    expect(pressed("Glacier")).toBe("true");
+    expect(updateMe).toHaveBeenCalledWith({ theme: "glacier" });
 
     await waitFor(() => expect(pressed("Classic XP")).toBe("true"));
     expect(localStorage.getItem(THEME_KEY)).toBe("xp");

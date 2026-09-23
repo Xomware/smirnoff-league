@@ -55,16 +55,28 @@ function renderApp(theme: Profile["theme"]) {
   );
 }
 
+// Under reduced motion the switch goes through runThemeTransition but applies at
+// once, since jsdom has no View Transitions; without it every switch waits 1.2s.
+const reducedMotion = (matches: boolean) =>
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: matches && query.includes("reduced-motion"),
+    media: query,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  }));
+
 const glacierNav = () => screen.queryByRole("navigation", { name: "Main" });
 const taskbar = () => screen.queryByRole("list", { name: "Open windows" });
 
 beforeEach(() => {
+  reducedMotion(true);
   stubSleeper();
   localStorage.clear();
   Element.prototype.setPointerCapture = vi.fn();
   Element.prototype.scrollIntoView = vi.fn();
 });
 afterEach(() => {
+  reducedMotion(false);
   vi.restoreAllMocks();
   vi.clearAllMocks();
   window.history.replaceState(null, "", "/");
@@ -84,6 +96,8 @@ describe("switching themes in the app", () => {
     expect(taskbar()).toBeNull();
     expect(updateMe).toHaveBeenCalledWith({ theme: "glacier" });
 
+    // A switch in the same tick as the last one is dropped as still running.
+    await new Promise((r) => setTimeout(r, 0));
     fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
     expect(glacierNav()).toBeNull();
     expect(taskbar()).not.toBeNull();
