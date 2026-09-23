@@ -156,6 +156,10 @@ function SignInButton({ onSignIn }: { onSignIn?: () => void }) {
         Sign in with Google
       </button>
       {!onSignIn && <p className="mt-2 text-xs">Sign-in is switched off on this build.</p>}
+      <p className="mt-2 max-w-xs text-center text-xs">
+        Google shares your name, email and photo so we know which league member you are.{" "}
+        <a href="/privacy/">How we use it</a>
+      </p>
     </div>
   );
 }
