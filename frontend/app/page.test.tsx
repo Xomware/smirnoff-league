@@ -33,7 +33,6 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 }));
 
 import { AuthGate } from "@/components/auth/auth-gate";
-import { Taskbar } from "@/components/xp/Taskbar";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
 import Home from "./page";
@@ -49,7 +48,7 @@ afterEach(() => {
 function renderSignedIn() {
   render(
     <DesktopProvider>
-      <AuthGate shell={<Taskbar />}>
+      <AuthGate>
         <Home />
       </AuthGate>
     </DesktopProvider>,

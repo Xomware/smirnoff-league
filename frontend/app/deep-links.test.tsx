@@ -38,7 +38,6 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 }));
 
 import { AuthGate } from "@/components/auth/auth-gate";
-import { Taskbar } from "@/components/xp/Taskbar";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { loadLayout, saveLayout } from "@/lib/desktop/persist";
 import { defaultLayout } from "@/lib/desktop/windows";
@@ -62,7 +61,7 @@ afterEach(() => {
 
 const signedIn = (page: ReactNode) => (
   <DesktopProvider>
-    <AuthGate shell={<Taskbar />}>{page}</AuthGate>
+    <AuthGate>{page}</AuthGate>
   </DesktopProvider>
 );
 
@@ -112,18 +111,18 @@ describe("?open=", () => {
     await waitFor(() => expect(window.location.search).toBe("?open=standings"));
   });
 
-  it("shows the focused window maximized on a phone", async () => {
+  it("opens the link as a phone stack, last window on top", async () => {
     vi.spyOn(window, "matchMedia").mockImplementation(
       (query) =>
         ({ matches: query.includes("max-width"), addEventListener() {}, removeEventListener() {} }) as unknown as MediaQueryList,
     );
     renderAt("/?open=standings,team:6");
 
-    const team = await screen.findByRole("region", { name: /^Team Profile/ });
-    expect(team.hidden).toBe(false);
-    expect(team.dataset.maximized).toBe("true");
-    // Hidden windows drop out of the accessibility tree, so find it by label.
-    expect(document.querySelector<HTMLElement>('section[aria-label="League Standings"]')?.hidden).toBe(true);
+    expect(await screen.findByRole("heading", { level: 1, name: "Team Profile - Team 6" })).toBeTruthy();
+    const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
+    expect(tabs.getByRole("button", { name: "Standings" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
+    expect(document.querySelector(".xp-desktop")).toBeNull();
   });
 
   it("copies a link to one window", async () => {

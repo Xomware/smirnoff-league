@@ -26,7 +26,7 @@ import {
   StopwatchIcon,
 } from "@/components/xp/icons";
 import { useLeague } from "@/lib/league/use-league";
-import type { WindowParams, WindowState } from "./windows";
+import type { WindowParams, WindowView } from "./windows";
 
 export type League = Pick<ReturnType<typeof useLeague>, "data" | "teamFor">;
 
@@ -83,14 +83,14 @@ const SPECS = {
 export type WindowKind = keyof typeof SPECS;
 export const REGISTRY: Record<WindowKind, WindowSpec> = SPECS;
 
-export function windowTitle({ kind, params }: WindowState, league: League): string {
+export function windowTitle({ kind, params }: WindowView, league: League): string {
   const { title } = REGISTRY[kind];
   return typeof title === "string" ? title : title(params, league);
 }
 
-// Team and player titles need the league, so the window and its taskbar tab
-// both read titles through this hook.
-export function useWindowTitle(): (win: WindowState) => string {
+// Team and player titles need the league, so windows, taskbar tabs and phone
+// screens all read titles through this hook.
+export function useWindowTitle(): (view: WindowView) => string {
   const { data, teamFor } = useLeague();
-  return (win) => windowTitle(win, { data, teamFor });
+  return (view) => windowTitle(view, { data, teamFor });
 }

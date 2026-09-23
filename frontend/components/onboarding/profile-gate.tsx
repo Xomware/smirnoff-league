@@ -9,12 +9,11 @@ import { OnboardingWizard } from "./onboarding-wizard";
 
 interface ProfileGateProps {
   children: ReactNode;
-  shell?: ReactNode;
 }
 
 // Holds the app back until the signed-in user has a profile, and hosts the
 // wizard again when they edit it from the Start menu.
-export function ProfileGate({ children, shell }: ProfileGateProps) {
+export function ProfileGate({ children }: ProfileGateProps) {
   const { me, error, refresh, editing, setEditing } = useProfile();
 
   if (error) {
@@ -55,7 +54,6 @@ export function ProfileGate({ children, shell }: ProfileGateProps) {
   return (
     <>
       {children}
-      {shell}
       <SignInGreeting />
     </>
   );

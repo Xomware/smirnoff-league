@@ -61,21 +61,19 @@ describe("AuthGate", () => {
   it("renders the landing on /standings when signed out", async () => {
     signedOut();
     nav.pathname = "/standings/";
-    render(<AuthGate shell={<nav>taskbar</nav>}>standings content</AuthGate>);
+    render(<AuthGate>standings content</AuthGate>);
 
     await waitFor(() => expect(getCurrentUser).toHaveBeenCalled());
     expect(screen.getAllByRole("button", { name: /sign in with google/i }).length).toBeGreaterThan(0);
     expect(screen.queryByText("standings content")).toBeNull();
-    expect(screen.queryByText("taskbar")).toBeNull();
   });
 
   it("renders the children when signed in", async () => {
     signedIn();
     nav.pathname = "/standings/";
-    render(<AuthGate shell={<nav>taskbar</nav>}>standings content</AuthGate>);
+    render(<AuthGate>standings content</AuthGate>);
 
     expect(await screen.findByText("standings content")).toBeTruthy();
-    expect(screen.getByText("taskbar")).toBeTruthy();
     expect(screen.queryByRole("button", { name: /sign in with google/i })).toBeNull();
   });
 
