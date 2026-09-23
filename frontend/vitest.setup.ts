@@ -1,7 +1,11 @@
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
 import { clearLeagueCache } from "@/lib/league/cache";
+
+// CI runners render the full desktop slower than a laptop; the 1s default
+// failed "Season owed" at 1.18s on PR #96 while passing locally.
+configure({ asyncUtilTimeout: 5000 });
 
 // Testing Library only auto-cleans when the runner exposes a global afterEach;
 // vitest does not unless `globals: true`.
