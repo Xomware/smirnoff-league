@@ -131,26 +131,27 @@ describe("phone Menu reachability", () => {
   it("lists every section's pages plus Settings, My Profile and the Control Panel", async () => {
     wrap(<MobileShell theme="glacier" />);
     const tab = (name: string) => within(screen.getByRole("navigation", { name: "Tabs" })).getByRole("button", { name });
-    const top = () => within(document.querySelector<HTMLElement>(".m-screen:not([hidden])")!);
+    const menu = () => within(document.querySelector<HTMLElement>(".gp-drawer-body")!);
     fireEvent.click(tab("Menu"));
-    await top().findByRole("heading", { name: "Me" });
-    expect(top().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Games", "Ices", "League", "News Drop", "Me"]);
+    await menu().findByRole("heading", { name: "Me" });
+    expect(menu().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Games", "Ices", "League", "News Drop", "Me"]);
 
     // The tab bar reaches what the Home, Games and Ices tabs show, and the bell notifications.
     const kinds = Object.keys(REGISTRY) as (keyof typeof REGISTRY)[];
     const reached = new Set<string>(["notifications", ...kinds.filter((k) => foldedInto(k))]);
-    const labels = top()
+    const labels = menu()
       .getAllByRole("button")
       .filter((b) => b.querySelector(".m-chevron"))
       .map((b) => b.textContent!);
     expect(labels).toEqual(expect.arrayContaining(["My Profile", "Settings", "Control Panel", "Teams", "Draft recap", "Week view"]));
     for (const label of labels) {
-      // Tapping the tab you are on goes back to its root.
+      // Tapping the tab you are on goes back to its root; the drawer opens over it.
+      fireEvent.click(tab("Home"));
+      if (heading() !== "Smirnoff League") fireEvent.click(tab("Home"));
+      await waitFor(() => expect(shownKind()).toBe("home"));
       fireEvent.click(tab("Menu"));
-      if (heading() !== "Menu") fireEvent.click(tab("Menu"));
-      await waitFor(() => expect(shownKind()).toBe("menu"));
-      fireEvent.click(top().getByRole("button", { name: label }));
-      await waitFor(() => expect(shownKind()).not.toBe("menu"));
+      fireEvent.click(menu().getByRole("button", { name: label }));
+      await waitFor(() => expect(shownKind()).not.toBe("home"));
       reached.add(shownKind());
     }
 
