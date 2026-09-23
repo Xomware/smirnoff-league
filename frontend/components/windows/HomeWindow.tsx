@@ -135,7 +135,7 @@ export function HomeWindow() {
       : null;
   const onWatch = watching?.reduce((n, [, count]) => n + count, 0);
 
-  const week = useDefaultWeek(data?.nfl);
+  const week = useDefaultWeek();
   const started = week === currentWeek;
   const weekIces = started ? tally?.live?.ices : tally?.weeks.find((w) => w.week === week)?.ices;
 

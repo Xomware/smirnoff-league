@@ -127,7 +127,7 @@ export function ScoresWindow() {
   const picker = useId();
   const { data, matchups, error, teamFor } = useLeague(week);
   const current = data ? Math.max(1, data.nfl.week) : undefined;
-  const initial = useDefaultWeek(data?.nfl);
+  const initial = useDefaultWeek();
   if (!picked && initial !== undefined && week !== initial) setWeek(initial);
   const pick = (w: number) => {
     setPicked(true);
