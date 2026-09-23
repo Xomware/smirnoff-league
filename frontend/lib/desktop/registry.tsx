@@ -13,6 +13,7 @@ import { RecapWindow } from "@/components/windows/RecapWindow";
 import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
 import { WatchWindow } from "@/components/windows/WatchWindow";
+import { WriteupWindow } from "@/components/windows/WriteupWindow";
 import {
   BracketIcon,
   ChartIcon,
@@ -20,6 +21,7 @@ import {
   IceStandingsIcon,
   InfoIcon,
   MediaPlayerIcon,
+  NewspaperIcon,
   ProfileIcon,
   ScoresIcon,
   StandingsIcon,
@@ -78,6 +80,12 @@ const SPECS = {
     defaultSize: { w: 520, h: 520 },
   },
   week: { title: (p) => `Week ${p.week}`, Icon: ScoresIcon, component: WeekWindow, defaultSize: { w: 600, h: 600 } },
+  writeup: {
+    title: (p) => (p.week ? `Smirnoff League - Week ${p.week} Edition` : "Smirnoff League - Latest Edition"),
+    Icon: NewspaperIcon,
+    component: WriteupWindow,
+    defaultSize: { w: 760, h: 720 },
+  },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;

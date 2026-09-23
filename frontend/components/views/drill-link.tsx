@@ -5,7 +5,8 @@ import { createContext, type MouseEvent, type ReactNode, useContext } from "reac
 export type DrillTarget =
   | { kind: "team"; rosterId: number }
   | { kind: "player"; playerId: string }
-  | { kind: "week"; week: number };
+  | { kind: "week"; week: number }
+  | { kind: "writeup"; week: number };
 
 // The window manager provides the real opener; outside it a click does nothing.
 export const DrillContext = createContext<(to: DrillTarget) => void>(() => {});

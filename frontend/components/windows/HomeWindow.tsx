@@ -1,6 +1,9 @@
 "use client";
 
-import { DrillLink } from "@/components/views/drill-link";
+import Image from "next/image";
+import { useContext } from "react";
+
+import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
@@ -9,6 +12,35 @@ import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { watchStates } from "@/lib/ices/watch";
 import { useLeague } from "@/lib/league/use-league";
+import { useWriteups } from "@/lib/writeups/use-writeups";
+
+// Opens a window of its own on the desktop rather than navigating the small
+// Home window in place; on the phone the drill context pushes a screen.
+function EditionPanel() {
+  const { state, onPageError } = useWriteups();
+  const open = useContext(DrillContext);
+  const latest = state.status === "ok" ? state.writeups[0] : undefined;
+
+  return (
+    <section aria-label="This Week's Edition" className="xp-inset shrink-0 p-2 sm:w-36">
+      {state.status === "loading" ? (
+        <p role="status">Checking the News Drop...</p>
+      ) : state.status === "error" ? (
+        <p role="alert">News Drop unavailable.</p>
+      ) : !latest ? (
+        <p className="italic">No edition yet. The commish is typing...</p>
+      ) : (
+        <button type="button" className="home-edition" onClick={() => open({ kind: "writeup", week: latest.week })}>
+          <span className="font-bold">This Week&apos;s Edition</span>
+          <Image unoptimized src={latest.pages[0]} alt="" width={140} height={181} onError={onPageError} />
+          <span className="truncate">
+            Week {latest.week}: {latest.title}
+          </span>
+        </button>
+      )}
+    </section>
+  );
+}
 
 export function HomeWindow() {
   const { data, error: leagueError, teamFor } = useLeague();
@@ -29,7 +61,7 @@ export function HomeWindow() {
   const watch = [...liveByRoster].sort(([, a], [, b]) => b - a);
 
   return (
-    <div className="flex h-full gap-3">
+    <div className="flex h-full flex-col gap-3 sm:flex-row">
       <div className="xp-inset hidden shrink-0 place-items-center p-3 sm:grid">
         <IceBottleIcon width={80} height={80} />
       </div>
@@ -76,6 +108,7 @@ export function HomeWindow() {
           </>
         )}
       </div>
+      <EditionPanel />
     </div>
   );
 }

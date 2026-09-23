@@ -121,6 +121,19 @@ export function MediaPlayerIcon(props: IconProps) {
   );
 }
 
+// A folded broadsheet: masthead rule, a photo block and column lines.
+export function NewspaperIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 2.5h11v10.5a1.5 1.5 0 0 1-1.5 1.5H2.5A1.5 1.5 0 0 1 1 13V5.5h2.5" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 2.5V13" className="stroke-(--xp-text)" />
+      <path d="M5 4.5h8" className="stroke-(--smirnoff-red) stroke-[1.5]" />
+      <rect x="5" y="6.5" width="3.5" height="3" className="fill-(--ice-frost)" />
+      <path d="M10 7h3M10 9h3M5 11.5h8" className="stroke-(--xp-face-shadow)" />
+    </Icon>
+  );
+}
+
 export function WarningIcon(props: IconProps) {
   return (
     <Icon {...props}>
