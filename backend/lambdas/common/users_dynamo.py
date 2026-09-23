@@ -16,6 +16,7 @@ PROFILE_FIELDS = (
     "rosterId",
     "emailAddress",
     "notificationsSeenAt",
+    "theme",
     "createdAt",
     "updatedAt",
 )

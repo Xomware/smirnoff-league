@@ -28,7 +28,8 @@
   gap: 1.5rem;
   /* Short of a full screen on purpose: the next band's heading peeks above the fold. */
   min-height: calc(100svh - 5.5rem);
-  padding: 2rem 1.5rem 1rem;
+  /* Phones: room above the crest for the theme switch pinned top-right. */
+  padding: 4.5rem 1.5rem 1rem;
   color: var(--brand-white);
   text-align: center;
   background:
@@ -147,6 +148,10 @@
 }
 
 @media (min-width: 40rem) {
+  .landing-hero {
+    padding-top: 2rem;
+  }
+
   .landing-band {
     padding-inline: 2rem;
   }

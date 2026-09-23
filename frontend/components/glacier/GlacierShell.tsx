@@ -6,6 +6,7 @@ import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { track, viewTarget } from "@/lib/activity/tracker";
 import { parseOpen } from "@/lib/desktop/deep-link";
@@ -34,11 +35,7 @@ const urlOf = (view: WindowView) => (view.kind === "home" ? "/" : `/?open=${wind
 // A link can name several windows for the desktop; the last is the one it had in front.
 const fromUrl = (): WindowView => parseOpen(window.location.search).at(-1) ?? HOME;
 
-interface GlacierShellProps {
-  onSwitchTheme: () => void;
-}
-
-export function GlacierShell({ onSwitchTheme }: GlacierShellProps) {
+export function GlacierShell() {
   const [view, setView] = useState(fromUrl);
   const [searching, setSearching] = useState(false);
   const title = useWindowTitle()(view);
@@ -46,14 +43,6 @@ export function GlacierShell({ onSwitchTheme }: GlacierShellProps) {
   const page = useRef<HTMLElement>(null);
   const id = windowId(view.kind, view.params);
   const { component: Body } = REGISTRY[view.kind];
-
-  // Dialogs portal to <body>, outside this tree, so the theme has to sit on <html> too.
-  useEffect(() => {
-    document.documentElement.dataset.theme = "glacier";
-    return () => {
-      delete document.documentElement.dataset.theme;
-    };
-  }, []);
 
   useEffect(() => {
     const onPop = () => setView(fromUrl());
@@ -110,9 +99,7 @@ export function GlacierShell({ onSwitchTheme }: GlacierShellProps) {
           Search
           <kbd aria-hidden="true">⌘K</kbd>
         </button>
-        <button type="button" className="glacier-pill" onClick={onSwitchTheme}>
-          Classic XP
-        </button>
+        <ThemeToggle />
         <NotificationBell onOpen={() => go({ kind: "notifications", params: {} })} />
       </header>
       <DrillContext.Provider value={drill}>

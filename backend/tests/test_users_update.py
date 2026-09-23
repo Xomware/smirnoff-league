@@ -135,3 +135,33 @@ def test_invalid_seen_at_is_400(aws, value):
     assert status == 400
     assert res["error"]["detail"] == {"field": "notificationsSeenAt"}
     assert me()[1]["data"]["profile"]["notificationsSeenAt"] is None
+
+
+def test_theme_updates_on_its_own_and_round_trips(aws):
+    _, first = update(VALID)
+    assert first["data"]["theme"] is None
+    status, body = update({"theme": "glacier"})
+    assert status == 200
+    saved = body["data"]
+    assert saved["theme"] == "glacier"
+    assert {k: saved[k] for k in ("name", "username", "rosterId")} == VALID
+    assert me()[1]["data"]["profile"] == saved
+
+    update({**VALID, "name": "Renamed"})
+    assert me()[1]["data"]["profile"]["theme"] == "glacier"
+
+
+def test_theme_before_onboarding_is_404(aws):
+    assert update({"theme": "xp"})[0] == 404
+
+
+@pytest.mark.parametrize(
+    "body",
+    [{"theme": "dark"}, {"theme": None}, {"theme": 1}, {"theme": ["xp"]}, {"theme": "xp", "notificationsSeenAt": "2025-09-25T16:00:00Z"}],
+)
+def test_invalid_theme_is_400(aws, body):
+    update(VALID)
+    status, res = update(body)
+    assert status == 400
+    assert res["error"]["detail"] == {"field": "theme"}
+    assert me()[1]["data"]["profile"]["theme"] is None

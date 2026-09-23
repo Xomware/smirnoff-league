@@ -19,14 +19,12 @@ import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { GlacierShell } from "./GlacierShell";
 
-const onSwitchTheme = vi.fn();
-
 function renderShell() {
   return render(
     <ProfileProvider>
       <AlertsProvider>
         <NotificationsProvider>
-          <GlacierShell onSwitchTheme={onSwitchTheme} />
+          <GlacierShell />
         </NotificationsProvider>
       </AlertsProvider>
     </ProfileProvider>,
@@ -62,14 +60,6 @@ describe("GlacierShell", () => {
     expect(nav().getByRole("link", { name: "Home" }).getAttribute("aria-current")).toBe("page");
   });
 
-  it("themes the whole document while mounted, so dialogs portaled to body pick it up", () => {
-    const { unmount } = renderShell();
-    expect(document.documentElement.getAttribute("data-theme")).toBe("glacier");
-
-    unmount();
-    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
-  });
-
   it("switches the view from the nav, writes ?open= and comes back on the browser's Back", async () => {
     renderShell();
     fireEvent.click(nav().getByRole("link", { name: "League" }));
@@ -101,12 +91,11 @@ describe("GlacierShell", () => {
     expect(window.location.search).toBe("?open=writeup");
   });
 
-  it("opens notifications from the bell and hands Classic XP to the caller", () => {
+  it("opens notifications from the bell and carries the theme switch", () => {
     renderShell();
     fireEvent.click(screen.getByRole("button", { name: /Notifications/ }));
     expect(heading()).toBe("Notifications");
 
-    fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
-    expect(onSwitchTheme).toHaveBeenCalledOnce();
+    expect(within(screen.getByRole("group", { name: "Theme" })).getByRole("button", { name: "Classic XP" })).toBeTruthy();
   });
 });

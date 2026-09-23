@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { AuthGate } from "@/components/auth/auth-gate";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
+import { THEME_SCRIPT } from "@/lib/theme/theme";
 
 import "./globals.css";
 
@@ -20,7 +21,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
+    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="min-h-full">
         <DesktopProvider>
           <AuthGate>{children}</AuthGate>

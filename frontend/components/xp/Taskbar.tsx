@@ -9,6 +9,8 @@ import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { defaultLayout } from "@/lib/desktop/windows";
 import { useNotifications } from "@/lib/notifications/use-notifications";
 import { useProfile } from "@/lib/profile/use-profile";
+import { SnowflakeGlyph } from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme";
 import { RobotHeadIcon } from "./icons";
 import { NotificationBell } from "./NotificationBell";
 import { SpeakerToggle } from "./SpeakerToggle";
@@ -40,6 +42,7 @@ export function Taskbar() {
   const time = useSyncExternalStore(subscribeToClock, readClock, readServerClock);
   const windowTitle = useWindowTitle();
   const { unread } = useNotifications();
+  const { setTheme, switching } = useTheme();
 
   useEffect(() => {
     if (!open) return;
@@ -122,6 +125,16 @@ export function Taskbar() {
             }}
           />
           <SpeakerToggle />
+          <button
+            type="button"
+            className="xp-tray-button"
+            aria-label="Switch to the Glacier theme"
+            title="Glacier theme"
+            disabled={switching}
+            onClick={() => setTheme("glacier")}
+          >
+            <SnowflakeGlyph width={18} height={18} />
+          </button>
           <time>{time}</time>
         </div>
       </div>
