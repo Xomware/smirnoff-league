@@ -13,12 +13,14 @@ import { RecapWindow } from "@/components/windows/RecapWindow";
 import { ScoresWindow } from "@/components/windows/ScoresWindow";
 import { StandingsWindow } from "@/components/windows/StandingsWindow";
 import { WatchWindow } from "@/components/windows/WatchWindow";
+import { WriteupWindow } from "@/components/windows/WriteupWindow";
 import {
   BracketIcon,
   ChartIcon,
   IceBottleIcon,
   IceStandingsIcon,
   MediaPlayerIcon,
+  NewsFeedIcon,
   NewspaperIcon,
   ProfileIcon,
   ScoresIcon,
@@ -57,7 +59,7 @@ function WeekWindow({ params }: ParamsProps) {
 const SPECS = {
   home: { title: "Smirnoff Fantasy Football League", Icon: IceBottleIcon, component: HomeWindow, defaultSize: { w: 640, h: HOME_H } },
   recap: { title: "Now Playing - Draft Recap", Icon: MediaPlayerIcon, component: RecapWindow, defaultSize: { w: 640, h: 420 } },
-  news: { title: "League News", Icon: NewspaperIcon, component: NewsWindow, defaultSize: { w: 600, h: 600 } },
+  news: { title: "League News", Icon: NewsFeedIcon, component: NewsWindow, defaultSize: { w: 600, h: 600 } },
   scores: { title: "Scores", Icon: ScoresIcon, component: ScoresWindow, defaultSize: { w: 560, h: 560 } },
   standings: { title: "League Standings", Icon: StandingsIcon, component: StandingsWindow, defaultSize: { w: 520, h: 520 } },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
@@ -78,6 +80,12 @@ const SPECS = {
     defaultSize: { w: 520, h: 520 },
   },
   week: { title: (p) => `Week ${p.week}`, Icon: ScoresIcon, component: WeekWindow, defaultSize: { w: 600, h: 600 } },
+  writeup: {
+    title: (p) => (p.week ? `Smirnoff League - Week ${p.week} Edition` : "Smirnoff League - Latest Edition"),
+    Icon: NewspaperIcon,
+    component: WriteupWindow,
+    defaultSize: { w: 760, h: 720 },
+  },
 } satisfies Record<string, WindowSpec>;
 
 export type WindowKind = keyof typeof SPECS;

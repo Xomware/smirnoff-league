@@ -1,6 +1,9 @@
 "use client";
 
-import { DrillLink } from "@/components/views/drill-link";
+import Image from "next/image";
+import { useContext } from "react";
+
+import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { NewsList } from "@/components/views/news-list";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { IceBottleIcon } from "@/components/xp/icons";
@@ -12,6 +15,7 @@ import { watchStates } from "@/lib/ices/watch";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 import { useNews } from "@/lib/news/use-news";
+import { useWriteups } from "@/lib/writeups/use-writeups";
 
 function LatestNews() {
   const { data, teamFor, feed, error } = useNews();
@@ -31,6 +35,34 @@ function LatestNews() {
         <p>No news yet.</p>
       ) : (
         <NewsList label="Latest news" items={feed.slice(0, 3)} players={data.players} teamFor={teamFor} />
+      )}
+    </section>
+  );
+}
+
+// Opens a window of its own on the desktop rather than navigating the small
+// Home window in place; on the phone the drill context pushes a screen.
+function EditionPanel() {
+  const { state, onPageError } = useWriteups();
+  const open = useContext(DrillContext);
+  const latest = state.status === "ok" ? state.writeups[0] : undefined;
+
+  return (
+    <section aria-label="This Week's Edition" className="xp-inset shrink-0 p-2 sm:w-56">
+      {state.status === "loading" ? (
+        <p role="status">Checking the News Drop...</p>
+      ) : state.status === "error" ? (
+        <p role="alert">News Drop unavailable.</p>
+      ) : !latest ? (
+        <p className="italic">No edition yet. The commish is typing...</p>
+      ) : (
+        <button type="button" className="home-edition" onClick={() => open({ kind: "writeup", week: latest.week })}>
+          <span className="font-bold">This Week&apos;s Edition</span>
+          <Image unoptimized src={latest.pages[0]} alt="" width={140} height={181} onError={onPageError} />
+          <span className="line-clamp-3">
+            Week {latest.week}: {latest.title}
+          </span>
+        </button>
       )}
     </section>
   );
@@ -60,7 +92,7 @@ export function HomeWindow() {
 
   return (
     <div className="grid gap-3">
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <div className="xp-inset hidden shrink-0 place-items-center p-3 sm:grid">
           <IceBottleIcon width={80} height={80} />
         </div>
@@ -118,6 +150,7 @@ export function HomeWindow() {
             </>
           )}
         </div>
+        <EditionPanel />
       </div>
       <LatestNews />
     </div>

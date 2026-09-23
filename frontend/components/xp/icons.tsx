@@ -120,6 +120,19 @@ export function MediaPlayerIcon(props: IconProps) {
   );
 }
 
+// A folded broadsheet: masthead rule, a photo block and column lines.
+export function NewspaperIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 2.5h11v10.5a1.5 1.5 0 0 1-1.5 1.5H2.5A1.5 1.5 0 0 1 1 13V5.5h2.5" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 2.5V13" className="stroke-(--xp-text)" />
+      <path d="M5 4.5h8" className="stroke-(--smirnoff-red) stroke-[1.5]" />
+      <rect x="5" y="6.5" width="3.5" height="3" className="fill-(--ice-frost)" />
+      <path d="M10 7h3M10 9h3M5 11.5h8" className="stroke-(--xp-face-shadow)" />
+    </Icon>
+  );
+}
+
 export function WarningIcon(props: IconProps) {
   return (
     <Icon {...props}>
@@ -158,14 +171,13 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
-export function NewspaperIcon(props: IconProps) {
+// The League News feed: an Outlook Express inbox tray with a letter in it.
+export function NewsFeedIcon(props: IconProps) {
   return (
     <Icon {...props}>
-      <path d="M3.5 2.5h11v11a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-8h2z" className="fill-(--xp-cream) stroke-(--xp-text)" />
-      <path d="M3.5 5.5v8" className="stroke-(--xp-text)" />
-      <rect x="5" y="4" width="8" height="2" className="fill-(--xp-title-dark)" />
-      <rect x="5" y="7.5" width="3.5" height="3" className="fill-(--smirnoff-red)" />
-      <path d="M9.5 8h3.5M9.5 10h3.5M5 12.5h8" className="stroke-(--xp-face-shadow)" />
+      <rect x="3.5" y="1.5" width="9" height="7" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 1.5l4.5 4 4.5-4" className="fill-none stroke-(--xp-text)" />
+      <path d="M1.5 8.5h3.5l1 2h4l1-2h3.5v5h-13z" className="fill-(--xp-title-light) stroke-(--xp-frame)" />
     </Icon>
   );
 }

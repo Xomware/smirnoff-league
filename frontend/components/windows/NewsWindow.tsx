@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { NewsList } from "@/components/views/news-list";
-import { NewspaperIcon, WarningIcon } from "@/components/xp/icons";
+import { NewsFeedIcon, WarningIcon } from "@/components/xp/icons";
 import { FILTERS, filterFeed, type NewsFilter } from "@/lib/news/feed";
 import { useNews } from "@/lib/news/use-news";
 
@@ -29,7 +29,7 @@ export function NewsWindow() {
   return (
     <div className="news">
       <header className="news-masthead">
-        <NewspaperIcon width={32} height={32} className="shrink-0" />
+        <NewsFeedIcon width={32} height={32} className="shrink-0" />
         <div className="min-w-0">
           <h2 className="news-title">The Smirnoff Times</h2>
           <p className="news-dateline">

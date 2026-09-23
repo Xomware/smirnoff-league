@@ -7,12 +7,12 @@ vi.mock("@/lib/api/ledger", async (importOriginal) => ({
 }));
 vi.mock("@/lib/api/writeups", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/writeups")>()),
-  getWriteups: vi.fn(),
+  listWriteups: vi.fn(),
 }));
 
 import { getLedger } from "@/lib/api/ledger";
 import { ApiError } from "@/lib/api/users";
-import { getWriteups } from "@/lib/api/writeups";
+import { listWriteups } from "@/lib/api/writeups";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { NewsWindow } from "./NewsWindow";
@@ -20,7 +20,7 @@ import { NewsWindow } from "./NewsWindow";
 beforeEach(() => {
   stubSleeper();
   vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
-  vi.mocked(getWriteups).mockResolvedValue([
+  vi.mocked(listWriteups).mockResolvedValue([
     { mediaId: "W02#abc", week: 2, title: "Week 2 in review", publishedAt: "2026-09-16T12:00:00+00:00", pages: [] },
   ]);
 });
@@ -46,6 +46,7 @@ describe("News window", () => {
     expect(w1Iced.some((t) => t.includes("lowest score of the week"))).toBe(true);
     expect(items.filter((t) => t.includes("chugs a Week 1 ice"))).toHaveLength(5);
     expect(items.some((t) => t.includes("News drop: Week 2 in review"))).toBe(true);
+    expect(screen.getByRole("button", { name: "News drop: Week 2 in review" })).toBeTruthy();
   });
 
   it("filters by type and by team", async () => {
@@ -68,7 +69,7 @@ describe("News window", () => {
 
   it("still shows transactions when the ledger and write-ups are unavailable", async () => {
     vi.mocked(getLedger).mockRejectedValue(new ApiError(0, "API not configured"));
-    vi.mocked(getWriteups).mockRejectedValue(new ApiError(0, "API not configured"));
+    vi.mocked(listWriteups).mockRejectedValue(new ApiError(0, "API not configured"));
     render(<NewsWindow />);
 
     expect(texts(await rows())).toHaveLength(2);

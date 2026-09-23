@@ -34,7 +34,7 @@ export type WindowAction =
 // Matches --taskbar-height; windows live in the viewport above it.
 export const TASKBAR_HEIGHT = 44;
 // Tall enough for the summary and the three latest headlines.
-export const HOME_H = 360;
+export const HOME_H = 400;
 // Desktop icons take the left edge, so new windows open clear of them.
 const ICON_COLUMN = 112;
 

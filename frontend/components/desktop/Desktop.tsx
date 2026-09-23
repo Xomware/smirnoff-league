@@ -21,6 +21,7 @@ const ICONS: { kind: WindowKind; label: string }[] = [
   { kind: "ice-standings", label: "Ice Standings" },
   { kind: "news", label: "League News" },
   { kind: "recap", label: "Draft Recap" },
+  { kind: "writeup", label: "News Drop" },
 ];
 
 export function Desktop() {

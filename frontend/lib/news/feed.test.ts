@@ -126,7 +126,7 @@ describe("writeupItems", () => {
   it("makes a news drop per write-up", () => {
     const w: Writeup = { mediaId: "W03#u1", week: 3, title: "Frozen Solid", publishedAt: "2026-09-23T12:00:00+00:00", pages: [] };
     const [item] = writeupItems([w]);
-    expect(item).toMatchObject({ id: "writeup:W03#u1", event: "writeup", week: 3, rosterIds: [], mediaId: "W03#u1" });
+    expect(item).toMatchObject({ id: "writeup:W03#u1", event: "writeup", week: 3, rosterIds: [] });
     expect(item.at).toBe(Date.parse(w.publishedAt));
     expect(text(item.headline)).toBe("News drop: Frozen Solid");
   });

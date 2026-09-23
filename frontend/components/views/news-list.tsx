@@ -29,22 +29,35 @@ interface NewsListProps {
 export function NewsList({ label, items, players, teamFor }: NewsListProps) {
   const [now] = useState(Date.now);
 
-  const part = (p: Part, i: number) => {
-    if (typeof p === "string") return p;
+  const link = (p: Exclude<Part, string>) => {
     if ("rosterId" in p) {
       return (
-        <DrillLink key={i} to={{ kind: "team", rosterId: p.rosterId }}>
+        <DrillLink to={{ kind: "team", rosterId: p.rosterId }}>
           <b>{teamFor(p.rosterId).name}</b>
         </DrillLink>
       );
     }
     const player = players[p.playerId];
     return (
-      <DrillLink key={i} to={{ kind: "player", playerId: p.playerId }}>
+      <DrillLink to={{ kind: "player", playerId: p.playerId }}>
         <span title={player?.name}>{player ? shortName(player) : p.playerId}</span>
       </DrillLink>
     );
   };
+
+  // A link is a button, which WebKit keeps inline-block, so a line may break
+  // between it and the comma after it. The comma rides along with the link.
+  const headline = (parts: Part[]) =>
+    parts.map((p, i) => {
+      if (typeof p === "string") return i > 0 && typeof parts[i - 1] !== "string" ? p.replace(/^[,;]/, "") : p;
+      const punct = parts[i + 1]?.toString().match(/^[,;]/)?.[0];
+      return (
+        <span key={i} className={punct ? "whitespace-nowrap" : undefined}>
+          {link(p)}
+          {punct}
+        </span>
+      );
+    });
 
   return (
     <ol aria-label={label} className="news-list">
@@ -53,7 +66,13 @@ export function NewsList({ label, items, players, teamFor }: NewsListProps) {
         return (
           <li key={item.id} className={`news-row news-${item.event}`}>
             <Icon width={20} height={20} className="news-icon" />
-            <p className="news-headline">{item.headline.map(part)}</p>
+            <p className="news-headline">
+              {item.event === "writeup" ? (
+                <DrillLink to={{ kind: "writeup", week: item.week }}>{headline(item.headline)}</DrillLink>
+              ) : (
+                headline(item.headline)
+              )}
+            </p>
             <span className="news-meta">
               <span className="xp-watch-tag">W{item.week}</span>
               <time dateTime={new Date(item.at).toISOString()}>{timeAgo(item.at, now)}</time>

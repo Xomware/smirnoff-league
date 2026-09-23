@@ -12,7 +12,6 @@ export interface NewsItem {
   week: number;
   rosterIds: number[];
   headline: Part[];
-  mediaId?: string;
 }
 
 export const FILTERS = {
@@ -112,7 +111,6 @@ export function writeupItems(writeups: Writeup[]): NewsItem[] {
     week: w.week,
     rosterIds: [],
     headline: [`News drop: ${w.title}`],
-    mediaId: w.mediaId,
   }));
 }
 
