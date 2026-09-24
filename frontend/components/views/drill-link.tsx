@@ -28,6 +28,10 @@ export const NavigateContext = createContext<((to: DrillTarget) => void) | null>
 // the view's params and its link without a history step. Outside one it is null.
 export const ViewParamsContext = createContext<((params: WindowParams) => void) | null>(null);
 
+// True where the shell already shows the page's title and description (Glacier,
+// the phone), so a view's own heading would only repeat them.
+export const TitledPage = createContext(false);
+
 interface DrillLinkProps {
   to: DrillTarget;
   children: ReactNode;

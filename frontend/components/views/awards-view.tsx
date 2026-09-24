@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { use, useId, useState } from "react";
 
 import { TeamName } from "@/components/xp/TeamName";
 import { type Award, awardLine, AWARDS, awardLabel, awardStat, type Names, type Tally } from "@/lib/awards/awards";
@@ -8,7 +8,7 @@ import { useAwards } from "@/lib/awards/use-awards";
 import type { WindowParams } from "@/lib/desktop/windows";
 import type { Team } from "@/lib/league/use-league";
 import { AWARD_ICONS } from "./award-icons";
-import { DrillLink } from "./drill-link";
+import { DrillLink, TitledPage } from "./drill-link";
 
 import "./awards.css";
 
@@ -96,6 +96,7 @@ function SeasonTally({ tally, teamFor }: { tally: Tally; teamFor: (rosterId: num
 export function AwardsView({ params }: { params: WindowParams }) {
   const { weeks, tally, players, teamFor, error, ledgerError } = useAwards();
   const [picked, setPicked] = useState<number | null>(null);
+  const titled = use(TitledPage);
 
   if (error) return <p role="alert">Could not load the awards ({error}). Refresh to try again.</p>;
   if (!weeks || !tally) return <p role="status">Polishing the trophies...</p>;
@@ -106,10 +107,12 @@ export function AwardsView({ params }: { params: WindowParams }) {
 
   return (
     <div className="awards">
-      <header>
-        <h2 className="rank-title">Weekly Awards</h2>
-        <p>Handed out once a week is final.</p>
-      </header>
+      {!titled && (
+        <header>
+          <h2 className="rank-title">Weekly Awards</h2>
+          <p>Handed out once a week is final.</p>
+        </header>
+      )}
       {!shown ? (
         <p className="xp-inset p-3">No week is final yet. The first awards go out once Week 1 is locked in.</p>
       ) : (

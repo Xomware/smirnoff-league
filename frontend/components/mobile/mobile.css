@@ -252,11 +252,6 @@ body:has(.m-app) {
   gap: 0.5rem;
 }
 
-/* Ice Rankings' title, at the phone's section-title size. */
-.m-screen .rank-title {
-  font-size: 1.125rem;
-}
-
 .m-section-head {
   display: flex;
   align-items: baseline;
@@ -870,7 +865,11 @@ body:has(.m-app) {
   --board-cols: 1.75rem minmax(0, 1fr) 3.5rem;
 }
 
-.m-standings .board-sub {
+.m-ice-board {
+  --board-cols: 1.75rem minmax(0, 1fr) 2.5rem;
+}
+
+:is(.m-standings, .m-ice-board) .board-sub {
   display: flex;
   align-items: center;
   gap: 0.375rem;
