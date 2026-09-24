@@ -4,8 +4,6 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
-import { useSnowCaps } from "./use-snow-caps";
-
 import "./effects.css";
 
 const IGNORE = "a, button, input, textarea, select, label, [role=button], [data-no-snowball]";
@@ -20,6 +18,39 @@ interface Ball {
   from: number;
 }
 
+type Segment = [number, number, number, number];
+
+// One arm of each crystal, pointing up from the centre in a 24-unit box.
+// Mirrored pairs are listed as both halves; the arm is repeated six times.
+const SHAPES: Segment[][] = [
+  [[0, 0, 0, -10], [0, -10, -2, -8.4], [0, -10, 2, -8.4]],
+  [[0, 0, 0, -10.5], [0, -4.5, -3.2, -7], [0, -4.5, 3.2, -7], [0, -7.5, -2, -9.3], [0, -7.5, 2, -9.3]],
+  [
+    [0, -2.2, 0, -10.8],
+    [0, -2.2, 1.9, -1.1],
+    [0, -4.6, -3.8, -6.8],
+    [0, -4.6, 3.8, -6.8],
+    [0, -7.8, -2.2, -9.4],
+    [0, -7.8, 2.2, -9.4],
+  ],
+];
+
+const sixfold = (arm: Segment[]) =>
+  [0, 1, 2, 3, 4, 5]
+    .flatMap((k) => {
+      const [c, s] = [Math.cos((k * Math.PI) / 3), Math.sin((k * Math.PI) / 3)];
+      const at = (x: number, y: number) => `${(x * c - y * s).toFixed(2)} ${(x * s + y * c).toFixed(2)}`;
+      return arm.map(([x1, y1, x2, y2]) => `M${at(x1, y1)}L${at(x2, y2)}`);
+    })
+    .join("");
+
+// Far flakes are most of the fall; a few near ones are big and bright.
+const DEPTHS = [
+  { share: 0.6, size: [6, 9.5], opacity: [0.35, 0.55], fall: [17, 24], line: 0.65, shapes: [0] },
+  { share: 0.28, size: [10, 15], opacity: [0.6, 0.8], fall: [12, 16], line: 1, shapes: [0, 1, 2] },
+  { share: 0.12, size: [16, 22], opacity: [0.85, 1], fall: [8, 11], line: 1.3, shapes: [1, 2] },
+];
+
 // Seeded so the static export's HTML matches the hydrated client and tests.
 const FLAKES = (() => {
   let seed = 7;
@@ -27,28 +58,54 @@ const FLAKES = (() => {
     seed = (seed * 9301 + 49297) % 233280;
     return seed / 233280;
   };
-  return Array.from({ length: 70 }, () => {
-    const size = 2 + rnd() * 5;
+  const pick = ([lo, hi]: number[]) => lo + rnd() * (hi - lo);
+  return Array.from({ length: 76 }, () => {
+    const roll = rnd();
+    const depth = roll < DEPTHS[0].share ? DEPTHS[0] : roll < DEPTHS[0].share + DEPTHS[1].share ? DEPTHS[1] : DEPTHS[2];
+    const size = Math.round(pick(depth.size));
+    const fall = pick(depth.fall);
+    const flutter = 5 + rnd() * 5;
     return {
-      left: `${(rnd() * 100).toFixed(2)}%`,
-      width: size,
-      height: size,
-      opacity: 0.5 + rnd() * 0.5,
-      animationDuration: `${(9 + rnd() * 10).toFixed(1)}s`,
-      animationDelay: `${(-rnd() * 18).toFixed(1)}s`,
-      "--drift": `${Math.round(rnd() * 120 - 60)}px`,
-    } as CSSProperties;
+      size,
+      shape: depth.shapes[Math.floor(rnd() * depth.shapes.length)],
+      style: {
+        left: `${(rnd() * 100).toFixed(2)}%`,
+        opacity: pick(depth.opacity).toFixed(2),
+        animationDuration: `${fall.toFixed(1)}s`,
+        animationDelay: `${(-rnd() * fall).toFixed(1)}s`,
+        "--drift": `${Math.round(rnd() * 80 - 40)}px`,
+      } as CSSProperties,
+      art: {
+        // Stroke width is in the 24-unit box, so scale it to keep the line near `line` px.
+        "--sw": ((depth.line * 24) / size).toFixed(2),
+        "--sway": `${Math.round(6 + rnd() * size)}px`,
+        animationDuration: `${flutter.toFixed(1)}s`,
+        animationDelay: `${(-rnd() * flutter).toFixed(1)}s`,
+        animationDirection: rnd() < 0.5 ? "normal" : "reverse",
+      } as CSSProperties,
+    };
   });
 })();
 
-// Hoisted so a thrown snowball re-renders without diffing 70 flakes.
+// Hoisted so a thrown snowball re-renders without diffing the flakes.
 const SNOW = (
   <div className="glacier-snow" aria-hidden="true">
-    {FLAKES.map((style, i) => (
-      <span key={i} className="glacier-flake" style={style} />
-    ))}
-    {[0, 1, 2, 3].map((i) => (
-      <span key={`lander-${i}`} className="glacier-lander" />
+    <svg width="0" height="0" className="glacier-flake-defs">
+      {SHAPES.map((arm, i) => {
+        const d = sixfold(arm);
+        return (
+          <symbol key={i} id={`glacier-flake-${i}`} viewBox="-12 -12 24 24">
+            <path className="glacier-flake-line" d={d} />
+          </symbol>
+        );
+      })}
+    </svg>
+    {FLAKES.map((f, i) => (
+      <span key={i} className="glacier-flake" style={f.style}>
+        <svg width={f.size} height={f.size} style={f.art}>
+          <use href={`#glacier-flake-${f.shape}`} />
+        </svg>
+      </span>
     ))}
   </div>
 );
@@ -57,7 +114,6 @@ export function Effects() {
   const reduced = useReducedMotion();
   const [balls, setBalls] = useState<Ball[]>([]);
   const nextId = useRef(1);
-  useSnowCaps(reduced);
 
   useEffect(() => {
     if (reduced) return;
