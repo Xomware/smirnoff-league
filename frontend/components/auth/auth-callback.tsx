@@ -43,9 +43,12 @@ export function AuthCallback() {
     router.replace(takeNextPath());
   }, [status, router]);
 
+  const loading = !failed || status === "signedIn";
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-stone-100 p-8 text-center text-stone-900">
-      {failed && status !== "signedIn" ? (
+    <main
+      className={`flex min-h-dvh flex-col items-center justify-center gap-4 bg-stone-100 p-8 text-center text-stone-900 ${loading ? "brand-loader-page" : ""}`}
+    >
+      {!loading ? (
         <>
           <h1 className="text-xl font-semibold">That sign-in did not finish</h1>
           <p className="max-w-sm text-stone-700">
@@ -59,9 +62,7 @@ export function AuthCallback() {
           </Link>
         </>
       ) : (
-        <>
-          <BrandLoader label="Signing you in..." />
-        </>
+        <BrandLoader label="Signing you in..." />
       )}
     </main>
   );

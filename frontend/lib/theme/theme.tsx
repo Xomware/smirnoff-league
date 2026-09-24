@@ -79,7 +79,8 @@ function subscribe(onChange: () => void) {
 }
 
 // The prerendered HTML is always XP; the stored theme takes over after hydration.
-const serverTheme = () => null;
+// Undefined marks that hydration pass, whose guess must not reach <html>.
+const serverTheme = () => undefined;
 
 interface ThemeState {
   theme: Theme;
@@ -97,21 +98,25 @@ const ThemeContext = createContext<ThemeState>({ theme: "xp", setTheme: () => {}
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const phone = useMediaQuery(PHONE);
-  const theme = useSyncExternalStore(subscribe, read, serverTheme) ?? (phone ? "glacier" : "xp");
+  const stored = useSyncExternalStore<Theme | null | undefined>(subscribe, read, serverTheme);
+  const theme = stored ?? (phone ? "glacier" : "xp");
   const [switching, setSwitching] = useState(false);
   const { me } = useProfile();
   const { notify } = useAlerts();
   const onboarded = Boolean(me?.profile);
   const saved = me?.profile?.theme;
 
-  // Hydration drops an attribute the inline script put on <html> before it, so it is set again here.
+  // Hydration drops an attribute the inline script put on <html> before it, so it
+  // is set again here, but only once the snapshots are real: writing the
+  // hydration pass's XP guess flashed the loaders out of Glacier (#239).
   useEffect(() => {
+    if (stored === undefined) return;
     const html = document.documentElement;
     const color = chromeColor(theme, phone);
     html.dataset.theme = theme;
     html.style.backgroundColor = color;
     themeColorMeta().content = color;
-  }, [theme, phone]);
+  }, [stored, theme, phone]);
 
   // Keyed on the saved value, not the profile object, which changes on every
   // notifications-seen mark and would otherwise undo a switch made since load.

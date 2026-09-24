@@ -33,7 +33,7 @@ export function ProfileGate({ children }: ProfileGateProps) {
   }
   if (!me) {
     return (
-      <main className="xp-page min-h-dvh justify-center">
+      <main className="xp-page brand-loader-page min-h-dvh justify-center">
         <BrandLoader label="Loading your profile..." />
       </main>
     );
