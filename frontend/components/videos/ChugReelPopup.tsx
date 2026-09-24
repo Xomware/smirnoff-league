@@ -12,6 +12,7 @@ import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { useVideos } from "@/lib/videos/use-videos";
+import { fitVisualViewport } from "@/lib/visual-viewport";
 import { ChugPlayer } from "./ChugPlayer";
 import { chugTime } from "./ChugTime";
 import { iceCauseText } from "./ice-label";
@@ -209,7 +210,7 @@ export function ChugReelPopup() {
   return (
     <>
       {createPortal(
-        <div className="xp-backdrop reel-backdrop" onMouseDown={(e) => e.target === e.currentTarget && e.preventDefault()}>
+        <div ref={fitVisualViewport} className="xp-backdrop reel-backdrop" onMouseDown={(e) => e.target === e.currentTarget && e.preventDefault()}>
           <div ref={box} role="dialog" aria-modal="true" aria-labelledby={headingId} className="xp-dialog reel-popup" onKeyDown={onKeyDown}>
             <div className="xp-dialog-title reel-bar">
               <MediaPlayerIcon className="shrink-0" />

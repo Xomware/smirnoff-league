@@ -96,6 +96,8 @@ afterEach(() => {
   vi.useRealTimers();
   vi.clearAllMocks();
   reducedMotion(false);
+  // jsdom has no visualViewport of its own.
+  vi.stubGlobal("visualViewport", undefined);
 });
 
 describe("ChugReelPopup", () => {
@@ -111,6 +113,32 @@ describe("ChugReelPopup", () => {
     ]);
     expect(within(cards[0]).getByText("Lowest score")).toBeTruthy();
     expect(within(cards[0]).getByText("4.2s")).toBeTruthy();
+  });
+
+  it("stacks bar, heading, carousel and footer, each card's facts under a flexing poster", async () => {
+    await mount([clip(2), clip(3)]);
+    const dialog = reel()!;
+    expect([...dialog.children].map((c) => c.className.split(" ").at(-1))).toEqual(["reel-bar", "reel-head", "reel-stage", "reel-footer"]);
+    const card = within(dialog).getAllByRole("button", { name: /^Watch/ })[0];
+    expect([...card.children].map((c) => c.className)).toEqual(["reel-poster", "reel-meta"]);
+    const meta = card.querySelector(".reel-meta")!;
+    expect([...meta.children].map((c) => c.textContent)).toEqual([expect.stringContaining("Team 3"), "PaidLowest score", "Time4.2s"]);
+    const videos = [...document.querySelectorAll("video")];
+    expect(videos.length).toBeGreaterThan(0);
+    expect(videos.every((v) => v.hasAttribute("playsinline"))).toBe(true);
+  });
+
+  it("sizes itself to the visible viewport, which iOS toolbars and keyboards shrink", async () => {
+    const viewport = Object.assign(new EventTarget(), { height: 664, offsetTop: 0 });
+    vi.stubGlobal("visualViewport", viewport);
+    await mount([clip(2)]);
+    const backdrop = reel()!.parentElement!;
+    expect(backdrop.style.getPropertyValue("--vv-height")).toBe("664px");
+    viewport.height = 420;
+    viewport.offsetTop = 180;
+    act(() => viewport.dispatchEvent(new Event("resize")));
+    expect(backdrop.style.getPropertyValue("--vv-height")).toBe("420px");
+    expect(backdrop.style.getPropertyValue("--vv-top")).toBe("180px");
   });
 
   it("does not show again after it is closed", async () => {
@@ -198,6 +226,7 @@ describe("ChugReelPopup", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /^Watch/ })[1]);
     const player = screen.getByRole("dialog", { name: "Team 2 · Week 2" });
     expect(within(player).getByLabelText("Team 2 · Week 2 chug").getAttribute("src")).toBe("https://media.test/2.mp4#t=0.1");
+    expect([...document.querySelectorAll("video")].every((v) => v.hasAttribute("playsinline"))).toBe(true);
 
     fireEvent.keyDown(player, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Team 2 · Week 2" })).toBeNull();
