@@ -37,13 +37,15 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
     return week ? { week: Number(week), matchup: Number(matchup) } : null;
   },
   writeup: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
+  awards: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
   folder: (v) => (v === "ices" ? { id: v } : null),
   admin: (v) => (ADMIN_PANELS.includes(v as AdminPanel) ? { panel: v } : null),
 };
 
 // Kinds whose value may be left off: a bare `writeup` is the latest edition,
-// a bare `admin` the category view, and a view with tabs opens on its first.
-const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats"]);
+// a bare `admin` the category view, bare `awards` the latest final week, and
+// a view with tabs opens on its first.
+const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats", "awards"]);
 
 const isKind = (kind: string): kind is WindowKind => Object.hasOwn(REGISTRY, kind);
 

@@ -2,6 +2,7 @@
 
 import { useContext } from "react";
 
+import { AwardsCard } from "@/components/home/AwardsCard";
 import { DrillContext } from "@/components/views/drill-link";
 import { NewsList } from "@/components/views/news-list";
 import { MediaPlayerIcon, NewspaperIcon } from "@/components/xp/icons";
@@ -48,6 +49,7 @@ export function HomeNews() {
               : "No News Drop has been filed yet."}
         </p>
       )}
+      <AwardsCard className="gh-awards" titleClass="gh-fact-label" moreClass="gh-link gh-awards-more" />
       {error ? (
         <p role="alert">Could not load league news ({error}).</p>
       ) : !items || !data ? (

@@ -13,7 +13,8 @@ export type DrillTarget =
   | { kind: "ices" | "ice-standings" | "chug-rankings" | "stats" | "watch" | "videos" | "scores" | "standings" | "brackets" | "recap" }
   | { kind: "admin" }
   | { kind: "admin"; panel: AdminPanel }
-  | { kind: "writeup"; week: number };
+  | { kind: "writeup"; week: number }
+  | { kind: "awards"; week?: number };
 
 // The window manager provides the real opener; outside it a click does nothing.
 export const DrillContext = createContext<(to: DrillTarget) => void>(() => {});
