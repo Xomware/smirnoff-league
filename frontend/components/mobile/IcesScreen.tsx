@@ -4,18 +4,16 @@ import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
-import { iceCauseText } from "@/components/videos/ice-label";
-import { teamList, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { teamList } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
+import { IceLedger } from "@/components/windows/IcesWindow";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { MediaPlayerIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
-import { myDue } from "@/lib/ices/chug-board";
 import { type IceStanding, iceStandings, weekIceStandings } from "@/lib/ices/standings";
 import { useLedger } from "@/lib/ices/use-ledger";
-import { useNow } from "@/lib/ices/use-now";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
@@ -38,75 +36,9 @@ function breakdown(r: IceStanding): string {
   return parts.length ? parts.join(" · ") : "Clean so far";
 }
 
-interface OwesProps {
-  ledger: Ledger;
-  teamFor: (rosterId: number) => Team;
-  onUpload: (iceIds: string[]) => void;
-}
-
-// Every team with an unpaid ice, most owed first, each with its clock.
-function WhoOwes({ ledger, teamFor, onUpload }: OwesProps) {
-  const { data } = useLeague();
-  const { myRosterId } = useProfile();
-  const now = useNow(ledger.weeks.flatMap((w) => (w.deadlineUtc ? [Date.parse(w.deadlineUtc)] : [])));
-  const teams = [...new Set(ledger.ices.filter((i) => i.status === "owed").map((i) => i.rosterId))]
-    .flatMap((rosterId) => {
-      const due = myDue(ledger, rosterId, now);
-      return due ? [{ rosterId, due }] : [];
-    })
-    .sort((a, b) => b.due.count - a.due.count || a.rosterId - b.rosterId);
-
-  return (
-    <section aria-labelledby="m-who-owes" className="m-section">
-      <h2 id="m-who-owes" className="m-section-title">
-        Who still owes
-      </h2>
-      {teams.length === 0 ? (
-        <p className="m-empty">Nobody owes a chug. Suspicious.</p>
-      ) : (
-        <ul aria-label="Who still owes" className="m-card m-rows">
-          {teams.map(({ rosterId, due }) => {
-            const owed = ledger.ices.filter((i) => due.iceIds.includes(i.iceId)).sort((a, b) => a.week - b.week);
-            return (
-              <li key={rosterId} className="m-row">
-                <DrillLink to={{ kind: "team", rosterId }}>
-                  <TeamName name={teamFor(rosterId).name} iced ices={0} isMine={rosterId === myRosterId} />
-                </DrillLink>
-                {rosterId === myRosterId ? (
-                  <UploadChugButton onClick={() => onUpload(owed.filter((i) => i.week === owed[0].week).map((i) => i.iceId))} />
-                ) : (
-                  <IceBadge count={due.count} />
-                )}
-                <span className="m-row-sub">
-                  {due.when && (
-                    <span className="m-due" data-level={due.level}>
-                      {due.when}
-                    </span>
-                  )}
-                  {owed.map((i) => `W${i.week} ${iceCauseText(i, data?.players ?? {})}`).join(", ")}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </section>
-  );
-}
-
+// The desktop ledger, with the season summary folded away.
 export function LedgerScreen() {
-  const { teamFor } = useLeague();
-  const ledger = useLedger();
-  const [upload, setUpload] = useState<string[] | null>(null);
-
-  if (ledger.status === "loading") return <p role="status">Opening the ledger...</p>;
-  if (ledger.status === "error") return <p role="alert">The ledger is unavailable ({ledger.message}).</p>;
-  return (
-    <div className="m-page">
-      <WhoOwes ledger={ledger.ledger} teamFor={teamFor} onUpload={setUpload} />
-      {upload && createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={upload} onClose={() => setUpload(null)} />, document.body)}
-    </div>
-  );
+  return <IceLedger phone />;
 }
 
 export function VideosScreen() {
