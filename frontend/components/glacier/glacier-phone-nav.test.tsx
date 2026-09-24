@@ -66,16 +66,17 @@ describe("Glacier phone header", () => {
     expect(getComputedStyle(screen.getByRole("banner")).minHeight).toBe("calc(56px + env(safe-area-inset-top))");
   });
 
-  it("shrinks once the page scrolls, and grows back at the top", () => {
+  it("shrinks once the document scrolls, and grows back at the top", () => {
     renderGlacier();
-    const page = document.querySelector<HTMLElement>(".m-screen:not([hidden])")!;
+    const scrollTo = (y: number) => {
+      Object.defineProperty(window, "scrollY", { configurable: true, value: y });
+      fireEvent.scroll(window);
+    };
 
-    page.scrollTop = 200;
-    fireEvent.scroll(page);
+    scrollTo(200);
     expect(screen.getByRole("banner").hasAttribute("data-scrolled")).toBe(true);
 
-    page.scrollTop = 0;
-    fireEvent.scroll(page);
+    scrollTo(0);
     expect(screen.getByRole("banner").hasAttribute("data-scrolled")).toBe(false);
   });
 

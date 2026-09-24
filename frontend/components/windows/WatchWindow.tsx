@@ -85,9 +85,55 @@ export function WatchWindow() {
   }
 
   const liveGames = games.filter((g) => g.state === "in").length;
+  const flaggedOf = (t: TeamWatch) => t.starters.filter((s) => RANK[s.state] !== undefined).sort((a, b) => RANK[a.state]! - RANK[b.state]!);
+  const atRisk = teams.filter((t) => flaggedOf(t).length > 0);
+  const safe = teams.filter((t) => flaggedOf(t).length === 0);
 
+  const teamWatch = (t: TeamWatch) => {
+    const { name } = teamFor(t.rosterId);
+    const matchup = matchups?.find((m) => m.roster_id === t.rosterId)?.matchup_id;
+    const flagged = flaggedOf(t);
+    return (
+      <section key={t.rosterId} aria-label={`${name} ice watch`}>
+        <div className="flex items-center justify-between gap-2">
+          <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
+            <TeamName name={name} iced={t.finalIce + t.locked > 0} ices={t.finalIce + t.locked} />
+          </DrillLink>
+          {week && matchup && <OpenGame week={week} matchup={matchup} />}
+        </div>
+        {flagged.length > 0 && (
+          <ul aria-label={`${name} starters on watch`} className="mt-1 bg-(--xp-cream)">
+            {flagged.map((s) => {
+              const player = s.playerId ? data.players[s.playerId] : undefined;
+              return (
+                <PlayerRow
+                  key={s.id}
+                  name={s.playerId ? <DrillLink to={{ kind: "player", playerId: s.playerId }}>{player?.name ?? s.playerId}</DrillLink> : "Empty slot"}
+                  position={s.slot}
+                  points={s.points}
+                  iced={s.state === "FINAL_ICE" || s.state === "LOCKED"}
+                  watch={s.state === "WATCH"}
+                  ices={0}
+                  status={
+                    <>
+                      <span className="xp-watch-tag" data-state={s.state}>
+                        {WATCH_TAG[s.state]}
+                      </span>
+                      <span className="xp-game-chip">{chip(s, player)}</span>
+                    </>
+                  }
+                />
+              );
+            })}
+          </ul>
+        )}
+      </section>
+    );
+  };
+
+  // min-h-full fills an XP window, which scrolls itself; on a page it grows with the page (#225).
   return (
-    <div className="xp-inset grid h-full content-start gap-3 overflow-auto p-2">
+    <div className="xp-inset grid min-h-full content-start gap-3 p-2">
       <p aria-live="polite" className="text-xs">
         Week {week}:{" "}
         {liveGames > 0
@@ -96,49 +142,15 @@ export function WatchWindow() {
       </p>
       {error && <p role="alert" className="xp-note">The last check failed ({error}). Retrying.</p>}
       {teams.length === 0 && <p className="xp-note">Sleeper has no lineups for week {week} yet.</p>}
-      {teams.map((t) => {
-        const { name } = teamFor(t.rosterId);
-        const matchup = matchups?.find((m) => m.roster_id === t.rosterId)?.matchup_id;
-        const flagged = t.starters.filter((s) => RANK[s.state] !== undefined).sort((a, b) => RANK[a.state]! - RANK[b.state]!);
-        return (
-          <section key={t.rosterId} aria-label={`${name} ice watch`}>
-            <div className="flex items-center justify-between gap-2">
-              <DrillLink to={{ kind: "team", rosterId: t.rosterId }}>
-                <TeamName name={name} iced={t.finalIce + t.locked > 0} ices={t.finalIce + t.locked} />
-              </DrillLink>
-              {week && matchup && <OpenGame week={week} matchup={matchup} />}
-            </div>
-            {flagged.length === 0 ? (
-              <p className="mt-1 text-xs italic">All starters safe.</p>
-            ) : (
-              <ul aria-label={`${name} starters on watch`} className="mt-1 bg-(--xp-cream)">
-                {flagged.map((s) => {
-                  const player = s.playerId ? data.players[s.playerId] : undefined;
-                  return (
-                    <PlayerRow
-                      key={s.id}
-                      name={s.playerId ? <DrillLink to={{ kind: "player", playerId: s.playerId }}>{player?.name ?? s.playerId}</DrillLink> : "Empty slot"}
-                      position={s.slot}
-                      points={s.points}
-                      iced={s.state === "FINAL_ICE" || s.state === "LOCKED"}
-                      watch={s.state === "WATCH"}
-                      ices={0}
-                      status={
-                        <>
-                          <span className="xp-watch-tag" data-state={s.state}>
-                            {WATCH_TAG[s.state]}
-                          </span>
-                          <span className="xp-game-chip">{chip(s, player)}</span>
-                        </>
-                      }
-                    />
-                  );
-                })}
-              </ul>
-            )}
-          </section>
-        );
-      })}
+      {atRisk.map(teamWatch)}
+      {safe.length > 0 && (
+        <details className="xp-group">
+          <summary className="xp-group-title">
+            {atRisk.length > 0 ? "Everyone else: all" : "All"} starters safe · {safe.length} {safe.length === 1 ? "team" : "teams"}
+          </summary>
+          <div className="grid gap-3 p-2">{safe.map(teamWatch)}</div>
+        </details>
+      )}
     </div>
   );
 }
