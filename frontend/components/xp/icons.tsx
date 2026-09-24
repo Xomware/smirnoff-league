@@ -309,6 +309,16 @@ export function SpeakerIcon({ muted, ...props }: IconProps & { muted: boolean })
   );
 }
 
+export function TickerIcon({ off, ...props }: IconProps & { off: boolean }) {
+  return (
+    <Icon {...props}>
+      <rect x="1" y="4.5" width="14" height="7" rx="1" className="fill-(--xp-cream) stroke-(--xp-text)" />
+      <path d="M3.5 8h3M8.5 8h4" className="stroke-(--xp-title) stroke-[1.5]" />
+      {off && <path d="M2 14 14 2" className="stroke-(--xp-red) stroke-[1.5]" />}
+    </Icon>
+  );
+}
+
 export function BellIcon(props: IconProps) {
   return (
     <Icon {...props}>
