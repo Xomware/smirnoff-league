@@ -144,7 +144,7 @@ export function WatchWindow() {
       {teams.length === 0 && <p className="xp-note">Sleeper has no lineups for week {week} yet.</p>}
       {atRisk.map(teamWatch)}
       {safe.length > 0 && (
-        <details className="xp-group">
+        <details className="xp-group watch-safe">
           <summary className="xp-group-title">
             {atRisk.length > 0 ? "Everyone else: all" : "All"} starters safe · {safe.length} {safe.length === 1 ? "team" : "teams"}
           </summary>
