@@ -55,12 +55,16 @@ export function chugBoard(ledger: Ledger): BoardTeam[] {
 export function countdown(deadline: number, now: number, late: number): string {
   const left = deadline - now;
   if (left <= 0) return late ? `LATE +${late}` : "LATE";
+  return `due in ${timeLeft(left)}`;
+}
+
+export function timeLeft(left: number): string {
   const d = Math.floor(left / DAY);
   const h = Math.floor((left % DAY) / HOUR);
   const m = Math.floor((left % HOUR) / MINUTE);
-  if (d) return `due in ${d}d ${h}h`;
-  if (h) return `due in ${h}h ${m}m`;
-  return `due in ${m}m ${Math.floor((left % MINUTE) / 1000)}s`;
+  if (d) return `${d}d ${h}h`;
+  if (h) return `${h}h ${m}m`;
+  return `${m}m ${Math.floor((left % MINUTE) / 1000)}s`;
 }
 
 export function urgency(deadline: number, now: number): Urgency {
