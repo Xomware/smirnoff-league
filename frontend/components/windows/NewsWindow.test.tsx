@@ -49,22 +49,41 @@ describe("News window", () => {
     expect(screen.getByRole("button", { name: "News drop: Week 2 in review" })).toBeTruthy();
   });
 
-  it("filters by type and by team", async () => {
+  it("filters by type and by team, with the count and chips following", async () => {
     render(<NewsWindow />);
     await rows();
+    const type = screen.getByLabelText("Type") as HTMLSelectElement;
+    expect([...type.options].map((o) => o.textContent)).toEqual(["All", "Ices", "Chugs", "Roster moves", "Trades", "News drops"]);
+    const all = (await rows()).length;
+    expect(screen.getByRole("status").textContent).toBe(`${all} items`);
 
-    fireEvent.click(screen.getByRole("button", { name: "Trades" }));
-    expect(await rows()).toHaveLength(0);
-    expect(screen.getByText(/no trades yet/i)).toBeTruthy();
+    fireEvent.change(type, { target: { value: "chugs" } });
+    const chugs = texts(await rows());
+    expect(chugs).toHaveLength(5);
+    expect(chugs.every((t) => t.includes("chugs a Week 1 ice"))).toBe(true);
+    expect(screen.getByRole("status").textContent).toBe("5 items");
 
-    fireEvent.click(screen.getByRole("button", { name: "Transactions" }));
+    fireEvent.change(type, { target: { value: "moves" } });
     expect(texts(await rows())).toHaveLength(2);
+    fireEvent.change(type, { target: { value: "drops" } });
+    expect(texts(await rows())).toEqual([expect.stringContaining("News drop: Week 2 in review")]);
 
-    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    fireEvent.change(type, { target: { value: "all" } });
     fireEvent.change(screen.getByLabelText("Team"), { target: { value: "6" } });
     const team6 = texts(await rows());
     expect(team6.length).toBeGreaterThan(0);
     expect(team6.every((t) => t.includes("Team 6"))).toBe(true);
+    expect(screen.getByRole("button", { name: "Remove Team: Team 6" })).toBeTruthy();
+  });
+
+  it("says when nothing matches and clears the filters", async () => {
+    render(<NewsWindow />);
+    await rows();
+    fireEvent.change(screen.getByLabelText("Type"), { target: { value: "trades" } });
+    expect(await rows()).toHaveLength(0);
+    expect(screen.getByText("No news matches these filters.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect((await rows()).length).toBeGreaterThan(5);
   });
 
   it("still shows transactions when the ledger and write-ups are unavailable", async () => {

@@ -228,7 +228,7 @@
   border-radius: 8px;
 }
 
-[data-theme="glacier"] :is(.rank-chip, .news-chip) {
+[data-theme="glacier"] .rank-chip {
   min-height: 36px;
   padding: 0 16px;
   border: 1px solid var(--g-frost-edge);
@@ -239,25 +239,25 @@
   transition: background-color 0.15s;
 }
 
-[data-theme="glacier"] :is(.rank-chip, .news-chip):hover {
+[data-theme="glacier"] .rank-chip:hover {
   border-color: var(--g-link);
   background: var(--g-hover);
   box-shadow: none;
 }
 
-[data-theme="glacier"] :is(.rank-chip, .news-chip):active {
+[data-theme="glacier"] .rank-chip:active {
   background: var(--g-press);
   box-shadow: none;
 }
 
-[data-theme="glacier"] :is(.rank-chip, .news-chip)[aria-pressed="true"] {
+[data-theme="glacier"] .rank-chip[aria-pressed="true"] {
   border-color: var(--g-snow);
   color: var(--g-night);
   background: var(--g-snow);
   box-shadow: none;
 }
 
-[data-theme="glacier"] :is(.rank-chip, .news-chip):focus-visible {
+[data-theme="glacier"] .rank-chip:focus-visible {
   outline: 3px solid var(--g-focus);
   outline-offset: 2px;
 }
@@ -838,7 +838,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-theme="glacier"] :is(.xp-tab, .rank-chip, .news-chip, .xp-button, .xp-select) {
+  [data-theme="glacier"] :is(.xp-tab, .rank-chip, .xp-button, .xp-select) {
     transition: none;
   }
 }

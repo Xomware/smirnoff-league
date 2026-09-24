@@ -362,6 +362,14 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+export function FunnelIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M1.5 2.5h13l-5 5.5v5.5l-3 1v-6.5z" className="fill-none stroke-current stroke-[1.5]" strokeLinejoin="round" />
+    </Icon>
+  );
+}
+
 export const ALERT_ICONS = {
   ice: IceBottleIcon,
   info: InfoIcon,

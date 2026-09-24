@@ -17,10 +17,9 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { Ticker } from "@/components/ticker/Ticker";
 import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
-import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
+import { DrillContext, type DrillTarget, NavigateContext, ViewParamsContext } from "@/components/views/drill-link";
 import { BackArrowIcon, MenuIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
-import { TabParamContext } from "@/components/xp/Tabs";
 import { track } from "@/lib/activity/tracker";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import { viewKey, type WindowParams } from "@/lib/desktop/windows";
@@ -112,7 +111,7 @@ interface MobileShellProps {
 
 export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const glacier = theme === "glacier";
-  const { nav, push, open, back, retab } = usePhoneNav();
+  const { nav, push, open, back, patch } = usePhoneNav();
   const title = useScreenTitle();
   const week = useDefaultWeek();
   const isAdmin = useProfile().me?.isAdmin ?? false;
@@ -245,9 +244,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       )}
                       {description && <p className="m-lede">{description}</p>}
                       <WindowBoundary>
-                        <TabParamContext value={retab}>
+                        <ViewParamsContext value={patch}>
                           <Body params={screen.params} />
-                        </TabParamContext>
+                        </ViewParamsContext>
                       </WindowBoundary>
                     </section>
                   );

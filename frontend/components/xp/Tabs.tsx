@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, type KeyboardEvent, type ReactNode, useContext, useEffect, useId, useRef, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useContext, useEffect, useId, useRef, useState } from "react";
+
+import { ViewParamsContext } from "@/components/views/drill-link";
 
 export interface Tab {
   id: string;
@@ -15,16 +17,13 @@ interface TabsProps {
   selected?: string | number;
 }
 
-// Set by the window or page a view sits in, so a picked tab lands in the
-// view's params and the URL. Outside one, the strip keeps its own state.
-export const TabParamContext = createContext<((tab: string) => void) | null>(null);
-
 // An XP property-sheet tab strip, keyed the WAI-ARIA tabs way: arrows move and
 // select, Home/End jump, and only the selected tab is in the tab order.
 export function Tabs({ label, tabs, selected: param }: TabsProps) {
-  const setParam = useContext(TabParamContext);
+  // Outside a window or page, the strip keeps its own state.
+  const setParams = useContext(ViewParamsContext);
   const [own, setOwn] = useState(param);
-  const current = setParam ? param : own;
+  const current = setParams ? param : own;
   const selected = Math.max(0, tabs.findIndex((t) => t.id === current));
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -45,7 +44,7 @@ export function Tabs({ label, tabs, selected: param }: TabsProps) {
     measure();
   }, [selected]);
 
-  const pick = (i: number) => (setParam ?? setOwn)(tabs[i].id);
+  const pick = (i: number) => (setParams ? setParams({ tab: tabs[i].id }) : setOwn(tabs[i].id));
   const select = (i: number) => {
     const next = (i + tabs.length) % tabs.length;
     pick(next);

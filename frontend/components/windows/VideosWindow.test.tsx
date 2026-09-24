@@ -15,6 +15,10 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/users")>()),
   getMe: vi.fn(),
 }));
+vi.mock("@/lib/api/social", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/social")>()),
+  getSocial: vi.fn(),
+}));
 vi.mock("@/lib/sound/sound", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/sound/sound")>()),
   play: vi.fn(),
@@ -26,6 +30,7 @@ import { ApiError, getMe, type Me } from "@/lib/api/users";
 import { confirmVideo, listVideos, presignVideo, type Video } from "@/lib/api/videos";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { ProfileProvider } from "@/lib/profile/use-profile";
+import { getSocial, type VideoSocial } from "@/lib/api/social";
 import { play } from "@/lib/sound/sound";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -51,6 +56,12 @@ const withVideo = (ledger: Ledger, iceIds: string | string[], videoId: string): 
 });
 const W2_OWED = (rosterId: number) => SCENARIO_LEDGER.ices.filter((i) => i.week === 2 && i.rosterId === rosterId && i.reason !== "late");
 const LEDGER = withVideo(SCENARIO_LEDGER, W1_FIRST.iceId, W1_VIDEO.mediaId);
+
+const reaction = (count: number) => ({ count, mine: false, by: [] });
+const socialWith = (count: number): VideoSocial => ({
+  reactions: { glacier: reaction(count), stopwatch: reaction(0), bottle: reaction(0), siren: reaction(0), crown: reaction(0) },
+  comments: [],
+});
 
 function me(isAdmin: boolean, rosterId = 13): Me {
   return { sub: "s", email: "e", profile: { name: "N", username: "u", rosterId, createdAt: "", updatedAt: "" }, isAdmin };
@@ -92,6 +103,7 @@ beforeEach(() => {
   vi.mocked(listVideos).mockResolvedValue([W1_VIDEO]);
   vi.mocked(presignVideo).mockResolvedValue({ mediaId: "W02#new", url: "https://bucket.test", fields: { key: "k", policy: "p" } });
   vi.mocked(confirmVideo).mockResolvedValue(undefined);
+  vi.mocked(getSocial).mockResolvedValue(socialWith(0));
 });
 afterEach(() => {
   vi.clearAllMocks();
@@ -127,6 +139,54 @@ describe("Chug Videos window", () => {
     fireEvent.change(screen.getByLabelText("Team"), { target: { value: "12" } });
     expect(within(section("Owes")).getAllByRole("listitem")).toHaveLength(2);
     expect(within(section("Owes")).queryByText("Team 13")).toBeNull();
+  });
+
+  it("narrows owes, videos and unfilmed chugs by ice type", async () => {
+    renderWindow();
+    await screen.findByRole("region", { name: "Completed" });
+    fireEvent.change(screen.getByLabelText("Ice type"), { target: { value: "late" } });
+    const owes = within(section("Owes")).getAllByRole("listitem");
+    expect(owes).toHaveLength(3);
+    expect(owes.every((li) => li.textContent?.includes("Late ice"))).toBe(true);
+    expect(within(section("Completed")).queryAllByRole("listitem", { name: /chug video/i })).toHaveLength(0);
+
+    fireEvent.change(screen.getByLabelText("Ice type"), { target: { value: W1_FIRST.reason } });
+    expect(within(section("Completed")).getAllByRole("listitem", { name: /chug video/i })).toHaveLength(1);
+    expect(screen.getByRole("status").textContent).toBe("1 video");
+  });
+
+  it("shows an empty state when nothing matches and clears back", async () => {
+    renderWindow();
+    await screen.findByRole("region", { name: "Completed" });
+    fireEvent.change(screen.getByLabelText("Week"), { target: { value: "1" } });
+    fireEvent.change(screen.getByLabelText("Ice type"), { target: { value: "late" } });
+    expect(screen.getByText("No chugs match these filters.")).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Owes" })).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("0 videos");
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(within(section("Completed")).getAllByRole("listitem", { name: /chug video/i })).toHaveLength(1);
+    expect(screen.queryByText("No chugs match these filters.")).toBeNull();
+  });
+
+  it("sorts videos by fastest time and, fetching counts only then, by reactions", async () => {
+    const other = LEDGER.ices.find((i) => i.week === 1 && i.rosterId !== W1_FIRST.rosterId)!;
+    const later: Video = { ...W1_VIDEO, mediaId: "W01#v2", iceIds: [other.iceId], rosterIds: [other.rosterId], createdAt: "2026-09-21T12:00:00+00:00" };
+    const timed = withVideo(LEDGER, other.iceId, later.mediaId);
+    vi.mocked(getLedger).mockResolvedValue({ ...timed, ices: timed.ices.map((i) => (i.iceId === W1_FIRST.iceId ? { ...i, chugSeconds: 4.2 } : i.iceId === other.iceId ? { ...i, chugSeconds: 8 } : i)) });
+    vi.mocked(listVideos).mockResolvedValue([W1_VIDEO, later]);
+    renderWindow();
+    const order = () => within(section("Completed")).getAllByRole("listitem", { name: /chug video/i }).map((c) => c.querySelector("video")!.getAttribute("src"));
+    await waitFor(() => expect(order()).toEqual([`${later.url}#t=0.1`, `${W1_VIDEO.url}#t=0.1`]));
+
+    fireEvent.change(screen.getByLabelText("Sort"), { target: { value: "fastest" } });
+    expect(order()).toEqual([`${W1_VIDEO.url}#t=0.1`, `${later.url}#t=0.1`]);
+
+    vi.mocked(getSocial).mockClear();
+    vi.mocked(getSocial).mockImplementation(async (id) => socialWith(id === W1_VIDEO.mediaId ? 5 : 2));
+    fireEvent.change(screen.getByLabelText("Sort"), { target: { value: "reactions" } });
+    await waitFor(() => expect(getSocial).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(order()).toEqual([`${W1_VIDEO.url}#t=0.1`, `${later.url}#t=0.1`]));
   });
 
   it("refetches the list when a presigned video URL has expired", async () => {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 
+import { FilterBar, FilterEmpty } from "@/components/filters/FilterBar";
 import { canTime, ChugTimeButton, ChugTimeDialog } from "@/components/videos/ChugTime";
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
@@ -13,6 +14,8 @@ import { IceBadge } from "@/components/xp/IceBadge";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger, LedgerIce, LedgerSummary } from "@/lib/api/ledger";
+import type { WindowParams } from "@/lib/desktop/windows";
+import { defaultFilters, type FilterField, type FilterValues, plural, readFilters, useFilterParam, writeFilters } from "@/lib/filters/filters";
 import type { RosterTally } from "@/lib/ices/tally";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
@@ -136,25 +139,32 @@ const summaryFor = (ledger: Ledger, rosterIds: number[]): LedgerSummary[] =>
       ledger.summary.find((s) => s.rosterId === rosterId) ?? { rosterId, owed: 0, completed: 0, late: 0, lateOwed: 0, overdue: 0 },
   );
 
-const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
-
 function weekLine(week: number, ices: LedgerIce[]): string {
   const originals = ices.filter((i) => i.reason !== "late");
   const done = originals.filter((i) => i.status === "completed").length;
   return `Week ${week} · ${plural(originals.length, "ice")} · ${done} done · ${ices.length - originals.length} late`;
 }
 
+const STATUSES: Record<string, { label: string; keep: (ice: LedgerIce) => boolean }> = {
+  all: { label: "All", keep: () => true },
+  owed: { label: "Owed", keep: (i) => i.status === "owed" },
+  late: { label: "Late", keep: (i) => i.reason === "late" },
+  paid: { label: "Paid", keep: (i) => i.status === "completed" },
+};
+
 interface IceLedgerProps {
+  params?: WindowParams;
   // The phone folds the season summary away; Ice standings already ranks the season there.
   phone?: boolean;
 }
 
-export function IceLedger({ phone = false }: IceLedgerProps) {
+export function IceLedger({ params = {}, phone = false }: IceLedgerProps) {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, error: icesError } = useSeasonIces(currentWeek);
   const ledgerState = useLedger();
   const { myRosterId, me } = useProfile();
+  const [param, setParam] = useFilterParam(params);
   const [upload, setUpload] = useState<string[] | null>(null);
   const [timing, setTiming] = useState<LedgerIce | null>(null);
   const ledger = ledgerState.status === "ok" ? ledgerState.ledger : null;
@@ -163,28 +173,71 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data || !tally || !currentWeek || ledgerState.status === "loading") return <p role="status">Tallying the ices...</p>;
 
+  const rosterIds = tally.owed.map((t) => t.rosterId);
+  const fields: FilterField[] = [
+    {
+      key: "team",
+      label: "Team",
+      options: [
+        { value: "all", label: "All" },
+        ...[...rosterIds].sort((a, b) => teamFor(a).name.localeCompare(teamFor(b).name)).map((r) => ({ value: String(r), label: teamFor(r).name })),
+      ],
+    },
+    { key: "status", label: "Status", options: Object.entries(STATUSES).map(([value, { label }]) => ({ value, label })) },
+  ];
+  const f = readFilters(fields, param);
+  const set = (values: FilterValues) => setParam(writeFilters(fields, values));
+  const filtered = writeFilters(fields, f) !== "";
+  const onTeam = (ice: { rosterId: number }) => f.team === "all" || ice.rosterId === Number(f.team);
+
   const finalized = new Set(ledger?.weeks.filter((w) => w.finalizedAt).map((w) => w.week));
-  const summary = ledger && summaryFor(ledger, tally.owed.map((t) => t.rosterId));
-  const past = Array.from({ length: currentWeek - 1 }, (_, i) => currentWeek - 1 - i);
+  const summary = ledger && summaryFor(ledger, rosterIds).filter(onTeam);
   const isAdmin = me?.isAdmin ?? false;
   const rowAction = (ice: LedgerIce) => {
     if (ice.status === "owed" && canUpload(ice, myRosterId, isAdmin)) return <UploadChugButton onClick={() => setUpload([ice.iceId])} />;
     if (canTime(ice, myRosterId, isAdmin)) return <ChugTimeButton ice={ice} onClick={() => setTiming(ice)} />;
   };
 
-  const ledgerWeek = (week: number) => (
-    <LedgerWeek ices={ledger!.ices.filter((i) => i.week === week)} players={data.players} teamFor={teamFor} action={rowAction} />
-  );
-  const provisional = (week: number, live: boolean) => {
-    const ices = (live ? tally.live : tally.weeks.find((w) => w.week === week))?.ices ?? [];
-    if (ices.length === 0) return <p>{live ? "No ices locked yet." : "No ices this week."}</p>;
-    return <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />;
-  };
-
-  const liveFinal = ledger && finalized.has(currentWeek);
+  // Newest first. Sleeper's provisional ices have no status yet, so a status filter hides them.
+  const weeks = Array.from({ length: currentWeek }, (_, i) => currentWeek - i)
+    .map((week) => {
+      const live = week === currentWeek;
+      if (ledger && finalized.has(week)) {
+        const ices = ledger.ices.filter((i) => i.week === week && onTeam(i) && STATUSES[f.status].keep(i));
+        return {
+          week,
+          count: ices.length,
+          line: weekLine(week, ices),
+          body: <LedgerWeek ices={ices} players={data.players} teamFor={teamFor} action={rowAction} />,
+        };
+      }
+      const all = (live ? tally.live : tally.weeks.find((w) => w.week === week))?.ices ?? [];
+      const ices = f.status === "all" ? all.filter(onTeam) : [];
+      const list =
+        ices.length === 0 ? (
+          <p>{live ? "No ices locked yet." : "No ices this week."}</p>
+        ) : (
+          <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />
+        );
+      return {
+        week,
+        count: ices.length,
+        line: live ? `Week ${week} — live, provisional` : `Week ${week} · ${plural(ices.length, "ice")} · provisional`,
+        body: live ? (
+          <>
+            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Empty slots count once every game has kicked off.</p>
+            {list}
+          </>
+        ) : (
+          list
+        ),
+      };
+    })
+    .filter((w) => !filtered || w.count > 0);
 
   return (
     <div className="grid grid-cols-1 gap-3">
+      <FilterBar fields={fields} values={f} count={plural(weeks.reduce((n, w) => n + w.count, 0), "ice")} onChange={set} />
       {!ledger && (
         <p role="note" className="xp-note flex items-center gap-1">
           <WarningIcon className="shrink-0" />
@@ -192,32 +245,14 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
         </p>
       )}
 
-      <details className="xp-group ledger-week" open>
-        <summary className="xp-group-title">
-          {liveFinal ? weekLine(currentWeek, ledger.ices.filter((ice) => ice.week === currentWeek)) : `Week ${currentWeek} — live, provisional`}
-        </summary>
-        {liveFinal ? (
-          ledgerWeek(currentWeek)
-        ) : (
-          <>
-            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Empty slots count once every game has kicked off.</p>
-            {provisional(currentWeek, true)}
-          </>
-        )}
-      </details>
-
-      {past.map((week) => {
-        const final = ledger && finalized.has(week);
-        const line = final
-          ? weekLine(week, ledger.ices.filter((ice) => ice.week === week))
-          : `Week ${week} · ${plural(tally.weeks.find((w) => w.week === week)?.ices.length ?? 0, "ice")} · provisional`;
-        return (
-          <details key={week} className="xp-group ledger-week">
-            <summary className="xp-group-title">{line}</summary>
-            {final ? ledgerWeek(week) : provisional(week, false)}
-          </details>
-        );
-      })}
+      {weeks.map(({ week, line, body }) => (
+        // Filtering opens every week left, so the matching rows show.
+        <details key={week} className="xp-group ledger-week" open={week === currentWeek || filtered}>
+          <summary className="xp-group-title">{line}</summary>
+          {body}
+        </details>
+      ))}
+      {filtered && weeks.length === 0 && <FilterEmpty onClear={() => set(defaultFilters(fields))}>No ices match these filters.</FilterEmpty>}
 
       {summary && (
         <details className="ices-summary" open={!phone}>
@@ -240,4 +275,4 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
   );
 }
 
-export const IcesWindow = () => <IceLedger />;
+export const IcesWindow = ({ params }: { params?: WindowParams }) => <IceLedger params={params} />;

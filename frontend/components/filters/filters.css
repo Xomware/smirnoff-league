@@ -1,0 +1,219 @@
+.filters {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+}
+
+.filters-field {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  font-weight: bold;
+}
+
+.filters-field .xp-select {
+  min-width: 0;
+  max-width: 14rem;
+  font-weight: normal;
+}
+
+.filters-count {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.filters-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+/* An XP toolbar toggle, pressed in, with its remove cross. */
+.filters-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: 100%;
+  min-height: 1.75rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--xp-button-border);
+  border-radius: 3px;
+  color: var(--xp-text);
+  background: var(--xp-face);
+  box-shadow: inset 1px 1px 2px rgb(10 30 80 / 0.25);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-align: left;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.filters-chip:hover {
+  border-color: var(--xp-gold);
+}
+
+.filters-chip:active {
+  box-shadow: inset 2px 2px 3px rgb(10 30 80 / 0.35);
+}
+
+.filters-clear {
+  min-height: 1.75rem;
+  padding: 0 0.25rem;
+  color: var(--xp-title-dark);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.filters-clear:hover {
+  color: var(--xp-red);
+}
+
+:is(.filters-chip, .filters-clear):focus-visible {
+  outline: 2px dotted var(--xp-text);
+  outline-offset: 1px;
+}
+
+.filters-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filters-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  color: var(--xp-text-inverse);
+  background: var(--smirnoff-red);
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.filters-sheet {
+  display: grid;
+  gap: 1rem;
+}
+
+.filters-sheet .filters-field {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.filters-sheet .xp-select {
+  width: 100%;
+  max-width: none;
+  min-height: 2.75rem;
+}
+
+.filters-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.filters-actions .xp-button {
+  min-height: 2.75rem;
+}
+
+.filters-empty {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px dashed var(--xp-face-shadow);
+  font-style: italic;
+}
+
+/* A phone: thumb-sized chips, and the count under the Filters button when space runs out. */
+.filters-narrow :is(.filters-chip, .filters-clear, .filters-open) {
+  min-height: 2.75rem;
+}
+
+.filters-narrow .filters-chip {
+  padding: 0 0.75rem;
+}
+
+/* Glacier: frost chips like its other pills, the Clear all a link. */
+[data-theme="glacier"] .filters-chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--g-snow);
+  border-radius: 999px;
+  color: var(--g-night);
+  background: var(--g-snow);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+[data-theme="glacier"] .filters-chip:hover {
+  border-color: var(--g-link);
+  background: var(--g-link-hover);
+}
+
+[data-theme="glacier"] .filters-chip:active {
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+[data-theme="glacier"] .filters-clear {
+  color: var(--g-link);
+  font-weight: 700;
+}
+
+[data-theme="glacier"] .filters-clear:hover {
+  color: var(--g-link-hover);
+}
+
+[data-theme="glacier"] :is(.filters-chip, .filters-clear):focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+[data-theme="glacier"] .filters-field {
+  color: var(--g-label);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+[data-theme="glacier"] .filters-count {
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] .filters-badge {
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+[data-theme="glacier"] .filters-empty {
+  border: 1px dashed var(--g-frost-edge);
+  border-radius: var(--g-card-radius, 16px);
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] .filters-narrow .filters-chip {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="glacier"] .filters-chip:active {
+    transform: none;
+  }
+}

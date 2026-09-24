@@ -29,7 +29,7 @@ export type WindowAction =
   | { type: "move"; id: string; x: number; y: number }
   | { type: "resize"; id: string; w: number; h: number }
   | { type: "navigate"; id: string; kind: WindowKind; params: WindowParams }
-  | { type: "retab"; id: string; tab: string }
+  | { type: "patch"; id: string; params: WindowParams }
   | { type: "back" | "forward"; id: string }
   | { type: "restore"; windows: WindowState[] };
 
@@ -50,10 +50,14 @@ export function windowId(kind: string, params: WindowParams): string {
   return [kind, ...Object.keys(params).sort().map((k) => params[k])].join(":");
 }
 
-// A view's inner tab is in its link but not its identity, so switching tabs
-// neither remounts the view nor stops a link to the view finding it.
+// A view's inner tab and filters are in its link but not its identity, so
+// changing them neither remounts the view nor stops a link to the view finding it.
 export const viewKey = (kind: string, params: WindowParams) =>
-  windowId(kind, Object.fromEntries(Object.entries(params).filter(([k]) => k !== "tab")));
+  windowId(kind, Object.fromEntries(Object.entries(params).filter(([k]) => k !== "tab" && k !== "filter")));
+
+// An emptied param, like cleared filters, leaves the link rather than hanging off it.
+export const patchParams = (params: WindowParams, patch: WindowParams): WindowParams =>
+  Object.fromEntries(Object.entries({ ...params, ...patch }).filter(([, v]) => v !== ""));
 
 export function activeWindow(state: WindowState[]): WindowState | undefined {
   return state.filter((w) => !w.minimized).sort((a, b) => b.z - a.z)[0];
@@ -115,11 +119,11 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
       const view = { kind: action.kind, params: action.params };
       return update(state, w.id, { ...view, history: { views: [...views.slice(0, at + 1), view], at: at + 1 } });
     }
-    case "retab": {
+    case "patch": {
       const w = state.find((w) => w.id === action.id);
       if (!w) return state;
       const { views, at } = historyOf(w);
-      const params = { ...w.params, tab: action.tab };
+      const params = patchParams(w.params, action.params);
       return update(state, w.id, { params, history: { views: views.map((v, i) => (i === at ? { kind: w.kind, params } : v)), at } });
     }
     case "back":

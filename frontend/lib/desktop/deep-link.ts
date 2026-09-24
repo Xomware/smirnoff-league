@@ -1,6 +1,7 @@
 import { ADMIN_PANELS, type AdminPanel } from "@/components/admin/ControlPanel";
 import { STATS_TABS } from "@/components/views/stats-view";
 import { TEAM_TABS } from "@/components/views/team-view";
+import { FILTER_PARAM } from "@/lib/filters/filters";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
@@ -18,6 +19,7 @@ export interface WindowLink {
 
 const POSITIVE = /^[1-9]\d*$/;
 const tabOf = (tabs: string[], v: string) => (tabs.includes(v) ? { tab: v } : null);
+const filterOf = (v: string) => (FILTER_PARAM.test(v) ? { filter: v } : null);
 
 // A link names a window by its id, `kind` or `kind:value`, so these are the
 // kinds that take a value and how to read it back into params.
@@ -40,12 +42,15 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
   awards: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
   folder: (v) => (v === "ices" ? { id: v } : null),
   admin: (v) => (ADMIN_PANELS.includes(v as AdminPanel) ? { panel: v } : null),
+  videos: filterOf,
+  ices: filterOf,
+  news: filterOf,
 };
 
 // Kinds whose value may be left off: a bare `writeup` is the latest edition,
-// a bare `admin` the category view, bare `awards` the latest final week, and
-// a view with tabs opens on its first.
-const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats", "awards"]);
+// a bare `admin` the category view, bare `awards` the latest final week, a
+// view with tabs opens on its first, and one with filters unfiltered.
+const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats", "awards", "videos", "ices", "news"]);
 
 const isKind = (kind: string): kind is WindowKind => Object.hasOwn(REGISTRY, kind);
 

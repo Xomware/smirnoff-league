@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { type League, windowTitle } from "./registry";
-import { activeWindow, defaultLayout, desktopReducer, historyOf, type WindowState } from "./windows";
+import { activeWindow, defaultLayout, desktopReducer, historyOf, viewKey, type WindowState } from "./windows";
 
 const size = { w: 400, h: 300 };
 
@@ -41,9 +41,20 @@ describe("desktopReducer", () => {
 
   it("focuses a team window on another tab rather than opening the team twice", () => {
     let state = desktopReducer([], { type: "open", kind: "team", params: { rosterId: 6 }, size });
-    state = desktopReducer(state, { type: "retab", id: "team:6", tab: "ices" });
+    state = desktopReducer(state, { type: "patch", id: "team:6", params: { tab: "ices" } });
     state = desktopReducer(state, { type: "open", kind: "team", params: { rosterId: 6 }, size });
     expect(state.map((w) => [w.id, w.params])).toEqual([["team:6", { rosterId: 6, tab: "ices" }]]);
+  });
+
+  it("keeps a window's identity when its filters change, and drops a cleared filter from its params", () => {
+    let state = desktopReducer([], { type: "open", kind: "videos", params: {}, size });
+    state = desktopReducer(state, { type: "patch", id: "videos", params: { filter: "week-3" } });
+    expect(state[0]).toMatchObject({ id: "videos", params: { filter: "week-3" } });
+    expect(viewKey("videos", state[0].params)).toBe("videos");
+    state = desktopReducer(state, { type: "open", kind: "videos", params: {}, size });
+    expect(state).toHaveLength(1);
+    state = desktopReducer(state, { type: "patch", id: "videos", params: { filter: "" } });
+    expect(state[0].params).toEqual({});
   });
 
   it("closes a window", () => {
@@ -104,7 +115,7 @@ describe("window history", () => {
     desktopReducer(state, { type: "navigate", id: "standings", kind, params });
 
   it("switches a view's tab in place, without a history step, and Back returns to that tab", () => {
-    let state = desktopReducer(nav(standings(), "team", { rosterId: 6 }), { type: "retab", id: "standings", tab: "ices" });
+    let state = desktopReducer(nav(standings(), "team", { rosterId: 6 }), { type: "patch", id: "standings", params: { tab: "ices" } });
     expect(historyOf(state[0]).at).toBe(1);
     state = desktopReducer(nav(state, "player", { playerId: "8121" }), { type: "back", id: "standings" });
     expect(state[0]).toMatchObject({ kind: "team", params: { rosterId: 6, tab: "ices" } });

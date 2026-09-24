@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { FilterBar, FilterEmpty } from "@/components/filters/FilterBar";
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { teamList } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
@@ -12,6 +13,8 @@ import { MediaPlayerIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
+import type { WindowParams } from "@/lib/desktop/windows";
+import { defaultFilters, type FilterValues, plural, readFilters, useFilterParam, writeFilters } from "@/lib/filters/filters";
 import { type IceStanding, iceStandings, weekIceStandings } from "@/lib/ices/standings";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
@@ -19,6 +22,8 @@ import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { type Team, useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
+import { clipFields, clipsOf, filterClips } from "@/lib/videos/filter";
+import { useReactionCounts } from "@/lib/videos/use-reaction-counts";
 import { useVideos } from "@/lib/videos/use-videos";
 
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
@@ -37,11 +42,11 @@ function breakdown(r: IceStanding): string {
 }
 
 // The desktop ledger, with the season summary folded away.
-export function LedgerScreen() {
-  return <IceLedger phone />;
+export function LedgerScreen({ params }: { params: WindowParams }) {
+  return <IceLedger params={params} phone />;
 }
 
-export function VideosScreen() {
+export function VideosScreen({ params }: { params: WindowParams }) {
   const { teamFor } = useLeague();
   const ledger = useLedger();
 
@@ -49,7 +54,7 @@ export function VideosScreen() {
   if (ledger.status === "error") return <p role="alert">The ledger is unavailable ({ledger.message}), so the videos are hidden.</p>;
   return (
     <div className="m-page">
-      <Gallery ledger={ledger.ledger} teamFor={teamFor} />
+      <Gallery ledger={ledger.ledger} teamFor={teamFor} params={params} />
     </div>
   );
 }
@@ -57,16 +62,19 @@ export function VideosScreen() {
 interface GalleryProps {
   ledger: Ledger;
   teamFor: (rosterId: number) => Team;
+  params: WindowParams;
 }
 
-function Gallery({ ledger, teamFor }: GalleryProps) {
+function Gallery({ ledger, teamFor, params }: GalleryProps) {
   const { state, onVideoError } = useVideos();
   const [playing, setPlaying] = useState<Video | null>(null);
-  const known = new Set(ledger.ices.map((i) => i.iceId));
-  const videos =
-    state.status === "ok"
-      ? state.videos.filter((v) => v.iceIds.some((id) => known.has(id))).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      : [];
+  const [param, setParam] = useFilterParam(params);
+  const clips = clipsOf(state.status === "ok" ? state.videos : [], ledger.ices);
+  const fields = clipFields(clips, clips.flatMap((c) => c.covered), (r) => teamFor(r).name);
+  const f = readFilters(fields, param);
+  const reactions = useReactionCounts(clips.map((c) => c.video.mediaId), f.sort === "reactions");
+  const videos = filterClips(clips, f, reactions?.byVideo ?? {}).map((c) => c.video);
+  const set = (values: FilterValues) => setParam(writeFilters(fields, values));
   const label = (v: Video) => `${teamList(v.rosterIds.map((r) => teamFor(r).name))} · Week ${v.week}`;
 
   return (
@@ -78,26 +86,38 @@ function Gallery({ ledger, teamFor }: GalleryProps) {
         <p role="status">Rewinding the chug tapes...</p>
       ) : state.status === "error" ? (
         <p role="alert">Chug videos unavailable ({state.message}).</p>
-      ) : videos.length === 0 ? (
+      ) : clips.length === 0 ? (
         <p className="m-empty">No chug videos yet.</p>
       ) : (
-        <ul aria-label="Chug videos" className="m-gallery">
-          {videos.map((v) => (
-            <li key={v.mediaId}>
-              <button type="button" className="m-clip" aria-label={`Watch ${label(v)} chug`} onClick={() => setPlaying(v)}>
-                {/* Safari paints nothing for preload="metadata" until a seek; the fragment asks for the first frame. */}
-                <video src={`${v.url}#t=0.1`} preload="metadata" muted playsInline tabIndex={-1} aria-hidden onError={onVideoError} />
-                <MediaPlayerIcon width={32} height={32} className="m-clip-play" />
-                <span className="m-clip-caption">
-                  {teamList(v.rosterIds.map((r) => teamFor(r).name))}
-                  <span className="block font-normal">
-                    Week {v.week} · {shortDate(v.createdAt)}
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          <FilterBar fields={fields} values={f} count={plural(videos.length, "video")} onChange={set} />
+          {reactions && reactions.failed > 0 && (
+            <p role="note" className="xp-note">
+              {plural(reactions.failed, "reaction count")} didn&apos;t load, so those chugs sort as having none.
+            </p>
+          )}
+          {videos.length === 0 ? (
+            <FilterEmpty onClear={() => set(defaultFilters(fields))}>No chugs match these filters.</FilterEmpty>
+          ) : (
+            <ul aria-label="Chug videos" className="m-gallery">
+              {videos.map((v) => (
+                <li key={v.mediaId}>
+                  <button type="button" className="m-clip" aria-label={`Watch ${label(v)} chug`} onClick={() => setPlaying(v)}>
+                    {/* Safari paints nothing for preload="metadata" until a seek; the fragment asks for the first frame. */}
+                    <video src={`${v.url}#t=0.1`} preload="metadata" muted playsInline tabIndex={-1} aria-hidden onError={onVideoError} />
+                    <MediaPlayerIcon width={32} height={32} className="m-clip-play" />
+                    <span className="m-clip-caption">
+                      {teamList(v.rosterIds.map((r) => teamFor(r).name))}
+                      <span className="block font-normal">
+                        Week {v.week} · {shortDate(v.createdAt)}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
       {playing &&
         createPortal(<ChugPlayer video={playing} label={label(playing)} onError={onVideoError} onClose={() => setPlaying(null)} />, document.body)}
