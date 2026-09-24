@@ -1,9 +1,6 @@
 .brand-loader {
   --bl-line: var(--xp-text);
   --bl-skin: #f2c796;
-  --bl-glass: var(--ice-glass);
-  --bl-glass-line: var(--xp-text);
-  --bl-cap: var(--xp-silver);
   --bl-cuff: var(--xp-cream);
   --bl-left: var(--xp-title);
   --bl-right: var(--xp-start);
@@ -18,6 +15,7 @@
   display: block;
   width: 8.5rem;
   height: auto;
+  overflow: visible;
 }
 
 .brand-loader-art :is(path, rect, circle) {
@@ -63,46 +61,15 @@
   stroke: var(--bl-right);
 }
 
-.bl-glass {
-  fill: var(--bl-glass);
-  stroke: var(--bl-glass-line);
-  stroke-width: 2.5;
-}
-
-.bl-shine {
-  fill: none;
-  stroke: var(--xp-text-inverse);
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  opacity: 0.85;
-}
-
-.bl-band {
-  fill: var(--smirnoff-red);
-}
-
-.bl-label {
-  fill: var(--ice-label);
-}
-
-.bl-label-text {
-  fill: var(--xp-text-inverse);
-}
-
-.bl-cap,
-.bl-fist,
-.bl-thumb {
-  stroke: var(--bl-line);
-  stroke-width: 2.5;
-}
-
-.bl-cap {
-  fill: var(--bl-cap);
+.bl-ink {
+  flood-color: var(--bl-line);
 }
 
 .bl-fist,
 .bl-thumb {
   fill: var(--bl-skin);
+  stroke: var(--bl-line);
+  stroke-width: 2.5;
 }
 
 .bl-knuckles {
@@ -111,23 +78,22 @@
   stroke-linecap: round;
 }
 
+.bl-frost,
+.bl-ring,
+.bl-crystal {
+  display: none;
+}
+
 .bl-spark {
   stroke: var(--xp-gold);
   stroke-width: 2.5;
   stroke-linecap: round;
 }
 
-.bl-drop {
-  fill: var(--ice-frost);
-  stroke: var(--ice-deep);
-  stroke-width: 1;
-}
-
-.bl-crystal {
-  display: none;
-  fill: none;
-  stroke-width: 1.5;
-  stroke-linecap: round;
+.bl-star {
+  fill: var(--xp-gold);
+  stroke: var(--xp-text);
+  stroke-width: 0.6;
 }
 
 /* fill-box keeps the pivot in each side's own, possibly mirrored, coordinates. */
@@ -150,6 +116,10 @@
 
 .brand-loader-cheer .bl-burst {
   animation: bl-burst 1.4s ease-out infinite;
+}
+
+.brand-loader-cheer .bl-sheen {
+  animation: bl-sheen 1.4s ease-out infinite;
 }
 
 .brand-loader-still {
@@ -192,13 +162,27 @@
   }
 }
 
+/* The glint crosses the glass as the bottles meet. */
+@keyframes bl-sheen {
+  0%,
+  36% {
+    transform: translateY(-40px);
+  }
+  70%,
+  100% {
+    transform: translateY(40px);
+  }
+}
+
 @keyframes bl-pulse {
   to {
     opacity: 0.55;
   }
 }
 
+/* An XP notification balloon, its tail pointing up at the bottles. */
 .brand-loader-label {
+  position: relative;
   padding: 0.25rem 0.75rem;
   border: 1px solid var(--xp-text);
   border-radius: 4px;
@@ -206,54 +190,103 @@
   font-family: var(--xp-font);
   font-size: 0.8125rem;
   background: var(--xp-balloon);
+  box-shadow: 2px 2px 0 rgb(27 27 23 / 0.25);
 }
 
-/* The --g-* tokens live in glacier.css, which only the glacier shell loads, so
-   each one carries its value as a fallback for the auth screens outside it. */
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) {
-  --bl-line: rgb(200 240 255 / 0.7);
-  --bl-skin: #f0c8a4;
-  --bl-glass: rgb(200 238 255 / 0.22);
-  --bl-glass-line: rgb(200 240 255 / 0.95);
-  --bl-cap: var(--g-snow, #f6fbff);
-  --bl-cuff: var(--g-red, #d21f2b);
-  --bl-left: var(--ice-label);
-  --bl-right: var(--ice-label);
+.brand-loader-label::before,
+.brand-loader-label::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 7px);
+  border: 7px solid transparent;
+  border-top: 0;
+}
 
-  padding: 1.25rem 1.5rem 1rem;
-  border: 1px solid var(--g-frost-edge, rgb(190 235 255 / 0.38));
-  border-radius: 20px;
+.brand-loader-label::before {
+  top: -8px;
+  border-bottom: 8px solid var(--xp-text);
+}
+
+.brand-loader-label::after {
+  top: -6.5px;
+  border-bottom: 7px solid var(--xp-balloon);
+}
+
+/* The --g-* tokens live in glacier.css; each one carries its value as a
+   fallback in case these screens paint before that sheet applies. */
+[data-theme="glacier"] .brand-loader-page {
+  color: var(--g-text, #eaf6fc);
   background:
-    radial-gradient(120px 80px at 50% 20%, rgb(90 190 240 / 0.28), transparent 70%),
-    linear-gradient(180deg, var(--g-night-top, #0a2440), var(--g-night-deep, #041322));
-  box-shadow: 0 12px 32px rgb(2 12 24 / 0.35);
+    radial-gradient(900px 520px at 80% 0%, rgb(90 190 240 / 0.26), transparent 62%),
+    radial-gradient(700px 520px at 0% 75%, rgb(40 120 190 / 0.24), transparent 70%),
+    linear-gradient(180deg, var(--g-night-top, #0a2440) 0%, var(--g-night, #061a2e) 55%, var(--g-night-deep, #041322) 100%);
 }
 
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .brand-loader-art {
-  filter: drop-shadow(0 0 6px rgb(143 227 255 / 0.55));
+[data-theme="glacier"] .brand-loader {
+  --bl-line: rgb(207 243 255 / 0.85);
+  --bl-skin: #f0c8a4;
+  --bl-cuff: var(--g-red, #d21f2b);
+  --bl-left: #16406f;
+  --bl-right: #16406f;
+
+  padding: 1.5rem 1.75rem 1.25rem;
+  background: radial-gradient(closest-side, rgb(90 190 240 / 0.22), transparent);
 }
 
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-shine {
-  stroke: rgb(255 255 255 / 0.7);
+[data-theme="glacier"] .brand-loader-art {
+  filter: drop-shadow(0 0 5px rgb(143 227 255 / 0.6)) drop-shadow(0 0 14px rgb(90 190 240 / 0.35));
 }
 
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-spark,
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-drop {
+/* The glow does the outline's job here, so the bottle keeps its glass edge. */
+[data-theme="glacier"] .bl-bottle {
+  filter: none;
+}
+
+[data-theme="glacier"] .bl-frost {
+  display: inline;
+}
+
+[data-theme="glacier"] .bl-frost-fill {
+  fill: rgb(225 246 255 / 0.16);
+}
+
+[data-theme="glacier"] .bl-sheen {
+  fill: rgb(255 255 255 / 0.5);
+}
+
+[data-theme="glacier"] :is(.bl-spark, .bl-star) {
   display: none;
 }
 
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .bl-crystal {
+[data-theme="glacier"] .bl-ring {
   display: inline;
-  stroke: var(--g-focus, #cff3ff);
+  fill: none;
+  stroke: rgb(207 243 255 / 0.7);
+  stroke-width: 1;
 }
 
-:is(.brand-loader[data-theme="glacier"], [data-theme="glacier"] .brand-loader) .brand-loader-label {
+[data-theme="glacier"] .bl-crystal {
+  display: inline;
+  fill: none;
+  stroke: var(--g-focus, #cff3ff);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+[data-theme="glacier"] .brand-loader-label {
+  padding: 0.375rem 1rem;
   border: 1px solid var(--g-frost-edge, rgb(190 235 255 / 0.38));
   border-radius: 999px;
-  padding: 0.375rem 1rem;
   color: var(--g-text, #eaf6fc);
   font-family: var(--g-body, Figtree, system-ui, sans-serif);
   font-size: 0.875rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
   background: rgb(6 26 46 / 0.8);
+  box-shadow: 0 0 18px rgb(90 190 240 / 0.25);
+}
+
+[data-theme="glacier"] .brand-loader-label::before,
+[data-theme="glacier"] .brand-loader-label::after {
+  content: none;
 }

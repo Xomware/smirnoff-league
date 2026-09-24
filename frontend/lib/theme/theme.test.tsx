@@ -1,4 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/api/users", async (importOriginal) => ({
@@ -142,6 +144,46 @@ describe("browser chrome", () => {
     new Function(THEME_SCRIPT)();
     expect(htmlTheme()).toBe("xp");
     expect(themeColor()).toBe("#f3f0e1");
+  });
+});
+
+describe("hydration", () => {
+  afterEach(() => vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true));
+
+  // The loaders render before anything else, so a guess written over the
+  // script's answer shows as a flash of the wrong theme (#239).
+  it.each([
+    ["a stored Glacier choice", "glacier", false],
+    ["the phone default", null, true],
+  ])("never overwrites the pre-hydration theme for %s", async (_, stored, phone) => {
+    media({ phone });
+    if (stored) localStorage.setItem(THEME_KEY, stored);
+    const tree = (
+      <ThemeProvider>
+        <p>loading</p>
+      </ThemeProvider>
+    );
+    const root = document.createElement("div");
+    root.innerHTML = renderToString(tree);
+    document.body.append(root);
+    new Function(THEME_SCRIPT)();
+    // Old values, so a wrong theme put back within the same task still shows.
+    const seen: (string | null)[] = [];
+    const watch = new MutationObserver((records) => seen.push(...records.map((r) => r.oldValue)));
+    watch.observe(document.documentElement, { attributeFilter: ["data-theme"], attributeOldValue: true });
+
+    // act() flushes the post-hydration re-render before effects run, which
+    // hides the flash a browser shows, so this hydrates the way a browser does.
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", false);
+    const app = hydrateRoot(root, tree);
+    await new Promise((r) => setTimeout(r, 50));
+    seen.push(...watch.takeRecords().map((r) => r.oldValue));
+    watch.disconnect();
+    app.unmount();
+    root.remove();
+
+    expect(seen).not.toContain("xp");
+    expect(htmlTheme()).toBe("glacier");
   });
 });
 
