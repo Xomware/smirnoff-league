@@ -13,7 +13,7 @@
 
 .brand-loader-art {
   display: block;
-  width: 8.5rem;
+  width: clamp(11rem, 45vw, 16rem);
   height: auto;
   overflow: visible;
 }
