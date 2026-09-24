@@ -432,13 +432,17 @@ the same component in either shell.
 - **Notifications.** Derived in the browser, not stored:
   `lib/notifications/derive.ts` builds items from the caller's ledger rows (iced;
   ice due from the Friday before the deadline, plus 48-hour and 6-hour reminders;
-  late ice added), published editions, chug videos and completed trades involving
-  their roster. Unread means newer than the user's `notificationsSeenAt`, or their
+  late ice added), published editions, chug videos, others' comments on their chugs
+  (`GET /videos/social-recent`, polled every 5 minutes) and completed trades involving
+  their roster. Glacier raises a comment as a toast, beside the ice warnings. Unread means newer than the user's `notificationsSeenAt`, or their
   profile `createdAt` when they have never opened the list, so history from before
   signup is not news (`use-notifications.tsx`). Opening the list sends a new mark
   through `POST /users/update`. `use-notifications.tsx` re-derives every minute, shows one
   balloon per session, and flags `partial` when a source failed. The bell sits in
   the taskbar tray and the phone title bar (`components/xp/NotificationBell.tsx`).
+- **Video reactions and comments.** `components/videos/VideoSocial.tsx` sits under each
+  card on the Chug Videos page and in the player dialog. Each change shows at once and
+  rolls back with an error when the API refuses it.
 - **News.** `lib/news/feed.ts` merges Sleeper transactions (adds, drops, waivers,
   trades, commish moves), ledger events (iced, paid) and published write-ups into
   one feed, filterable by type and team (`components/windows/NewsWindow.tsx`).
