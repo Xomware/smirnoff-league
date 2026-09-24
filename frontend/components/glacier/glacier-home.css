@@ -114,43 +114,46 @@
   filter: drop-shadow(0 0 22px rgb(150 220 255 / 0.5));
 }
 
-/* At a glance: one tile per page worth checking, each a way in. */
-.gh-strip ul {
+/* Quick hitters: one rotating card per topic on the desktop, one for everything on the phone. */
+.gh-hitters {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
 }
 
-.gh-tile {
+.gh-spot {
+  min-width: 0;
+}
+
+.gh-slides {
+  display: grid;
+}
+
+/* Every slide shares one cell, so the card is as tall as its longest fact and never jumps. */
+.gh-slide {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.45s, transform 0.45s, visibility 0s 0.45s;
+}
+
+.gh-slide[data-on] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.gh-fact {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
-  width: 100%;
-  height: 100%;
-  padding: 14px 18px;
-  border: 1px solid var(--g-frost-edge);
-  border-radius: 18px;
-  background: var(--g-frost);
-  color: var(--g-text-strong);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  min-width: 0;
 }
 
-.gh-tile:hover {
-  border-color: var(--gh-link);
-  background: rgb(170 225 255 / 0.2);
-}
-
-.gh-tile:active {
-  background: var(--g-press);
-}
-
-.gh-tile-label {
+.gh-fact-label {
   color: var(--gh-muted);
   font-size: 12px;
   font-weight: 800;
@@ -158,60 +161,124 @@
   text-transform: uppercase;
 }
 
-.gh-tile-value {
+.gh-fact-value {
+  max-width: 100%;
   overflow: hidden;
   font-family: var(--g-display);
-  font-size: 22px;
-  line-height: 1.25;
+  font-size: 28px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--g-text-strong);
 }
 
-.gh-tile-sub {
+.gh-fact-sub {
   color: var(--gh-muted);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
-.gh-tile[data-alert] {
-  border-color: var(--g-red);
-  background: rgb(210 31 43 / 0.16);
+.gh-fact-more {
+  margin-top: 4px;
+  font-size: 15px;
 }
 
-.gh-tile[data-alert] :is(.gh-tile-value, .gh-tile-sub) {
-  color: var(--gh-red-soft);
-}
-
-.gh-jump {
+.gh-facts {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.gh-chip {
-  min-height: 40px;
-  padding: 0 16px;
+.gh-facts > li + li {
+  padding-top: 14px;
+  border-top: 1px solid var(--gh-row-edge);
+}
+
+.gh-facts .gh-fact-value {
+  font-size: 22px;
+}
+
+.gh-arrows {
+  display: flex;
+  flex: none;
+  gap: 6px;
+}
+
+.gh-arrow {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   border: 1px solid var(--g-frost-edge);
   border-radius: 999px;
-  background: rgb(170 225 255 / 0.08);
+  background: rgb(170 225 255 / 0.1);
   color: var(--g-text-strong);
-  font: 800 14px var(--g-body);
-  white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s;
 }
 
-.gh-chip:hover {
-  background: rgb(170 225 255 / 0.2);
+.gh-arrow + .gh-arrow svg {
+  scale: -1 1;
 }
 
-.gh-chip:active {
+.gh-arrow:hover {
+  background: rgb(170 225 255 / 0.24);
+}
+
+.gh-arrow:active {
   background: var(--g-press);
+}
+
+.gh-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  /* Lines the first dot up with the text; a left shift adds no sideways overflow. */
+  translate: -8px 0;
+}
+
+.gh-dots button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.gh-dots button::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgb(190 235 255 / 0.35);
+  transition: width 0.2s, background-color 0.2s;
+}
+
+.gh-dots button:hover::before {
+  background: rgb(190 235 255 / 0.7);
+}
+
+.gh-dots button[aria-current]::before {
+  width: 18px;
+  background: var(--g-snow);
 }
 
 .gh-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Spanning rows let each column stack tight instead of waiting on its neighbour's height. */
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "mine news standings"
+    "games news standings"
+    "games news board";
   gap: 28px 24px;
   align-items: start;
 }
@@ -224,15 +291,47 @@
   scroll-margin-top: 16px;
 }
 
-.gh-mine,
-.gh-games,
-.gh-standings {
-  grid-column: span 2;
+.gh-mine {
+  grid-area: mine;
 }
 
-.gh-board,
-.gh-rankings {
-  grid-column: span 3;
+.gh-news {
+  grid-area: news;
+}
+
+.gh-standings {
+  grid-area: standings;
+}
+
+.gh-games {
+  grid-area: games;
+}
+
+.gh-board {
+  grid-area: board;
+}
+
+.gh-edition {
+  align-items: flex-start;
+}
+
+.gh-edition-icon {
+  flex: none;
+  color: var(--g-focus);
+}
+
+.gh-edition-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.gh-edition-title {
+  font-family: var(--g-display);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.25;
 }
 
 .gh-head {
@@ -421,7 +520,7 @@
   color: var(--g-text-strong);
 }
 
-.gh-carousel {
+.gh-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -471,25 +570,20 @@ li[data-mine] > .gh-card {
   color: var(--gh-red-soft);
 }
 
-.gh-carousel li:nth-child(-n + 3) .gh-rank {
-  color: var(--g-red-text);
-}
-
-.gh-dots {
-  display: none;
+.gh-list li[data-gap] {
+  padding-top: 8px;
+  border-top: 1px dashed var(--gh-row-edge);
 }
 
 @media (max-width: 1279.98px) {
-  .gh-strip ul {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .gh-mine,
-  .gh-games,
-  .gh-standings,
-  .gh-board,
-  .gh-rankings {
-    grid-column: span 3;
+  .gh-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-template-areas:
+      "mine news"
+      "standings news"
+      "standings board"
+      "games board";
   }
 }
 
@@ -498,8 +592,13 @@ li[data-mine] > .gh-card {
     display: none;
   }
 
-  .gh-grid > * {
-    grid-column: 1 / -1;
+  .gh-hitters,
+  .gh-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gh-grid {
+    grid-template-areas: "mine" "news" "standings" "games" "board";
   }
 }
 
@@ -507,9 +606,10 @@ li[data-mine] > .gh-card {
   .gh-cta,
   .gh-button,
   .gh-game,
-  .gh-tile,
-  .gh-chip,
-  .gh-card {
+  .gh-card,
+  .gh-arrow,
+  .gh-slide,
+  .gh-dots button::before {
     transition: none;
   }
 

@@ -100,19 +100,19 @@
 }
 
 .gh-rows li[data-trouble],
-.gh-carousel li[data-trouble] > .gh-card {
+.gh-list li[data-trouble] > .gh-card {
   border-color: rgb(255 122 131 / 0.6);
   background: var(--gt-wash);
 }
 
 .gh-rows li[data-trouble~="late"],
-.gh-carousel li[data-trouble~="late"] > .gh-card {
+.gh-list li[data-trouble~="late"] > .gh-card {
   border-color: var(--g-red);
   background: var(--gt-wash-late);
   box-shadow: 0 0 14px rgb(210 31 43 / 0.35);
 }
 
-:is(.gh-rows li, .gh-side, .gh-carousel li)[data-trouble] .gh-name {
+:is(.gh-rows li, .gh-side, .gh-list li)[data-trouble] .gh-name {
   color: var(--g-red-text);
 }
 

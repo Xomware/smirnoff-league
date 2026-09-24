@@ -96,19 +96,6 @@ describe("Glacier phone header", () => {
   });
 });
 
-describe("Glacier phone home", () => {
-  it("shows each section as a short carousel with a See all", async () => {
-    renderGlacier();
-    const standings = within(await screen.findByRole("region", { name: "Ice standings" }));
-    const list = await standings.findByRole("list", { name: "Top of the ice standings" });
-    expect(list.classList.contains("gh-carousel")).toBe(true);
-    expect(within(list).getAllByRole("listitem")).toHaveLength(3);
-
-    fireEvent.click(standings.getByRole("button", { name: /^See all/ }));
-    expect(title()).toBe("Ices");
-  });
-});
-
 describe("Glacier phone menu drawer", () => {
   it("opens from the hamburger without leaving the current screen, focus inside", async () => {
     renderGlacier();
