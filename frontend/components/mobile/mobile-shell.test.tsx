@@ -419,7 +419,10 @@ describe("Ice Rankings", () => {
     renderShell();
     section("Ices");
     fireEvent.click(subtab("Ices", "Rankings"));
-    expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
+    // The page's description stands in for the view's own heading, so it is said once.
+    expect(await top().findByText(/No chug times yet|Ranked by week/)).toBeTruthy();
+    expect(top().getAllByText("Chug times ranked by personal best.")).toHaveLength(1);
+    expect(top().queryByRole("heading", { name: "Ice Rankings" })).toBeNull();
     expect(window.location.search).toBe("?open=chug-rankings");
   });
 });

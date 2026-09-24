@@ -11,7 +11,7 @@ import { refreshLedger } from "@/lib/ices/use-ledger";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { AwardsView } from "./awards-view";
-import { DrillContext } from "./drill-link";
+import { DrillContext, TitledPage } from "./drill-link";
 
 // W1's first ice was chugged in 7.5s by a named chugger.
 const TIMED: Ledger = {
@@ -36,6 +36,22 @@ const renderView = (params = {}, open = vi.fn()) =>
 const card = (grid: HTMLElement, title: string) => within(grid).getByRole("heading", { name: title }).closest("li")!;
 
 describe("Weekly Awards", () => {
+  it("heads itself in an XP window, but not on a page that already shows its title and description", async () => {
+    const { unmount } = renderView();
+    expect(await screen.findByRole("heading", { name: "Weekly Awards" })).toBeTruthy();
+    expect(screen.getByText("Handed out once a week is final.")).toBeTruthy();
+    unmount();
+
+    render(
+      <TitledPage value>
+        <AwardsView params={{}} />
+      </TitledPage>,
+    );
+    await screen.findByRole("list", { name: "Week 2 awards" });
+    expect(screen.queryByRole("heading", { name: "Weekly Awards" })).toBeNull();
+    expect(screen.queryByText("Handed out once a week is final.")).toBeNull();
+  });
+
   it("opens on the latest final week with every award's winner, stat and line", async () => {
     renderView();
 

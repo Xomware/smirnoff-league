@@ -73,6 +73,22 @@ describe("Ice Stats, signed in", () => {
     );
   });
 
+  it("charts the heat check: rank, team, a column per finished recent week, then the score", async () => {
+    renderStats();
+    const heat = await screen.findByRole("region", { name: /Heat Check/ });
+    expect([...(heat.querySelector(".board-head")?.children ?? [])].map((c) => c.textContent)).toEqual(["RK", "Team", "LW", "2W", "Pts"]);
+    const [first] = within(heat).getAllByRole("listitem");
+    expect(first.className).toContain("board-row");
+    expect(first.querySelector(".board-rank")?.textContent).toBe("1");
+    expect(first.querySelector(".board-name")?.textContent).toBe("Team 13");
+    expect([...first.querySelectorAll(":scope > .board-num")].map((n) => n.textContent)).toEqual([
+      "2 last week",
+      "0 2 weeks ago",
+      "6 pts",
+    ]);
+    expect(first.querySelector(".board-sub")).toBeNull();
+  });
+
   it("races the W1/W2 cumulative ices with the top 3 drawn in colour", async () => {
     renderStats();
     fireEvent.click(await screen.findByRole("tab", { name: "Race" }));

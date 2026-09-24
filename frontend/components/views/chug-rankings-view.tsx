@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useId, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, use, useId, useMemo, useState } from "react";
 
 import { chugTime } from "@/components/videos/ChugTime";
 import {
@@ -21,7 +21,7 @@ import { useLedger } from "@/lib/ices/use-ledger";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { BoardHead } from "./board";
-import { DrillLink } from "./drill-link";
+import { DrillLink, TitledPage } from "./drill-link";
 
 import "./chug-rankings.css";
 
@@ -74,6 +74,7 @@ export function ChugRankingsView() {
   const [sort, setSort] = useState<Sort>({ key: "rank", dir: "asc" });
   const [picked, setPicked] = useState<number | null>(null);
   const weekTitle = useId();
+  const titled = use(TitledPage);
 
   const chugs = useMemo(() => (ledger.status === "ok" ? chugsFrom(ledger.ledger.ices) : []), [ledger]);
   const rows = useMemo(() => chuggerRankings(chugs), [chugs]);
@@ -115,10 +116,12 @@ export function ChugRankingsView() {
 
   return (
     <div className="chug-rankings">
-      <header>
-        <h2 className="rank-title">Ice Rankings</h2>
-        <p>Every ice chug time on record, ranked by personal best.</p>
-      </header>
+      {!titled && (
+        <header>
+          <h2 className="rank-title">Ice Rankings</h2>
+          <p>Every ice chug time on record, ranked by personal best.</p>
+        </header>
+      )}
 
       {chugs.length === 0 ? (
         <p className="xp-inset p-3">No chug times yet. Upload a chug and log how long it took to get on the board.</p>

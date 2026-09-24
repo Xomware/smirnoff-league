@@ -34,6 +34,24 @@ describe("Hall of Shame on the golden W1/W2 weeks", () => {
     expect(rows[0]).toContain("Team 13");
   });
 
+  it("charts the closest escapes and the team counts: name on the left, numbers in columns", () => {
+    render(<HallOfShame stats={stats} {...names} />);
+    const nums = (li: HTMLElement) => [...li.querySelectorAll(":scope > .board-num")].map((n) => n.textContent);
+    const head = (name: string) => [...(card(name).querySelector(".board-head")?.children ?? [])].map((c) => c.textContent);
+
+    expect(head("Closest Escapes")).toEqual(["Player", "Pts"]);
+    const [escape] = within(card("Closest Escapes")).getAllByRole("listitem");
+    expect(escape.className).toContain("board-row");
+    expect(escape.querySelector(".board-name")?.textContent).toBe("Player 12508");
+    expect(escape.querySelector(".board-sub")?.textContent).toMatch(/^[A-Z]+ · Team 13 · W\d$/);
+    expect(nums(escape)).toEqual(["0.8"]);
+
+    expect(head("Ice Streaks")).toEqual(["Team", "Longest", "Now"]);
+    expect(nums(within(card("Ice Streaks")).getAllByRole("listitem")[0])).toEqual(["2 weeks longest", "2 now"]);
+    expect(head("Lowest-Score Magnets")).toEqual(["Team", "Times"]);
+    expect(nums(within(card("Lowest-Score Magnets")).getAllByRole("listitem")[0])).toEqual(["1 time lowest"]);
+  });
+
   it("shows streaks, lowest-score magnets and the empty cards", () => {
     render(<HallOfShame stats={stats} {...names} />);
 

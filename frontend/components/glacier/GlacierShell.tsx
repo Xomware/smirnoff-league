@@ -9,7 +9,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { Ticker } from "@/components/ticker/Ticker";
 import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
-import { DrillContext, type DrillTarget, NavigateContext, ViewParamsContext } from "@/components/views/drill-link";
+import { DrillContext, type DrillTarget, NavigateContext, TitledPage, ViewParamsContext } from "@/components/views/drill-link";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { track } from "@/lib/activity/tracker";
 import { parseOpen } from "@/lib/desktop/deep-link";
@@ -171,7 +171,9 @@ export function GlacierShell() {
                   <Crystal />
                   <WindowBoundary key={viewKey(kind, params)}>
                     <ViewParamsContext value={patch}>
-                      <Body params={params} />
+                      <TitledPage value>
+                        <Body params={params} />
+                      </TitledPage>
                     </ViewParamsContext>
                   </WindowBoundary>
                 </section>

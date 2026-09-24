@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { type CSSProperties, useId, useState } from "react";
 
 import { HEAT_WEIGHTS, type IceAnalysis, type takeaways } from "@/lib/ices/analysis";
+import { BoardHead } from "./board";
 import { ChartCard } from "./chart-card";
 import { DrillLink } from "./drill-link";
 
@@ -30,19 +31,30 @@ export function StatsOverview({ analysis, notes, teamName }: StatsOverviewProps)
         {heat.length === 0 ? (
           <p>Nobody is running hot. Enjoy it.</p>
         ) : (
-          <ol className="grid">
-            {heat.map((h, i) => (
-              <li key={h.rosterId} className={`${row} ${i === 0 ? "stats-worst stats-takeaway font-normal" : ""}`}>
-                <span className="min-w-0">
-                  {i + 1}. {team(h.rosterId)}
-                  <span className="block text-xs">
-                    {h.recent.map((n, j) => `${j === 0 ? "Last week" : `${j + 1} weeks ago`} ${n}`).join(", ")}
+          // Early in the season fewer weeks than HEAT_WEIGHTS have finished, so the columns follow the data.
+          <div style={{ "--board-cols": `1.5rem minmax(0, 1fr) repeat(${heat[0].recent.length}, 2rem) 2.5rem` } as CSSProperties}>
+            <BoardHead labels={["RK", "Team", ...heat[0].recent.map((_, j) => (j === 0 ? "LW" : `${j + 1}W`)), "Pts"]} />
+            <ol>
+              {heat.map((h, i) => (
+                <li key={h.rosterId} className={`board-row${i === 0 ? " stats-worst stats-takeaway font-normal" : ""}`}>
+                  <span className="board-rank">{i + 1}</span>
+                  <span className="board-who">
+                    <span className="board-name">{team(h.rosterId)}</span>
                   </span>
-                </span>
-                <span className="shrink-0 font-bold tabular-nums">{h.score} pts</span>
-              </li>
-            ))}
-          </ol>
+                  {h.recent.map((n, j) => (
+                    <span key={j} className="board-num">
+                      {n}
+                      <span className="sr-only"> {j === 0 ? "last week" : `${j + 1} weeks ago`}</span>
+                    </span>
+                  ))}
+                  <span className="board-num font-bold">
+                    {h.score}
+                    <span className="sr-only"> pts</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
         )}
       </ChartCard>
 

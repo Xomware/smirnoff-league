@@ -19,6 +19,7 @@ import { TroubleProvider } from "@/lib/ices/use-trouble";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
+import { IceStandingsScreen } from "./IcesScreen";
 import { PlayerScreen } from "./PlayerScreen";
 import { StandingsScreen } from "./StandingsScreen";
 import { TeamScreen } from "./TeamScreen";
@@ -82,6 +83,27 @@ describe("phone boards", () => {
     const owing = within(list).getAllByRole("listitem").find((li) => li.querySelector(".xp-team-name")?.textContent === "Team 13")!;
     expect((await within(owing).findByText("2 ices this season")).closest(".board-sub")).toBeTruthy();
     expect(owing.querySelector(".trouble-tag")).toBeNull();
+  });
+
+  it("charts ice standings: rank, team with the breakdown and trouble tag beneath, ices in a column", async () => {
+    renderScreen(
+      <TroubleProvider on>
+        <IceStandingsScreen />
+      </TroubleProvider>,
+    );
+    const list = await screen.findByRole("list", { name: "Ice standings" });
+    expect(head(list)).toEqual(["RK", "Team", "Ices"]);
+    // The sub-tabs and page description already name the page.
+    expect(screen.queryByRole("heading", { name: "Ice standings" })).toBeNull();
+    const items = within(list).getAllByRole("listitem");
+    for (const li of items) {
+      expect(li.className).toContain("board-row");
+      expect(nums(li)).toHaveLength(1);
+      expect(nums(li)[0]).toMatch(/^\d+ ices?$/);
+      expect(li.querySelector(".xp-team .trouble-tag, .xp-team .ice-badge")).toBeNull();
+    }
+    const late = items.find((li) => li.querySelector(".xp-team-name")?.textContent === "Team 13")!;
+    expect((await within(late).findByText("Late")).closest(".board-sub")).toBeTruthy();
   });
 
   it("charts head-to-head: opponent, then record, for and against columns", async () => {

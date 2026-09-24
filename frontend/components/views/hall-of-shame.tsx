@@ -1,6 +1,7 @@
-import { Fragment, type ReactNode, useId } from "react";
+import { type CSSProperties, Fragment, type ReactNode, useId } from "react";
 
 import type { iceStats } from "@/lib/ices/stats";
+import { BoardHead } from "./board";
 import { DrillLink } from "./drill-link";
 
 export type IceStats = ReturnType<typeof iceStats>;
@@ -16,18 +17,25 @@ interface ShameCardProps {
   empty: string;
   items: ReactNode[];
   className?: string;
+  // A board's column labels and widths; cards without them list prose.
+  board?: { labels: string[]; cols: string };
 }
 
 const pts = (n: number) => n.toFixed(1);
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-function ShameCard({ title, empty, items, className = "" }: ShameCardProps) {
+function ShameCard({ title, empty, items, className = "", board }: ShameCardProps) {
   const id = useId();
   return (
     <section aria-labelledby={id} className={`xp-dialog ${className}`}>
       <h3 id={id} className="xp-dialog-title">{title}</h3>
       {items.length === 0 ? (
         <p className="p-3">{empty}</p>
+      ) : board ? (
+        <div style={{ "--board-cols": board.cols } as CSSProperties}>
+          <BoardHead labels={board.labels} numbersFrom={1} />
+          <ul>{items}</ul>
+        </div>
       ) : (
         <ul className="grid gap-1 p-2">{items}</ul>
       )}
@@ -46,7 +54,17 @@ export function HallOfShame({ stats, teamName, playerName }: HallOfShameProps) {
       </Fragment>
     ));
   const row = "flex flex-col gap-0.5 border-b border-(--xp-face-shadow) px-1 pb-1 last:border-0";
-  const pair = `${row} flex-row justify-between gap-2 [&>:last-child]:shrink-0 [&>:last-child]:text-right`;
+  const name = (who: ReactNode) => (
+    <span className="board-who">
+      <span className="board-name">{who}</span>
+    </span>
+  );
+  const num = (n: number, spoken: string) => (
+    <span className="board-num">
+      {n}
+      <span className="sr-only"> {spoken}</span>
+    </span>
+  );
 
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -78,47 +96,53 @@ export function HallOfShame({ stats, teamName, playerName }: HallOfShameProps) {
       <ShameCard
         title="Closest Escapes"
         empty="Nobody has scraped by on a single point. Yet."
+        board={{ labels: ["Player", "Pts"], cols: "minmax(0, 1fr) 3rem" }}
         items={stats.closestEscapes.slice(0, 10).map((e) => (
-          <li key={`${e.week}-${e.rosterId}-${e.slotIndex}`} className={pair}>
-            <span>
-              {player(e.playerId)} ({e.slot}), {team(e.rosterId)}, W{e.week}
+          <li key={`${e.week}-${e.rosterId}-${e.slotIndex}`} className="board-row">
+            <span className="board-who">
+              <span className="board-name">{player(e.playerId)}</span>
+              <span className="board-sub">
+                {e.slot} · {team(e.rosterId)} · W{e.week}
+              </span>
             </span>
-            <span className="font-bold tabular-nums">{pts(e.points)}</span>
+            <span className="board-num font-bold">{pts(e.points)}</span>
           </li>
         ))}
       />
       <ShameCard
         title="Lazy Manager"
         empty="Every slot filled. Nobody forgot to set a lineup. Yet."
+        board={{ labels: ["Team", "Empty"], cols: "minmax(0, 1fr) 3.5rem" }}
         items={stats.lazyManager.map((t) => (
-          <li key={t.rosterId} className={pair}>
-            <span>{team(t.rosterId)}</span>
-            <span className="font-bold">{plural(t.count, "empty slot")}</span>
+          <li key={t.rosterId} className="board-row">
+            {name(team(t.rosterId))}
+            {num(t.count, t.count === 1 ? "empty slot" : "empty slots")}
           </li>
         ))}
       />
       <ShameCard
         title="Ice Streaks"
         empty="No streaks. Everyone keeps sobering up between weeks."
+        board={{ labels: ["Team", "Longest", "Now"], cols: "minmax(0, 1fr) 4rem 2.5rem" }}
         items={stats.streaks
           .filter((s) => s.longest > 0)
           .slice(0, 5)
           .map((s) => (
-            <li key={s.rosterId} className={pair}>
-              <span>{team(s.rosterId)}</span>
-              <span>
-                <span className="font-bold">longest {plural(s.longest, "week")}</span>, current {s.current}
-              </span>
+            <li key={s.rosterId} className="board-row">
+              {name(team(s.rosterId))}
+              {num(s.longest, s.longest === 1 ? "week longest" : "weeks longest")}
+              {num(s.current, "now")}
             </li>
           ))}
       />
       <ShameCard
         title="Lowest-Score Magnets"
         empty="Nobody has finished dead last yet."
+        board={{ labels: ["Team", "Times"], cols: "minmax(0, 1fr) 3rem" }}
         items={stats.lowestMagnets.map((t) => (
-          <li key={t.rosterId} className={pair}>
-            <span>{team(t.rosterId)}</span>
-            <span className="font-bold">{plural(t.count, "time")} lowest</span>
+          <li key={t.rosterId} className="board-row">
+            {name(team(t.rosterId))}
+            {num(t.count, t.count === 1 ? "time lowest" : "times lowest")}
           </li>
         ))}
       />
