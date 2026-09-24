@@ -7,17 +7,14 @@ import { canTime, ChugTimeButton, ChugTimeDialog } from "@/components/videos/Chu
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
-import { LedgerStats } from "@/components/views/ledger-stats";
 import { LedgerWeek } from "@/components/views/ledger-week";
 import { WeekIces } from "@/components/views/week-ices";
-import { WhoOwes } from "@/components/views/who-owes";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger, LedgerIce, LedgerSummary } from "@/lib/api/ledger";
 import type { RosterTally } from "@/lib/ices/tally";
 import { useLedger } from "@/lib/ices/use-ledger";
-import { useNow } from "@/lib/ices/use-now";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { byRoster } from "@/lib/league/drill";
 import { type Team, useLeague } from "@/lib/league/use-league";
@@ -30,7 +27,7 @@ interface BoardProps {
   teamFor: (rosterId: number) => Team;
 }
 
-function ProvisionalBoard({ owed, teamFor }: BoardProps) {
+export function ProvisionalBoard({ owed, teamFor }: BoardProps) {
   return (
     <table className="xp-table">
       <caption className="mb-2 text-left text-sm font-bold">Owed — provisional</caption>
@@ -139,7 +136,6 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
   const [upload, setUpload] = useState<string[] | null>(null);
   const [timing, setTiming] = useState<LedgerIce | null>(null);
   const ledger = ledgerState.status === "ok" ? ledgerState.ledger : null;
-  const now = useNow(ledger?.weeks.flatMap((w) => (w.deadlineUtc ? [Date.parse(w.deadlineUtc)] : [])) ?? []);
   const error = leagueError ?? icesError;
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
@@ -163,30 +159,21 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
     return <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />;
   };
 
-  const liveLabel = `Week ${currentWeek} — live, provisional`;
   const liveFinal = ledger && finalized.has(currentWeek);
 
   return (
     <div className="grid grid-cols-1 gap-3">
-      {ledger ? (
-        <>
-          <LedgerStats ledger={ledger} now={now} teamFor={teamFor} />
-          <WhoOwes ledger={ledger} now={now} players={data.players} teamFor={teamFor} myRosterId={myRosterId} onUpload={setUpload} />
-        </>
-      ) : (
-        <div className="ices-summary">
-          <div className="xp-table-scroll">
-            <ProvisionalBoard owed={tally.owed} teamFor={teamFor} />
-          </div>
-          <p role="note" className="xp-note mt-2 flex items-center gap-1">
-            <WarningIcon className="shrink-0" />
-            Ledger unavailable ({ledgerState.status === "error" && ledgerState.message}). Showing owed ices from Sleeper scores.
-          </p>
-        </div>
+      {!ledger && (
+        <p role="note" className="xp-note flex items-center gap-1">
+          <WarningIcon className="shrink-0" />
+          Ledger unavailable ({ledgerState.status === "error" && ledgerState.message}). Showing ices from Sleeper scores.
+        </p>
       )}
 
-      <section className="xp-group" aria-label={liveFinal ? `Week ${currentWeek}` : liveLabel}>
-        <h3 className="xp-group-title">{liveFinal ? `Week ${currentWeek}` : liveLabel}</h3>
+      <details className="xp-group ledger-week" open>
+        <summary className="xp-group-title">
+          {liveFinal ? weekLine(currentWeek, ledger.ices.filter((ice) => ice.week === currentWeek)) : `Week ${currentWeek} — live, provisional`}
+        </summary>
         {liveFinal ? (
           ledgerWeek(currentWeek)
         ) : (
@@ -195,15 +182,15 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
             {provisional(currentWeek, true)}
           </>
         )}
-      </section>
+      </details>
 
-      {past.map((week, i) => {
+      {past.map((week) => {
         const final = ledger && finalized.has(week);
         const line = final
           ? weekLine(week, ledger.ices.filter((ice) => ice.week === week))
           : `Week ${week} · ${plural(tally.weeks.find((w) => w.week === week)?.ices.length ?? 0, "ice")} · provisional`;
         return (
-          <details key={week} className="xp-group ledger-week" open={i === 0}>
+          <details key={week} className="xp-group ledger-week">
             <summary className="xp-group-title">{line}</summary>
             {final ? ledgerWeek(week) : provisional(week, false)}
           </details>

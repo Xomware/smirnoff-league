@@ -178,9 +178,50 @@
   font-weight: 700;
 }
 
-.gh-fact-more {
-  margin-top: 4px;
-  font-size: 15px;
+/* The fact is one big link: it lifts and glows on hover, presses on tap, and its chevron nudges. */
+.gh-fact-open {
+  position: relative;
+  width: calc(100% + 24px);
+  margin: -10px -12px;
+  padding: 10px 44px 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.gh-fact-open:hover {
+  border-color: var(--g-frost-edge);
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: 0 0 22px rgb(143 227 255 / 0.18);
+  transform: translateY(-2px);
+}
+
+.gh-fact-open:active {
+  background: rgb(255 255 255 / 0.16);
+  transform: none;
+}
+
+.gh-fact-open:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+.gh-fact-go {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: var(--gh-link);
+  transform: translateY(-50%) rotate(180deg);
+  transition: transform 0.2s;
+}
+
+.gh-fact-open:hover .gh-fact-go {
+  transform: translate(3px, -50%) rotate(180deg);
 }
 
 .gh-facts {
@@ -395,6 +436,47 @@
   color: var(--gh-muted);
 }
 
+.gh-owe-open {
+  width: calc(100% + 20px);
+  min-height: 48px;
+  padding: 6px 40px 6px 10px;
+  margin-inline: -10px;
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: none;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gh-owe-open::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 9px;
+  height: 9px;
+  border-top: 2.5px solid var(--gh-link);
+  border-right: 2.5px solid var(--gh-link);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.gh-owe-open:hover {
+  border-color: var(--g-frost-edge);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.gh-owe-open:active {
+  background: rgb(255 255 255 / 0.16);
+}
+
+.gh-owe-open:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
 .gh-owe-count {
   font-family: var(--g-display);
   font-size: 56px;
@@ -607,13 +689,16 @@ li[data-mine] > .gh-card {
   .gh-button,
   .gh-game,
   .gh-card,
+  .gh-fact-open,
+  .gh-fact-go,
   .gh-arrow,
   .gh-slide,
   .gh-dots button::before {
     transition: none;
   }
 
-  .gh-cta:active {
+  .gh-cta:active,
+  .gh-fact-open:hover {
     transform: none;
   }
 }
@@ -638,9 +723,4 @@ li[data-mine] > .gh-card {
 .gh-awards .awards-brief-who {
   color: var(--gh-muted);
   font-size: 14px;
-}
-
-.gh-awards-more {
-  justify-self: start;
-  min-height: 44px;
 }

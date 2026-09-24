@@ -83,11 +83,23 @@ describe("Spotlight", () => {
     expect(card().getByRole("button", { name: "Show Standings leader" }).getAttribute("aria-current")).toBe("true");
   });
 
-  it("opens the page behind the fact on show", () => {
+  it("opens the page behind the fact on show from anywhere on its card", () => {
     const open = renderSpot();
     tick();
-    fireEvent.click(card().getByRole("button", { name: "View more: Standings leader" }));
+    const fact = card().getByRole("button", { name: "Standings leader: Team 1, open League Standings" });
+    fireEvent.click(within(fact).getByText("2-0"));
     expect(open).toHaveBeenCalledWith({ kind: "standings" });
+    expect(card().queryByText("View more")).toBeNull();
+    expect(within(fact).queryByRole("button")).toBeNull();
+  });
+
+  it("steps without navigating from the arrows and dots", () => {
+    const open = renderSpot();
+    fireEvent.click(card().getByRole("button", { name: "Next fact" }));
+    fireEvent.click(card().getByRole("button", { name: "Previous fact" }));
+    fireEvent.click(card().getByRole("button", { name: "Show Fastest chug" }));
+    expect(shown()).toBe("Fastest chug, 3 of 3");
+    expect(open).not.toHaveBeenCalled();
   });
 
   it("lists every fact without rotating under reduced motion", () => {
@@ -104,7 +116,7 @@ describe("Spotlight", () => {
     tick();
     expect(card().getAllByRole("listitem")).toHaveLength(3);
 
-    for (const f of FACTS) fireEvent.click(card().getByRole("button", { name: `View more: ${f.label}` }));
+    for (const f of FACTS) fireEvent.click(card().getByRole("button", { name: new RegExp(`^${f.label}: `) }));
     expect(open.mock.calls.map(([to]) => to)).toEqual(FACTS.map((f) => f.to));
   });
 });

@@ -85,13 +85,15 @@ describe("phone section sub-tabs", () => {
     },
   );
 
-  it("shows only the ledger on Ices, then only the standings once that tab is picked", async () => {
+  it("opens Ices on the overview, then shows only the standings once that tab is picked", async () => {
     renderPhone();
     drawerSection("Ices");
+    expect(subtabs("Ices").getAllByRole("button")[0].textContent).toBe("Overview");
+    expect(current("Ices")).toEqual(["Overview"]);
     expect(await top().findByRole("list", { name: "Who owes now" })).toBeTruthy();
     expect(top().queryByRole("list", { name: "Ice standings" })).toBeNull();
     expect(top().queryByRole("list", { name: "Chug videos" })).toBeNull();
-    expect(window.location.search).toBe("?open=ices");
+    expect(window.location.search).toBe("?open=ices-overview");
 
     fireEvent.click(subtabs("Ices").getByRole("button", { name: "Ice standings" }));
     expect(await top().findByRole("list", { name: "Ice standings" })).toBeTruthy();
@@ -111,6 +113,8 @@ describe("phone section sub-tabs", () => {
 
   it.each([
     ["?open=chug-rankings", "Ices", "Rankings"],
+    ["?open=ices-overview", "Ices", "Overview"],
+    ["?open=ices", "Ices", "Ledger"],
     ["?open=recap", "League", "Draft recap"],
     ["?open=news", "League", "News"],
     ["?open=writeup", "News Drop", "Latest edition"],
@@ -194,7 +198,7 @@ describe("XP phone", () => {
     expect(tabs.getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
 
     fireEvent.click(tabs.getByRole("button", { name: "Ices" }));
-    expect(current("Ices")).toEqual(["Ledger"]);
+    expect(current("Ices")).toEqual(["Overview"]);
     expect(await top().findByRole("list", { name: "Who owes now" })).toBeTruthy();
     expect(top().queryByRole("list", { name: "Ice standings" })).toBeNull();
 

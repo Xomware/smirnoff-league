@@ -94,7 +94,7 @@ export function HomeScreen() {
       )}
       <WeekMatchups week={week} />
       <EditionCard />
-      <AwardsCard className="m-section m-awards" titleClass="m-section-title" moreClass="m-link m-awards-more" Heading="h2" />
+      <AwardsCard className="m-section m-awards" titleClass="m-section-title" Heading="h2" />
       {ledger.status === "ok" && <ChugReelRow ledger={ledger.ledger} videos={videos} onVideoError={onVideoError} />}
     </div>
   );

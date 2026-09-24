@@ -3,6 +3,7 @@
 import { type FocusEvent, useContext, useEffect, useState } from "react";
 
 import { DrillContext, type DrillTarget } from "@/components/views/drill-link";
+import { REGISTRY } from "@/lib/desktop/registry";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { Panel } from "./HomePanel";
 
@@ -16,25 +17,36 @@ export interface Fact {
 
 const ROTATE_MS = 5000;
 
-function FactBody({ fact }: { fact: Fact }) {
-  const open = useContext(DrillContext);
-  return (
-    <>
-      <span className="gh-fact-label">{fact.label}</span>
-      <span className="gh-fact-value">{fact.value}</span>
-      <span className="gh-fact-sub">{fact.sub}</span>
-      <button type="button" className="gh-link gh-fact-more" aria-label={`View more: ${fact.label}`} onClick={() => open(fact.to)}>
-        View more
-      </button>
-    </>
-  );
-}
-
-const Chevron = () => (
-  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+const Chevron = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" className={className}>
     <path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+
+// Facts open a fixed page or a week, and neither title needs the league.
+function pageName(to: DrillTarget): string {
+  if (to.kind === "week") return `Week ${to.week}`;
+  const { title } = REGISTRY[to.kind];
+  return typeof title === "string" ? title : to.kind;
+}
+
+// The whole card is the link; the carousel's arrows and dots sit outside it.
+function FactCard({ fact }: { fact: Fact }) {
+  const open = useContext(DrillContext);
+  return (
+    <button
+      type="button"
+      className="gh-fact gh-fact-open"
+      aria-label={`${fact.label}: ${fact.value}, open ${pageName(fact.to)}`}
+      onClick={() => open(fact.to)}
+    >
+      <span className="gh-fact-label">{fact.label}</span>
+      <span className="gh-fact-value">{fact.value}</span>
+      <span className="gh-fact-sub">{fact.sub}</span>
+      <Chevron className="gh-fact-go" />
+    </button>
+  );
+}
 
 interface SpotlightProps {
   id: string;
@@ -71,8 +83,8 @@ export function Spotlight({ id, label, facts }: SpotlightProps) {
       return (
         <ul aria-label={label} className="gh-facts">
           {facts.map((f) => (
-            <li key={f.id} className="gh-fact">
-              <FactBody fact={f} />
+            <li key={f.id}>
+              <FactCard fact={f} />
             </li>
           ))}
         </ul>
@@ -87,12 +99,12 @@ export function Spotlight({ id, label, facts }: SpotlightProps) {
               role="group"
               aria-roledescription="slide"
               aria-label={`${f.label}, ${i + 1} of ${count}`}
-              className="gh-fact gh-slide"
+              className="gh-slide"
               data-on={i === at || undefined}
               aria-hidden={i !== at || undefined}
               inert={i !== at}
             >
-              <FactBody fact={f} />
+              <FactCard fact={f} />
             </div>
           ))}
         </div>

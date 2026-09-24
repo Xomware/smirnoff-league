@@ -4,6 +4,7 @@ import { ControlPanelWindow } from "@/components/admin/ControlPanel";
 import { AwardsView } from "@/components/views/awards-view";
 import { ChugRankingsView } from "@/components/views/chug-rankings-view";
 import { GameView } from "@/components/views/game-view";
+import { IcesOverview } from "@/components/views/ices-overview";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
 import { MyTeamView } from "@/components/views/my-team-view";
 import { PlayerView } from "@/components/views/player-view";
@@ -31,6 +32,7 @@ import {
   ControlPanelIcon,
   FolderIcon,
   IceBottleIcon,
+  IceOverviewIcon,
   IceStandingsIcon,
   MediaPlayerIcon,
   NewsFeedIcon,
@@ -100,6 +102,7 @@ const SPECS = {
     defaultSize: { w: 760, h: 680 },
   },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
+  "ices-overview": { title: "Ices Overview", Icon: IceOverviewIcon, component: IcesOverview, defaultSize: { w: 900, h: 680 } },
   ices: { title: "Ice Ledger", Icon: IceBottleIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },
   stats: { title: "Ice Stats", Icon: ChartIcon, component: StatsView, defaultSize: { w: 900, h: 620 } },

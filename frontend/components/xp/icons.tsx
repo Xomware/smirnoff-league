@@ -130,6 +130,17 @@ export function IceStandingsIcon(props: IconProps) {
   );
 }
 
+export function IceOverviewIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="1.5" y="1.5" width="13" height="13" className="fill-(--xp-cream) stroke-(--ice-deep)" />
+      <rect x="3.5" y="3.5" width="4" height="4" className="fill-(--ice-frost) stroke-(--ice-deep)" />
+      <rect x="8.5" y="3.5" width="4" height="4" className="fill-(--ice-tint) stroke-(--ice-deep)" />
+      <path d="M3.5 10.5h9M3.5 12.5h6" className="stroke-(--ice-deep)" />
+    </Icon>
+  );
+}
+
 export function BracketIcon(props: IconProps) {
   return (
     <Icon {...props}>

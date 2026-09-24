@@ -242,7 +242,7 @@ describe("Taskbar tabs", () => {
 });
 
 describe("Start menu", () => {
-  it("cascades the six ice apps under Ices and opens one", () => {
+  it("cascades the seven ice apps under Ices and opens one", () => {
     renderDesktop();
     fireEvent.click(screen.getByRole("button", { name: "start" }));
     const menu = within(screen.getByRole("navigation", { name: "Start menu" }));
@@ -257,6 +257,7 @@ describe("Start menu", () => {
     fireEvent.click(ices);
     const submenu = within(menu.getByRole("list", { name: "Ices" }));
     expect(submenu.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      "Ices Overview",
       "Ice Ledger",
       "Ice Standings",
       "Ice Rankings",
