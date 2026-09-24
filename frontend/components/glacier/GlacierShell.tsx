@@ -8,6 +8,7 @@ import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { Ticker } from "@/components/ticker/Ticker";
+import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { TabParamContext } from "@/components/xp/Tabs";
@@ -138,6 +139,7 @@ export function GlacierShell() {
       </header>
       <DrillContext.Provider value={drill}>
         <Ticker />
+        <ChugReelPopup />
       </DrillContext.Provider>
       {subPages.length > 1 && (
         <nav aria-label={`${section.label} pages`} className="glacier-subnav">
