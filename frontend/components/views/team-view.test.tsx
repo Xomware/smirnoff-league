@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 vi.mock("@/lib/api/ledger", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/ledger")>()),
@@ -320,6 +320,11 @@ describe("scenario", () => {
   it("plays a completed ice's chug video from roster 6's Ices tab", async () => {
     vi.mocked(getLedger).mockResolvedValue(FILMED);
     vi.mocked(listVideos).mockResolvedValue([R6_VIDEO]);
+    // Desktop's Chug Reel pops up after QUIET_MS without a modal. A run slower
+    // than that got the reel's dialog, not the player's (#237), so start with
+    // this week's chug already seen.
+    localStorage.setItem(`smirnoff.chugReel:s6:w${R6_VIDEO.week}`, JSON.stringify([R6_VIDEO.mediaId]));
+    onTestFinished(() => localStorage.clear());
     render(
       <ProfileProvider>
         <DesktopProvider>

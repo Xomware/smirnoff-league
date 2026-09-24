@@ -543,7 +543,10 @@ body:has(.m-app) {
 }
 
 /* A row that scrolls sideways inside the page, which itself never does. */
+/* Positioned so it contains its cards' absolute children (the ice badge's
+   sr-only text), which otherwise lay out past the strip and widen the page. */
 .m-hscroll {
+  position: relative;
   display: grid;
   grid-auto-columns: min(80%, 18rem);
   grid-auto-flow: column;

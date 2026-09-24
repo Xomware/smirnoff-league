@@ -21,7 +21,7 @@ import { getLedger } from "@/lib/api/ledger";
 import { getMe } from "@/lib/api/users";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
 import { ProfileProvider } from "@/lib/profile/use-profile";
-import { jsonResponse } from "@/lib/test/espn-mock";
+import { espnEvent, jsonResponse } from "@/lib/test/espn-mock";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { golden, stubSleeper } from "@/lib/test/league-mock";
 
@@ -174,5 +174,42 @@ describe("no scroll box inside a page", () => {
 
     const root = document.querySelector(shell === "Glacier desktop" ? ".glacier-page" : ".m-screen:not([hidden])")!;
     expect(innerScrollers(root)).toEqual([]);
+  });
+});
+
+// An absolutely positioned box, like a Tailwind sr-only label, is clipped by
+// its containing block, not by the nearest scroller. When the containing block
+// sits outside a sideways strip, the box lands off to the right and widens the
+// page (#235). Tailwind's utilities aren't in the CSS read here, so sr-only
+// counts as absolute by class.
+function escapesStrip(root: Element) {
+  const positioned = (el: Element) => getComputedStyle(el).position !== "static";
+  const strips = [...root.querySelectorAll<HTMLElement>("*")].filter((el) => getComputedStyle(el).overflowX !== "visible");
+  return strips.flatMap((strip) =>
+    [...strip.querySelectorAll("*")]
+      .filter((el) => el.classList.contains("sr-only") || getComputedStyle(el).position === "absolute")
+      .filter((el) => {
+        let cb = el.parentElement;
+        while (cb && !positioned(cb)) cb = cb.parentElement;
+        return !cb || !strip.contains(cb);
+      })
+      .map((el) => `${strip.getAttribute("aria-label") ?? strip.className}: ${el.textContent}`),
+  );
+}
+
+describe("nothing escapes a sideways strip", () => {
+  // Every game final, so the week's zeros lock and the cards carry ice badges.
+  const NFL = "ARI ATL BAL BUF CAR CHI CIN CLE DAL DEN DET GB HOU IND JAX KC LAC LAR LV MIA MIN NE NO NYG NYJ PHI PIT SEA SF TB TEN WSH".split(" ");
+  const finals = NFL.filter((_, i) => i % 2 === 0).map((home, i) => espnEvent({ home, away: NFL[i * 2 + 1], status: "STATUS_FINAL", period: 4 }));
+
+  it("XP phone Home", async () => {
+    const sleeper = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input, init) => (String(input).includes("espn.com") ? jsonResponse({ events: finals }) : sleeper(input, init)));
+    withAllCss();
+    open("XP phone");
+    const strip = await screen.findByRole("list", { name: "This week's matchups" });
+    await waitFor(() => expect(strip.querySelector(".sr-only")).not.toBeNull());
+
+    expect(escapesStrip(page())).toEqual([]);
   });
 });
