@@ -19,7 +19,8 @@ import { ApiError, getMe } from "@/lib/api/users";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { listVideos, type Video } from "@/lib/api/videos";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
-import { stubSleeper } from "@/lib/test/league-mock";
+import { espnEvent, jsonResponse } from "@/lib/test/espn-mock";
+import { golden, stubSleeper } from "@/lib/test/league-mock";
 import { DrillContext, type DrillTarget } from "./drill-link";
 import { IcesOverview } from "./ices-overview";
 
@@ -100,7 +101,7 @@ describe("Ices overview", () => {
     expect(block("Season at a glance").getByText("Owed now").closest("li")!.textContent).toContain("6");
     const owes = block("Who owes now").getByRole("list", { name: "Who owes now" });
     expect([...owes.children].map((t) => t.textContent?.match(/Team \d+/)?.[0])).toEqual(["Team 13", "Team 12"]);
-    expect(block("Week 3 — live, provisional").getByText(/no empty slots this week/i)).toBeTruthy();
+    expect(block("Week 3 — live, provisional").getByText(/no ices locked yet/i)).toBeTruthy();
 
     const shown = within(clips).getAllByRole("button");
     expect(shown.map((b) => b.getAttribute("aria-label"))).toEqual([4, 3, 2].map(clipLabel));
@@ -113,6 +114,27 @@ describe("Ices overview", () => {
     const heat = within(block("Heat check").getByRole("list", { name: "Most likely to ice next" })).getAllByRole("listitem");
     expect(heat.length).toBeGreaterThan(0);
     expect(heat.length).toBeLessThanOrEqual(3);
+  });
+
+  it.each([
+    ["STATUS_SCHEDULED", false],
+    ["STATUS_IN_PROGRESS", true],
+  ])("counts the live week's empty slot only once every game has kicked off (%s)", async (status, locked) => {
+    // Week 3 replays W1 with roster 3's QB slot empty.
+    const week3 = golden.weeks[0].matchups.map((m) => (m.roster_id === 3 ? { ...m, starters: ["0", ...m.starters!.slice(1)] } : m));
+    const sleeper = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes("espn.com")) return jsonResponse({ events: [espnEvent({ home: "BUF", away: "MIA", status })] });
+      if (url.endsWith("/matchups/3")) return jsonResponse(week3);
+      return sleeper(input, init);
+    });
+    renderOverview();
+    await screen.findByRole("list", { name: "Recent chugs" });
+
+    const live = block("Week 3 — live, provisional");
+    expect(live.queryByText(/no ices locked yet/i) === null).toBe(locked);
+    expect(live.queryByText("Empty slot") !== null).toBe(locked);
   });
 
   it("counts what the long blocks hold in their headers", async () => {

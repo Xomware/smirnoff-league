@@ -27,12 +27,16 @@ const matchups = [
   { roster_id: 1, matchup_id: 1, points: 60.4, starters: lineup, starters_points: [0.4, 10, 10, 0, 10, 0, 10, 10, 10, 10] },
   { roster_id: 2, matchup_id: 1, points: 100, starters, starters_points: SLOTS.map(() => 10) },
 ].map((m) => ({ ...m, custom_points: null, players: m.starters, players_points: null }));
-const events = [
+const sunday = [
   espnEvent({ home: "MIA", away: "BUF", status: "STATUS_IN_PROGRESS", period: 3, clock: "4:12" }),
   espnEvent({ home: "GB", away: "DET", status: "STATUS_FINAL", period: 4 }),
 ];
+// The Monday night game hasn't kicked off, so the bye tight end can still be benched.
+const monnf = espnEvent({ home: "LAR", away: "SEA", date: "2026-09-29T00:15Z" });
+let events = sunday;
 
 beforeEach(() => {
+  events = sunday;
   stubSleeper();
   const sleeper = vi.mocked(fetch).getMockImplementation()!;
   vi.mocked(fetch).mockImplementation(async (input, init) => {
@@ -84,6 +88,35 @@ describe("Ice Watch on a live Sunday", () => {
 
     const balloon = await screen.findByRole("status", { name: /ice watch/i });
     expect(balloon.textContent).toMatch(/Slow Quarterback has 0.4 pts in the 3rd/);
+  });
+});
+
+describe("Ice Watch before the last kickoff", () => {
+  it("tags the bye starter FIX LINEUP and leaves him out of the team's ices", async () => {
+    events = [...sunday, monnf];
+    render(
+      <AlertsProvider>
+        <WatchWindow />
+      </AlertsProvider>,
+    );
+
+    const team1 = await screen.findByRole("list", { name: "Team 1 starters on watch" });
+    const open = row(team1, "Bye Tight End");
+    expect(within(open).getByText("FIX LINEUP").getAttribute("data-state")).toBe("OPEN");
+    expect(open.textContent).not.toMatch(/LOCKED/);
+    expect(open.classList).not.toContain("ice");
+    expect(within(team1).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      expect.stringMatching(/Done Receiver/),
+      expect.stringMatching(/Slow Quarterback/),
+      expect.stringMatching(/Bye Tight End/),
+    ]);
+  });
+
+  it("counts only the watch and final ices on Home", async () => {
+    events = [...sunday, monnf];
+    render(<HomeWindow />);
+    const label = await screen.findByText("Ice Watch this week (live)");
+    await vi.waitFor(() => expect(label.nextElementSibling?.textContent).toBe("2"));
   });
 });
 

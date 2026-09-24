@@ -12,7 +12,7 @@ import { POLL_MS, useIceWatch } from "@/lib/ices/use-ice-watch";
 import { type StarterWatch, type TeamWatch, WATCH_TAG, type WatchState, watchStates } from "@/lib/ices/watch";
 import { type Player, useLeague } from "@/lib/league/use-league";
 
-const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2 };
+const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2, OPEN: 3 };
 
 function chip(s: StarterWatch, player: Player | undefined): string {
   const g = s.game;
@@ -20,7 +20,7 @@ function chip(s: StarterWatch, player: Player | undefined): string {
   if (!g) return "BYE";
   if (g.completed) return "FINAL";
   if (g.state === "pre") {
-    if (s.state === "LOCKED") return (player?.injury_status ?? "OUT").toUpperCase();
+    if (s.state === "OPEN") return (player?.injury_status ?? "OUT").toUpperCase();
     return new Date(g.kickoff).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
   }
   if (g.status === "STATUS_HALFTIME") return "HALF";
@@ -34,7 +34,7 @@ function when(g: Game): string {
   return `in the ${["1st", "2nd", "3rd", "4th"][g.period - 1]}`;
 }
 
-const danger = (t: TeamWatch) => [t.finalIce, t.watch, t.locked];
+const danger = (t: TeamWatch) => [t.finalIce, t.watch, t.locked, t.open];
 
 function byDanger(a: TeamWatch, b: TeamWatch): number {
   const [da, db] = [danger(a), danger(b)];
@@ -120,12 +120,14 @@ export function WatchWindow() {
                       name={s.playerId ? <DrillLink to={{ kind: "player", playerId: s.playerId }}>{player?.name ?? s.playerId}</DrillLink> : "Empty slot"}
                       position={s.slot}
                       points={s.points}
-                      iced={s.state !== "WATCH"}
+                      iced={s.state === "FINAL_ICE" || s.state === "LOCKED"}
                       watch={s.state === "WATCH"}
                       ices={0}
                       status={
                         <>
-                          <span className="xp-watch-tag">{WATCH_TAG[s.state]}</span>
+                          <span className="xp-watch-tag" data-state={s.state}>
+                            {WATCH_TAG[s.state]}
+                          </span>
                           <span className="xp-game-chip">{chip(s, player)}</span>
                         </>
                       }

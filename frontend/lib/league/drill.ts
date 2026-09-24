@@ -1,4 +1,4 @@
-import { defaultWeekSettings, type Ice, lockedIces, type MatchupRow, SLOTS, weekIces } from "@/lib/ices/compute";
+import { defaultWeekSettings, type Ice, type MatchupRow, SLOTS, weekIces } from "@/lib/ices/compute";
 import type { StatsMatchup } from "@/lib/ices/stats";
 
 export interface WeekMatchups<M extends MatchupRow = StatsMatchup> {
@@ -76,8 +76,9 @@ export function byRoster<T extends Pick<Ice, "rosterId">>(ices: T[]): [number, T
   return [...groups].sort(([a], [b]) => a - b);
 }
 
-export function weekSummary<M extends MatchupRow>(week: number, matchups: M[], live: boolean) {
-  const ices = live ? lockedIces(week, matchups, SLOTS) : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
+// `liveIces` is the live week's locked ices (the season tally's), or null for a finished week.
+export function weekSummary<M extends MatchupRow>(week: number, matchups: M[], liveIces: Ice[] | null) {
+  const ices = liveIces ?? weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
 
   const pairs = new Map<number, M[]>();
   for (const m of matchups) {

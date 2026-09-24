@@ -13,7 +13,7 @@ interface TroubleState {
   of: (rosterId: number) => Trouble[];
   // TeamName only gets a name, and its thirty call sites don't pass the roster.
   byName: (name: string) => Trouble[];
-  /** Your starters on the Ice Watch or already iced this live week. */
+  /** Your starters on the Ice Watch, already iced, or still fixable (OPEN) this live week. */
   myZeros: StarterWatch[];
 }
 
@@ -39,7 +39,7 @@ export function TroubleProvider({ on, children }: { on: boolean; children: React
     return {
       of: (id) => map.get(id) ?? NONE,
       byName: (name) => names.get(name) ?? NONE,
-      myZeros: mine.flatMap((t) => t.starters.filter((s) => s.state === "WATCH" || s.state === "FINAL_ICE")),
+      myZeros: mine.flatMap((t) => t.starters.filter((s) => s.state === "WATCH" || s.state === "FINAL_ICE" || s.state === "OPEN")),
     };
   }, [data, week, matchups, games, ledger, teamFor, myRosterId]);
 

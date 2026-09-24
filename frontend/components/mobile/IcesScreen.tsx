@@ -145,7 +145,7 @@ export function IceStandingsScreen() {
         <h2 id="m-ice-standings" className="m-section-title">
           Ice standings
         </h2>
-        {mode === "week" && live && <p className="m-caption">Week {week} is live: only empty slots count until it ends.</p>}
+        {mode === "week" && live && <p className="m-caption">Week {week} is live: empty slots count once every game has kicked off.</p>}
         <ol aria-label="Ice standings" className="m-card m-rows">
           {rows.map((r) => (
             <li key={r.rosterId} className={`m-row${r.rosterId === myRosterId ? " m-mine" : ""}`}>

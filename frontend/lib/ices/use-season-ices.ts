@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import type { WeekMatchups } from "@/lib/league/drill";
-import { leagueMatchups } from "@/lib/league/cache";
+import { leagueMatchups, scoreboard } from "@/lib/league/cache";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 import { type SeasonTally, seasonTally } from "./tally";
 
@@ -21,12 +21,16 @@ export function useSeasonIces(currentWeek: number | undefined) {
     if (currentWeek === undefined) return;
     let live = true;
     const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
-    Promise.all(weeks.map((week) => leagueMatchups(week, week === currentWeek).then((matchups) => ({ week, matchups }))))
+    Promise.all([
+      Promise.all(weeks.map((week) => leagueMatchups(week, week === currentWeek).then((matchups) => ({ week, matchups })))),
+      // ESPN down only means no empty slot locks yet; the rest of the tally still stands.
+      scoreboard(currentWeek).catch(() => null),
+    ])
       .then(
-        (rows) =>
+        ([rows, games]) =>
           live &&
           setSeason({
-            tally: seasonTally(rows, currentWeek),
+            tally: seasonTally(rows, currentWeek, games),
             finishedWeeks: rows.filter((w) => w.week < currentWeek),
             liveMatchups: rows.find((w) => w.week === currentWeek)?.matchups ?? [],
           }),

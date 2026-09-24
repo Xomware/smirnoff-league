@@ -68,7 +68,11 @@ export function GameView({ week, matchup }: GameViewProps) {
     const content = (
       <>
         {st.playerId ? player(st.playerId) : "Empty"}
-        {tag && <span className="xp-watch-tag">{tag}</span>}
+        {tag && (
+          <span className="xp-watch-tag" data-state={st.watch!.state}>
+            {tag}
+          </span>
+        )}
       </>
     );
     return cells(align, content, st.points.toFixed(2), frost);
@@ -173,7 +177,7 @@ export function GameView({ week, matchup }: GameViewProps) {
 
       <section aria-label={`Week ${week} ices`} className="game-ices grid gap-2">
         <h3 className="font-bold">Ices this week</h3>
-        {live && <p className="xp-note">Only empty slots count until the week ends.</p>}
+        {live && <p className="xp-note">Empty slots count once every game has kicked off.</p>}
         {iced.length === 0 ? <p>No ices in this game.</p> : <WeekIces groups={iced} players={data.players} teamFor={teamFor} />}
       </section>
     </div>

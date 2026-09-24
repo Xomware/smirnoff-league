@@ -1,3 +1,4 @@
+import type { Game } from "@/lib/espn";
 import { defaultWeekSettings, type Ice, lockedIces, type MatchupRow, SLOTS, weekIces } from "./compute";
 
 export interface RosterTally {
@@ -24,10 +25,11 @@ const icesFor = ({ week, matchups }: { week: number; matchups: MatchupRow[] }): 
 });
 
 // Owed ices from Sleeper alone. Weeks before `currentWeek` are finished and
-// counted; the current week is reported separately as live.
+// counted; the current week is reported separately as live, from its scoreboard.
 export function seasonTally(
   weeks: { week: number; matchups: MatchupRow[] }[],
   currentWeek: number,
+  currentGames: Game[] | null,
 ): SeasonTally {
   const finished = weeks
     .filter((w) => w.week < currentWeek)
@@ -58,6 +60,6 @@ export function seasonTally(
   return {
     owed: [...rosters.values()].sort((a, b) => b.total - a.total || a.rosterId - b.rosterId),
     weeks: finished,
-    live: current ? { week: current.week, ices: lockedIces(current.week, current.matchups, SLOTS) } : null,
+    live: current ? { week: current.week, ices: lockedIces(current.week, current.matchups, SLOTS, currentGames) } : null,
   };
 }

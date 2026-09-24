@@ -38,7 +38,7 @@ describe("Ice Ledger window", () => {
     expect(within(week1).getByText("Romeo Doubs")).toBeTruthy();
     expect(within(week1).getByText("Lowest score")).toBeTruthy();
 
-    expect(within(pastWeek(3)).getByText(/no empty slots this week/i)).toBeTruthy();
+    expect(within(pastWeek(3)).getByText(/no ices locked yet/i)).toBeTruthy();
   });
 
   it("shows W1 completed, W2 owed with late rows, and the season summary from the ledger", async () => {

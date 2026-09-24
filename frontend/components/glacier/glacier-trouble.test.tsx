@@ -180,3 +180,23 @@ describe("Glacier ice warnings", () => {
     expect(document.querySelector(".xp-team[data-trouble]")).toBeNull();
   });
 });
+
+describe("Glacier lineup warning", () => {
+  it("tells the owner to fix an empty slot before the last kickoff", async () => {
+    // Thursday, nothing kicked off: roster 4 starts the NYJ defense (its id is its team) everywhere but an empty TE.
+    const w3 = golden.weeks[1].matchups.map((m) => (m.roster_id === 4 ? { ...m, starters: m.starters!.map((_, i) => (i === 5 ? "0" : "NYJ")) } : m));
+    const sleeper = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.includes("espn.com")) return jsonResponse({ events: [espnEvent({ home: "NYJ", away: "MIA" })] });
+      if (url.endsWith("/matchups/3")) return jsonResponse(w3);
+      return sleeper(input, init);
+    });
+    vi.mocked(getLedger).mockResolvedValue({ ...SCENARIO_LEDGER, ices: [], summary: [] });
+    renderApp();
+
+    const warning = await screen.findByRole("alert", { name: "FIX YOUR LINEUP" });
+    expect(warning.textContent).toContain("TE is empty.");
+    expect(warning.textContent).not.toContain("more after this");
+  });
+});

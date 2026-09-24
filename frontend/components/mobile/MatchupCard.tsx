@@ -7,8 +7,8 @@ import type { Game, Starter } from "@/lib/league/use-week-games";
 import { useProfile } from "@/lib/profile/use-profile";
 import { usePush } from "./push";
 
-export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "Iced", WATCH: "Watch", LOCKED: "Locked" };
-const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2 };
+export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "Iced", WATCH: "Watch", LOCKED: "Locked", OPEN: "Fix lineup" };
+const RANK: Partial<Record<WatchState, number>> = { FINAL_ICE: 0, WATCH: 1, LOCKED: 2, OPEN: 3 };
 
 const flagged = (starters: Starter[] | null) =>
   (starters ?? []).filter((s) => s.watch && RANK[s.watch.state] !== undefined).sort((a, b) => RANK[a.watch!.state]! - RANK[b.watch!.state]!);

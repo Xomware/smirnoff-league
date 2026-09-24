@@ -285,7 +285,7 @@
   background: var(--g-red);
 }
 
-.m-app.glacier .m-chip[data-state="WATCH"],
+.m-app.glacier .m-chip:is([data-state="WATCH"], [data-state="OPEN"]),
 .m-app.glacier .m-danger-chip {
   border-color: #f5c96b;
   color: #ffe2a3;

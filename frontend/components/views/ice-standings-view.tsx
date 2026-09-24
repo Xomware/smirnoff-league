@@ -223,7 +223,7 @@ export function IceStandingsView() {
         </div>
       )}
       <p className="xp-note">
-        Owed from Sleeper scores. The live week counts only empty slots until it ends; zeros and the lowest score lock in then. Completed and Late come from the ledger.
+        Owed from Sleeper scores. The live week counts only empty slots, once every game has kicked off; zeros and the lowest score lock in when it ends. Completed and Late come from the ledger.
       </p>
     </div>
   );

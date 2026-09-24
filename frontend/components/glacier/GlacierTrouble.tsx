@@ -49,9 +49,11 @@ function WarningToasts() {
     .map((s): Warning => {
       const name = data?.players[s.playerId ?? ""]?.name ?? s.playerId;
       const pts = s.points.toFixed(1);
+      const id = `${s.id}:${s.state}`;
+      if (s.state === "OPEN") return { id, title: "FIX YOUR LINEUP", body: s.playerId ? `${name} won't play in your ${s.slot} slot.` : `${s.slot} is empty.` };
       return s.state === "WATCH"
-        ? { id: `${s.id}:${s.state}`, title: "ICE WATCH", body: `${name} has ${pts} pts after halftime.` }
-        : { id: `${s.id}:${s.state}`, title: "ICED", body: `${name} finished with ${pts} pts. That's an ice.` };
+        ? { id, title: "ICE WATCH", body: `${name} has ${pts} pts after halftime.` }
+        : { id, title: "ICED", body: `${name} finished with ${pts} pts. That's an ice.` };
     });
   const warnings = [...zeros, ...owed.map((n): Warning => ({ id: n.id, title: n.title, body: sentence(n.body), comment: n.kind === "comment" }))];
   const [first] = warnings;

@@ -1,10 +1,11 @@
 import type { Game } from "@/lib/espn";
 import type { Player } from "@/lib/league/use-league";
-import { iceId, type MatchupRow, SLOTS } from "./compute";
+import { iceId, lastKickoffPassed, type MatchupRow, SLOTS } from "./compute";
 
-export type WatchState = "LOCKED" | "WATCH" | "SAFE" | "FINAL_ICE" | "FINAL_SAFE";
+// OPEN: an empty, bye or sidelined slot the manager can still fix in Sleeper.
+export type WatchState = "OPEN" | "LOCKED" | "WATCH" | "SAFE" | "FINAL_ICE" | "FINAL_SAFE";
 
-export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "ICED", WATCH: "WATCH", LOCKED: "LOCKED" };
+export const WATCH_TAG: Partial<Record<WatchState, string>> = { FINAL_ICE: "ICED", WATCH: "WATCH", LOCKED: "LOCKED", OPEN: "FIX LINEUP" };
 
 export interface StarterWatch {
   // Same id weekIces gives this slot's ice.
@@ -21,6 +22,7 @@ export interface TeamWatch {
   rosterId: number;
   starters: StarterWatch[];
   locked: number;
+  open: number;
   watch: number;
   finalIce: number;
 }
@@ -28,11 +30,12 @@ export interface TeamWatch {
 // Sleeper's injury_status values for a player who won't suit up ("Sus" is suspended).
 const SIDELINED = new Set(["Out", "IR", "PUP", "Sus"]);
 
-function stateFor(points: number, game: Game | null, player: Player | undefined): WatchState {
-  if (!game) return "LOCKED";
+function stateFor(points: number, game: Game | null, player: Player | undefined, unfilled: WatchState): WatchState {
+  if (!game) return unfilled;
   if (game.completed) return points <= 0 ? "FINAL_ICE" : "FINAL_SAFE";
-  // Only before kickoff: a player hurt mid-game and moved to IR still keeps his points.
-  if (game.state === "pre") return SIDELINED.has(player?.injury_status ?? "") ? "LOCKED" : "SAFE";
+  // Sleeper locks a starter at his own kickoff, so until then he can be benched.
+  // After it, a player hurt mid-game and moved to IR still keeps his points.
+  if (game.state === "pre") return SIDELINED.has(player?.injury_status ?? "") ? "OPEN" : "SAFE";
   const pastHalf = game.period >= 3 || game.status === "STATUS_HALFTIME";
   return pastHalf && points < 1 ? "WATCH" : "SAFE";
 }
@@ -44,6 +47,7 @@ export function watchStates(
   players: Record<string, Player>,
 ): TeamWatch[] {
   const gameOf = new Map(games.flatMap((g) => g.teams.map((team) => [team, g] as const)));
+  const unfilled = lastKickoffPassed(games) ? "LOCKED" : "OPEN";
 
   return matchups
     .filter((m) => m.starters !== null)
@@ -55,10 +59,17 @@ export function watchStates(
         // A defense's player id is its team abbreviation.
         const team = playerId && (players[playerId]?.team ?? playerId);
         const game = (team && gameOf.get(team)) || null;
-        const state = playerId ? stateFor(points, game, players[playerId]) : "LOCKED";
+        const state = playerId ? stateFor(points, game, players[playerId], unfilled) : unfilled;
         return { id: iceId(week, m.roster_id, `S${i}`), slot, playerId, points, state, game };
       });
       const count = (state: WatchState) => starters.filter((s) => s.state === state).length;
-      return { rosterId: m.roster_id, starters, locked: count("LOCKED"), watch: count("WATCH"), finalIce: count("FINAL_ICE") };
+      return {
+        rosterId: m.roster_id,
+        starters,
+        locked: count("LOCKED"),
+        open: count("OPEN"),
+        watch: count("WATCH"),
+        finalIce: count("FINAL_ICE"),
+      };
     });
 }

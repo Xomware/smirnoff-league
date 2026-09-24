@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import type { Game } from "@/lib/espn";
+import { lockedIces, SLOTS } from "@/lib/ices/compute";
 import type { StatsMatchup } from "@/lib/ices/stats";
 import { golden } from "@/lib/test/league-mock";
 import { playerWeeks, teamResults, weekSummary } from "./drill";
@@ -19,6 +21,8 @@ const lineup = (rosterId: number, points: number, starters: [string, number][]):
     players_points: Object.fromEntries([...full, [bench, 4]]),
   };
 };
+
+const kickedOff: Game = { id: "g", kickoff: "", state: "in", status: "", period: 1, clock: "", completed: false, teams: [] };
 
 describe("teamResults", () => {
   it("lists roster 6's weeks with opponent, W/L and that week's ices", () => {
@@ -60,7 +64,7 @@ describe("playerWeeks", () => {
 
 describe("weekSummary", () => {
   it("pairs week 1 matchups, groups ices by team and names the lowest", () => {
-    const w1 = weekSummary(1, golden.weeks[0].matchups, false);
+    const w1 = weekSummary(1, golden.weeks[0].matchups, null);
     expect(w1.pairs).toHaveLength(7);
     expect(w1.pairs[0].map((m) => m.matchup_id)).toEqual([1, 1]);
     expect(w1.icesByRoster.map(([rosterId, ices]) => [rosterId, ices.length])).toEqual([
@@ -72,15 +76,16 @@ describe("weekSummary", () => {
     expect(w1.lowest).toEqual({ rosterIds: [6], points: 91.46 });
   });
 
-  it("keeps only locked ices for the live week", () => {
+  it("shows the live week's locked ices, not the zeros and lowest the week would give", () => {
     const live = [lineup(3, 50, [["x", 0], ["0", 0]]), lineup(5, 60, [])];
-    const summary = weekSummary(3, live, true);
-    expect(summary.icesByRoster.map(([rosterId, ices]) => [rosterId, ices.map((i) => i.reason)])).toEqual([
+    const locked = lockedIces(3, live, SLOTS, [kickedOff]);
+    expect(weekSummary(3, live, locked).icesByRoster.map(([rosterId, ices]) => [rosterId, ices.map((i) => i.reason)])).toEqual([
       [3, ["empty"]],
     ]);
+    expect(weekSummary(3, live, []).icesByRoster).toEqual([]);
   });
 
   it("has no lowest team before any matchups exist", () => {
-    expect(weekSummary(3, [], true)).toEqual({ pairs: [], icesByRoster: [], lowest: null });
+    expect(weekSummary(3, [], [])).toEqual({ pairs: [], icesByRoster: [], lowest: null });
   });
 });
