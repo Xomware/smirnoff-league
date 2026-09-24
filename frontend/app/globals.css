@@ -1066,8 +1066,29 @@
     }
 
     .xp-player-row {
+      flex-wrap: wrap;
+      row-gap: 0.25rem;
       min-height: 2.75rem;
-      padding-block: 0;
+      padding-block: 0.25rem;
+    }
+
+    /* Position, name and points hold the first line, like a chart row; status
+       tags and buttons wrap onto a second line under the name. */
+    .xp-player-row > .xp-player-name {
+      flex-basis: calc(100% - 6.75rem);
+    }
+
+    .xp-player-row > .xp-player-pts {
+      min-width: 3.5rem;
+      text-align: right;
+    }
+
+    .xp-player-row > :not(.xp-player-pos, .xp-player-name, .xp-player-pts) {
+      order: 1;
+    }
+
+    .xp-player-row > .xp-player-name + :not(.xp-player-pts) {
+      margin-left: 2.75rem;
     }
 
     /* A 44px hit area without growing the rows or the sentences drill links sit in. */

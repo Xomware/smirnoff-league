@@ -13,6 +13,7 @@ vi.mock("@/lib/api/users", async (importOriginal) => ({
 
 import { getLedger, logChugTime } from "@/lib/api/ledger";
 import { ApiError, getMe } from "@/lib/api/users";
+import { TroubleProvider } from "@/lib/ices/use-trouble";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -117,7 +118,20 @@ describe("Ice Ledger layout", () => {
     expect(pastWeek(3).open).toBe(false);
   });
 
-  it("folds the season summary away on the phone only, as stacked rows rather than a wide table", async () => {
+  it("keeps Glacier's trouble tags off the phone summary's names, where the counts say it", async () => {
+    vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
+    render(
+      <TroubleProvider on>
+        <IceLedger phone />
+      </TroubleProvider>,
+    );
+    const list = await screen.findByRole("list", { name: "Season summary" });
+    // The week rows above still carry them, so the provider is live.
+    await waitFor(() => expect(document.querySelector(".ledger-week .trouble-tag")).toBeTruthy());
+    expect(list.querySelector(".trouble-tag")).toBeNull();
+  });
+
+  it("folds the season summary away on the phone only, as chart rows rather than a wide table", async () => {
     const { unmount } = render(<IceLedger phone />);
     const list = await screen.findByRole("list", { name: "Season summary" });
     expect(list.closest("details")!.open).toBe(false);
@@ -125,8 +139,10 @@ describe("Ice Ledger layout", () => {
     expect(list.closest(".xp-table-scroll")).toBeNull();
     const first = within(list).getAllByRole("listitem")[0];
     expect(first.textContent).toContain("Team 13");
-    const stats = [...first.querySelectorAll("dt")].map((dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`);
-    expect(stats).toEqual(["Owed 2", "Done 0", "Late 2", "Overdue 2"]);
+    expect(first.className).toContain("board-row");
+    expect([...first.querySelectorAll(":scope > .board-num")].map((n) => n.textContent)).toEqual(["2 owed", "0 done", "2 late", "2 overdue"]);
+    expect(first.querySelector("dl")).toBeNull();
+    expect([...(list.parentElement?.querySelector(".board-head")?.children ?? [])].map((c) => c.textContent)).toEqual(["#", "Team", "Owed", "Done", "Late", "Over"]);
     unmount();
     render(<IcesWindow />);
     expect((await screen.findByRole("table", { name: "Season summary" })).closest("details")!.open).toBe(true);
