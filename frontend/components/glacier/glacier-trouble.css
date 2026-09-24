@@ -90,12 +90,12 @@
   background-color: color-mix(in srgb, var(--g-red) 22%, var(--g-sticky));
 }
 
-.m-app.glacier .m-row:has(.xp-team[data-trouble]) {
+.m-app.glacier :is(.m-row, .board-row):has(.xp-team[data-trouble]) {
   background: var(--gt-wash);
   box-shadow: inset 4px 0 var(--g-red);
 }
 
-.m-app.glacier .m-row:has(.xp-team[data-trouble~="late"]) {
+.m-app.glacier :is(.m-row, .board-row):has(.xp-team[data-trouble~="late"]) {
   background: var(--gt-wash-late);
 }
 

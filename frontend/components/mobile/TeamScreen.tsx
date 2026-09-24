@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { BoardHead } from "@/components/views/board";
 import { DrillLink } from "@/components/views/drill-link";
 import { OpenGame } from "@/components/views/game-view";
 import { paidOn } from "@/components/views/ledger-week";
@@ -15,17 +16,16 @@ import { PointsChart, ProfileHead, type TeamProfile, useTeamProfile } from "@/co
 import { IceCause } from "@/components/views/week-ices";
 import { MediaPlayerIcon } from "@/components/xp/icons";
 import { Tabs } from "@/components/xp/Tabs";
-import { TeamName } from "@/components/xp/TeamName";
+import { TeamName, TroubleTags } from "@/components/xp/TeamName";
 import type { LedgerIce } from "@/lib/api/ledger";
 import { SLOTS } from "@/lib/ices/compute";
+import { useTrouble } from "@/lib/ices/use-trouble";
 import type { WindowParams } from "@/lib/desktop/windows";
 import type { Pick } from "@/lib/league/profile";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useVideos, videoFor } from "@/lib/videos/use-videos";
 
 import "@/components/views/profile.css";
-
-const signed = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(2)}`;
 
 interface Props {
   p: TeamProfile;
@@ -34,50 +34,64 @@ interface Props {
 function Opponent({ p, rosterId }: Props & { rosterId: number }) {
   return (
     <DrillLink to={{ kind: "team", rosterId }}>
-      <TeamName name={p.teamFor(rosterId).name} avatarUrl={p.teamFor(rosterId).avatarUrl} iced={false} ices={0} />
+      <TeamName name={p.teamFor(rosterId).name} avatarUrl={p.teamFor(rosterId).avatarUrl} iced={false} ices={0} badges={false} />
     </DrillLink>
   );
 }
 
+// A board's name column is too narrow for the tags, so they move to the sub line.
 function Results({ p }: Props) {
+  const trouble = useTrouble();
   if (p.results.length === 0) return <p className="m-empty">No finished weeks yet.</p>;
   return (
     <>
-      <ul aria-label="Weekly results" className="m-card m-rows">
-        {p.results.map((r) => (
-          <li key={r.week} className="m-result">
-            <span className="m-result-top">
-              <DrillLink to={{ kind: "week", week: r.week }}>Week {r.week}</DrillLink>
-              {r.result && (
-                <span className="m-result-pill" data-result={r.result}>
-                  {r.result}
+      <div className="m-card m-rows m-results">
+        <BoardHead labels={["WK", "Opponent", "", "Pts"]} />
+        <ul aria-label="Weekly results">
+          {p.results.map((r) => (
+            <li key={r.week} className="board-row">
+              <span className="board-rank">
+                <DrillLink to={{ kind: "week", week: r.week }}>
+                  <span aria-hidden="true">W{r.week}</span>
+                  <span className="sr-only">Week {r.week}</span>
+                </DrillLink>
+              </span>
+              <span className="board-who">
+                <span className="board-name">{r.opponent ? <Opponent p={p} rosterId={r.opponent.rosterId} /> : "Bye"}</span>
+                <span className="board-sub m-result-detail">
+                  {r.opponent && <TroubleTags trouble={trouble.of(r.opponent.rosterId)} />}
+                  {r.opponent && `${r.opponent.points.toFixed(2)} against · `}
+                  {r.benchLeft !== null && `${r.benchLeft.toFixed(2)} left on the bench · `}
+                  {r.ices.length === 0 ? "No ices" : "Iced: "}
+                  {r.ices.map((ice, i) => (
+                    <Fragment key={ice.id}>
+                      {i > 0 && ", "}
+                      <IceCause ice={ice} players={p.data.players} />
+                    </Fragment>
+                  ))}
                 </span>
-              )}
-              <span className="m-points">
+              </span>
+              <span>
+                {r.result && (
+                  <span className="m-result-pill" data-result={r.result}>
+                    {r.result}
+                  </span>
+                )}
+              </span>
+              <span className="board-num">
                 {r.opponent && r.matchupId ? (
                   <OpenGame week={r.week} matchup={r.matchupId}>
-                    {r.points.toFixed(2)} - {r.opponent.points.toFixed(2)}
+                    {r.points.toFixed(2)}{" "}
+                    <span className="sr-only">- {r.opponent.points.toFixed(2)}</span>
                   </OpenGame>
                 ) : (
                   r.points.toFixed(2)
                 )}
               </span>
-            </span>
-            <span className="m-result-vs">vs {r.opponent ? <Opponent p={p} rosterId={r.opponent.rosterId} /> : "Bye"}</span>
-            <span className="m-caption">
-              {r.margin !== null && `Margin ${signed(r.margin)} · `}
-              {r.benchLeft !== null && `${r.benchLeft.toFixed(2)} left on the bench · `}
-              {r.ices.length === 0 ? "No ices" : "Iced: "}
-              {r.ices.map((ice, i) => (
-                <Fragment key={ice.id}>
-                  {i > 0 && ", "}
-                  <IceCause ice={ice} players={p.data.players} />
-                </Fragment>
-              ))}
-            </span>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
       <PointsChart results={p.results} name={p.team.name} />
     </>
   );
@@ -193,25 +207,45 @@ function Moves({ p }: Props) {
 }
 
 function HeadToHead({ p }: Props) {
+  const trouble = useTrouble();
   return (
-    <ul aria-label="Head-to-head" className="m-card m-rows">
-      {p.headToHead.map((h) => {
-        const played = h.wins + h.losses + h.ties > 0;
-        return (
-          <li key={h.rosterId} className="m-row">
-            <Opponent p={p} rosterId={h.rosterId} />
-            <span className="m-record">
-              {played ? `${h.wins}-${h.losses}${h.ties ? `-${h.ties}` : ""}` : "Not played"}
-            </span>
-            {played && (
-              <span className="m-row-sub">
-                {h.pf.toFixed(2)} for, {h.pa.toFixed(2)} against
+    <div className="m-card m-rows m-h2h">
+      <BoardHead labels={["Opponent", "W-L", "PF", "PA"]} numbersFrom={1} />
+      <ul aria-label="Head-to-head">
+        {p.headToHead.map((h) => (
+          <li key={h.rosterId} className="board-row">
+            <span className="board-who">
+              <span className="board-name">
+                <Opponent p={p} rosterId={h.rosterId} />
               </span>
+              {trouble.of(h.rosterId).length > 0 && (
+                <span className="board-sub">
+                  <TroubleTags trouble={trouble.of(h.rosterId)} />
+                </span>
+              )}
+            </span>
+            {h.wins + h.losses + h.ties > 0 ? (
+              <>
+                <span className="board-num">
+                  {h.wins}-{h.losses}
+                  {h.ties > 0 && `-${h.ties}`}
+                </span>
+                <span className="board-num">
+                  <span className="sr-only">Points for </span>
+                  {h.pf.toFixed(2)}
+                </span>
+                <span className="board-num">
+                  <span className="sr-only">Points against </span>
+                  {h.pa.toFixed(2)}
+                </span>
+              </>
+            ) : (
+              <span className="board-none">Not played</span>
             )}
           </li>
-        );
-      })}
-    </ul>
+        ))}
+      </ul>
+    </div>
   );
 }
 

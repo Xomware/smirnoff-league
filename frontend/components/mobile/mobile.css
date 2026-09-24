@@ -840,6 +840,56 @@ body:has(.m-app) {
   flex: 1;
 }
 
+/* Boards (views/board.css) inside a phone card. */
+.m-card :is(.board-head, .board-row) {
+  padding-inline: 0.75rem;
+  border-bottom-color: var(--m-line);
+}
+
+.m-card .board-head {
+  color: var(--m-muted);
+}
+
+.m-card .board-row {
+  min-height: 3.5rem;
+}
+
+.m-standings {
+  --board-cols: 1.75rem minmax(0, 1fr) 2.75rem 3.75rem;
+}
+
+.m-h2h {
+  --board-cols: minmax(0, 1fr) 2.5rem 3.75rem 3.75rem;
+}
+
+.m-results {
+  --board-cols: 1.75rem minmax(0, 1fr) 1.75rem auto;
+}
+
+.m-player-weeks {
+  --board-cols: 1.75rem minmax(0, 1fr) 3.5rem;
+}
+
+.m-standings .board-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.board-row .m-result-pill {
+  display: inline-block;
+}
+
+.board-row > .m-cut {
+  grid-column: 1 / -1;
+  margin: -0.375rem -0.75rem 0.25rem;
+}
+
+/* Margin, bench and ices can run long; they wrap rather than hide the ices. */
+.m-result-detail {
+  white-space: normal;
+}
+
 .m-rank ~ .m-row-sub {
   padding-left: 5rem;
 }
