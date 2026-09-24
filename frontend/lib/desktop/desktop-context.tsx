@@ -13,9 +13,9 @@ import { track, viewTarget } from "@/lib/activity/tracker";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
+  bottomChrome,
   defaultLayout,
   desktopReducer,
-  TASKBAR_HEIGHT,
   type WindowAction,
   type WindowParams,
   type WindowState,
@@ -41,7 +41,7 @@ export function DesktopProvider({ children }: { children: ReactNode }) {
 
   const open = useCallback((kind: WindowKind, params: WindowParams = {}) => {
     const { w, h } = REGISTRY[kind].defaultSize;
-    const size = { w: Math.min(w, window.innerWidth), h: Math.min(h, window.innerHeight - TASKBAR_HEIGHT) };
+    const size = { w: Math.min(w, window.innerWidth), h: Math.min(h, window.innerHeight - bottomChrome()) };
     dispatch({ type: "open", kind, params, size });
     track("open", viewTarget({ kind, params }));
   }, []);

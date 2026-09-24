@@ -18,7 +18,7 @@ import { useAlerts } from "@/lib/alerts/alerts";
 import { windowUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
-import { historyOf, TASKBAR_HEIGHT, viewKey, type WindowState } from "@/lib/desktop/windows";
+import { bottomChrome, historyOf, viewKey, type WindowState } from "@/lib/desktop/windows";
 
 const MIN_W = 240;
 const MIN_H = 140;
@@ -93,7 +93,7 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
     const dx = e.clientX - d.px;
     const dy = e.clientY - d.py;
     const vw = window.innerWidth;
-    const vh = window.innerHeight - TASKBAR_HEIGHT;
+    const vh = window.innerHeight - bottomChrome();
     if (d.mode === "move") {
       dispatch({ type: "move", id, x: clamp(d.x + dx, 0, vw - d.w), y: clamp(d.y + dy, 0, vh - d.h) });
     } else {
