@@ -4,8 +4,8 @@ import { TEAM_TABS } from "@/components/views/team-view";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
+  bottomChrome,
   desktopReducer,
-  TASKBAR_HEIGHT,
   windowId,
   type WindowParams,
   type WindowState,
@@ -91,7 +91,7 @@ export function openLinks(base: WindowState[], links: WindowLink[], vw: number, 
   if (links.length === 0) return base;
   return links.reduce<WindowState[]>((state, { kind, params }) => {
     const { w, h } = REGISTRY[kind].defaultSize;
-    const open = { type: "open", kind, params, size: { w: Math.min(w, vw), h: Math.min(h, vh - TASKBAR_HEIGHT) } } as const;
+    const open = { type: "open", kind, params, size: { w: Math.min(w, vw), h: Math.min(h, vh - bottomChrome()) } } as const;
     const id = windowId(kind, params);
     const saved = base.find((s) => showing(s) === id);
     if (!saved || state.some((s) => s.id === saved.id || showing(s) === id)) return desktopReducer(state, open);
