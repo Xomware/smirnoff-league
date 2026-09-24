@@ -21,33 +21,41 @@ interface Ball {
 }
 
 // Seeded so the static export's HTML matches the hydrated client and tests.
+// Three depths: far flakes small, dim and slow, a few near ones big, bright and
+// fast. Near still means inside the snow layer, behind the page.
 const FLAKES = (() => {
   let seed = 7;
   const rnd = () => {
     seed = (seed * 9301 + 49297) % 233280;
     return seed / 233280;
   };
-  return Array.from({ length: 70 }, () => {
-    const size = 2 + rnd() * 5;
+  return Array.from({ length: 105 }, () => {
+    const depth = rnd();
+    const [size, opacity, secs, drift] =
+      depth < 0.45
+        ? [2.5 + rnd() * 1.5, 0.3 + rnd() * 0.2, 17 + rnd() * 7, 40]
+        : depth < 0.9
+          ? [4.3 + rnd() * 3, 0.6 + rnd() * 0.25, 10 + rnd() * 5, 60]
+          : [8 + rnd() * 3, 0.92 + rnd() * 0.08, 6 + rnd() * 2.5, 90];
     return {
       left: `${(rnd() * 100).toFixed(2)}%`,
-      width: size,
-      height: size,
-      opacity: 0.5 + rnd() * 0.5,
-      animationDuration: `${(9 + rnd() * 10).toFixed(1)}s`,
-      animationDelay: `${(-rnd() * 18).toFixed(1)}s`,
-      "--drift": `${Math.round(rnd() * 120 - 60)}px`,
+      width: +size.toFixed(1),
+      height: +size.toFixed(1),
+      opacity: +opacity.toFixed(2),
+      animationDuration: `${secs.toFixed(1)}s`,
+      animationDelay: `${(-rnd() * secs).toFixed(1)}s`,
+      "--drift": `${Math.round((rnd() * 2 - 1) * drift)}px`,
     } as CSSProperties;
   });
 })();
 
-// Hoisted so a thrown snowball re-renders without diffing 70 flakes.
+// Hoisted so a thrown snowball re-renders without diffing 105 flakes.
 const SNOW = (
   <div className="glacier-snow" aria-hidden="true">
     {FLAKES.map((style, i) => (
       <span key={i} className="glacier-flake" style={style} />
     ))}
-    {[0, 1, 2, 3].map((i) => (
+    {Array.from({ length: 10 }, (_, i) => (
       <span key={`lander-${i}`} className="glacier-lander" />
     ))}
   </div>

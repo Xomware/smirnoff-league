@@ -20,7 +20,7 @@ export function SubTabs({ label, pages, current, onPick }: SubTabsProps) {
           aria-current={page.kind === current ? "page" : undefined}
           onClick={() => onPick(page)}
         >
-          {page.short ?? page.label}
+          <span className="m-subtab-label">{page.short ?? page.label}</span>
         </button>
       ))}
     </nav>

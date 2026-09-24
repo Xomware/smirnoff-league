@@ -203,13 +203,10 @@ body:has(.m-app) {
   min-width: 0;
   min-height: 2.75rem;
   padding: 0 0.5rem;
-  overflow: hidden;
   border: 1px solid var(--xp-button-border);
   border-radius: 3px;
   color: var(--xp-text);
   font-size: 0.9375rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   background: linear-gradient(var(--xp-cream), var(--xp-face) 85%, var(--xp-face-shadow));
   cursor: pointer;
 }
@@ -229,6 +226,14 @@ body:has(.m-app) {
   font-weight: bold;
   background: var(--xp-cream);
   box-shadow: inset 0 -3px 0 var(--xp-gold);
+}
+
+/* The label clips rather than the button, so Glacier's snow cap can sit above the pill. */
+.m-subtab-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* What the page holds, in a line under its sub-tabs. */
