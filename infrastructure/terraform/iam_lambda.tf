@@ -24,8 +24,8 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 
   # Table-prefix grant: a new smirnoff-* table needs no IAM change. Only the
-  # calls lambdas/ makes: no handler deletes or transacts, and only
-  # BatchWriteActivity below batches.
+  # calls lambdas/ makes: no handler transacts, only DeleteVideoComments below
+  # deletes, and only BatchWriteActivity below batches.
   statement {
     sid = "DynamoDB"
     actions = [
@@ -50,6 +50,13 @@ data "aws_iam_policy_document" "lambda_policy" {
     sid       = "BatchWriteActivity"
     actions   = ["dynamodb:BatchWriteItem"]
     resources = [aws_dynamodb_table.activity.arn]
+  }
+
+  # /videos/comment-delete removes a comment row.
+  statement {
+    sid       = "DeleteVideoComments"
+    actions   = ["dynamodb:DeleteItem"]
+    resources = [aws_dynamodb_table.video_social.arn]
   }
 
   statement {

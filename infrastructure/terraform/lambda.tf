@@ -35,6 +35,11 @@ locals {
     { name = "presign", description = "Presigned POST for an ice video", path_part = "presign", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
     { name = "confirm", description = "Confirm an ice video upload", path_part = "confirm", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
     { name = "list", description = "Ready ice videos with presigned GETs", path_part = "list", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+    { name = "social", description = "Reactions and comments on a video", path_part = "social", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
+    { name = "react", description = "Toggle a reaction on a video", path_part = "react", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "comment", description = "Comment on a video", path_part = "comment", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "comment_delete", description = "Delete a video comment", path_part = "comment-delete", http_method = "POST", authorization = "COGNITO_USER_POOLS" },
+    { name = "social_recent", description = "Comments on the caller's videos", path_part = "social-recent", http_method = "GET", authorization = "COGNITO_USER_POOLS" },
   ]
 
   writeups_lambdas = [

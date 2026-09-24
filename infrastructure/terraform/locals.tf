@@ -22,6 +22,7 @@ locals {
     SETTINGS_TABLE     = aws_dynamodb_table.settings.id
     MEDIA_TABLE        = aws_dynamodb_table.media.id
     ACTIVITY_TABLE     = aws_dynamodb_table.activity.id
+    SOCIAL_TABLE       = aws_dynamodb_table.video_social.id
     MEDIA_BUCKET       = aws_s3_bucket.media.id
   }
 }
