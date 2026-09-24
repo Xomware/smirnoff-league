@@ -100,6 +100,18 @@ describe("?open=", () => {
     expect(focusedTab()?.textContent).toBe("Team Profile - Team 6");
   });
 
+  it("opens the Ices overview, and the old ices link still opens the ledger", async () => {
+    const { unmount } = renderAt("/?open=ices-overview");
+    const overview = await screen.findByRole("region", { name: "Ices Overview" });
+    expect(await within(overview).findByRole("heading", { name: "Who owes now" })).toBeTruthy();
+    unmount();
+
+    renderAt("/?open=ices");
+    const ledger = await screen.findByRole("region", { name: "Ice Ledger" });
+    expect(await within(ledger).findByText("Week 3 — live, provisional")).toBeTruthy();
+    expect(within(ledger).queryByRole("heading", { name: "Who owes now" })).toBeNull();
+  });
+
   it("opens Weekly Awards on the week it names", async () => {
     renderAt("/?open=awards:1");
 

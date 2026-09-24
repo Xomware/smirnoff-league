@@ -29,6 +29,13 @@ describe("parseOpen", () => {
     expect(parseOpen(`?open=${bad},ices`)).toEqual([{ kind: "ices", params: {} }]);
   });
 
+  it("opens the Ices overview and still the ledger by its old link", () => {
+    expect(parseOpen("?open=ices-overview,ices,ices-overview:2")).toEqual([
+      { kind: "ices-overview", params: {} },
+      { kind: "ices", params: {} },
+    ]);
+  });
+
   it("reads a game as week-matchup", () => {
     expect(parseOpen("?open=game:1-7,game:1,game:0-7,game:1-7-2,game:1:7")).toEqual([{ kind: "game", params: { week: 1, matchup: 7 } }]);
   });

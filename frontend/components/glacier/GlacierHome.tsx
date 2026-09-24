@@ -42,6 +42,7 @@ function YourIces() {
   const ledger = useLedger();
   const { data, teamFor } = useLeague();
   const { myRosterId, setEditing } = useProfile();
+  const open = useContext(DrillContext);
   const [upload, setUpload] = useState(false);
   const now = useNow(deadlinesOf(ledger));
   const ok = ledger.status === "ok" ? ledger.ledger : null;
@@ -68,10 +69,15 @@ function YourIces() {
     const owed = ok.ices.filter((i) => due.iceIds.includes(i.iceId)).sort((a, b) => a.week - b.week);
     return (
       <>
-        <p className="gh-owe">
+        <button
+          type="button"
+          className="gh-owe gh-owe-open"
+          aria-label={`${due.count} owed by ${teamFor(myRosterId).name}, open Ice Ledger`}
+          onClick={() => open({ kind: "ices" })}
+        >
           <span className="gh-owe-count">{due.count}</span>
           <span>owed by {teamFor(myRosterId).name}</span>
-        </p>
+        </button>
         <ul aria-label="Your owed ices" className="gh-rows">
           {owed.slice(0, PREVIEW).map((ice) => (
             <li key={ice.iceId}>

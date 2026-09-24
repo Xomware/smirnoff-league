@@ -163,7 +163,7 @@ export function HomeWindow() {
       {tally && ledger.status !== "loading" && (
         <WhoOwes owed={owing} provisional={ledger.status !== "ok"} teamFor={teamFor} />
       )}
-      <AwardsCard className="xp-group" titleClass="xp-group-title" moreClass="xp-button awards-brief-more" />
+      <AwardsCard className="xp-group" titleClass="xp-group-title" />
     </div>
   );
 }

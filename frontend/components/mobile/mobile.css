@@ -314,6 +314,11 @@
   color: var(--xp-select);
 }
 
+.m-section-head .xp-drill {
+  min-height: 44px;
+  align-items: center;
+}
+
 .m-card {
   border: 1px solid var(--m-line);
   border-radius: 0.875rem;
@@ -473,6 +478,41 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 0.625rem;
+}
+
+.m-owe-open {
+  position: relative;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.25rem 2rem 0.25rem 0.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: none;
+  font: inherit;
+  font-weight: bold;
+  text-align: left;
+  color: inherit;
+}
+
+.m-owe-open::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.m-owe-open:active {
+  background: var(--ice-tint);
+}
+
+.m-owe-open:focus-visible {
+  outline: 2px dotted var(--xp-text);
+  outline-offset: 2px;
 }
 
 .m-owe-count {
@@ -1130,9 +1170,4 @@
   border: 1px solid var(--m-line);
   border-radius: 0.875rem;
   background: var(--xp-cream);
-}
-
-.m-awards-more {
-  justify-self: start;
-  min-height: 44px;
 }

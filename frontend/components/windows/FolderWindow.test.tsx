@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { DrillContext, NavigateContext } from "@/components/views/drill-link";
 import { FolderWindow } from "./FolderWindow";
 
-const APPS = ["Ice Ledger", "Ice Standings", "Ice Rankings", "Ice Stats", "Ice Watch", "Chug Videos"];
-const KINDS = ["ices", "ice-standings", "chug-rankings", "stats", "watch", "videos"];
+const APPS = ["Ices Overview", "Ice Ledger", "Ice Standings", "Ice Rankings", "Ice Stats", "Ice Watch", "Chug Videos"];
+const KINDS = ["ices-overview", "ices", "ice-standings", "chug-rankings", "stats", "watch", "videos"];
 
 function renderFolder() {
   const navigate = vi.fn();
@@ -21,7 +21,7 @@ function renderFolder() {
 }
 
 describe("Ices folder", () => {
-  it("shows the address and a large icon for each of the six ice apps", () => {
+  it("shows the address and a large icon for each of the seven ice apps", () => {
     const { icons } = renderFolder();
 
     expect(screen.getByRole("textbox", { name: "Address" })).toHaveProperty("value", "C:\\Smirnoff\\Ices");

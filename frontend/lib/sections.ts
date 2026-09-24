@@ -45,6 +45,7 @@ export const SECTIONS: Section[] = [
     id: "ices",
     label: "Ices",
     pages: [
+      { label: "Overview", kind: "ices-overview" },
       { label: "Ledger", kind: "ices" },
       { label: "Ice standings", kind: "ice-standings" },
       { label: "Rankings", kind: "chug-rankings" },

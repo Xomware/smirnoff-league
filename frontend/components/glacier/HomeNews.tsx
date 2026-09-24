@@ -49,7 +49,7 @@ export function HomeNews() {
               : "No News Drop has been filed yet."}
         </p>
       )}
-      <AwardsCard className="gh-awards" titleClass="gh-fact-label" moreClass="gh-link gh-awards-more" />
+      <AwardsCard className="gh-awards" titleClass="gh-fact-label" />
       {error ? (
         <p role="alert">Could not load league news ({error}).</p>
       ) : !items || !data ? (

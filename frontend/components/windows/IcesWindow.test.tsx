@@ -30,19 +30,15 @@ describe("Ice Ledger window", () => {
     vi.mocked(getLedger).mockRejectedValue(new ApiError(500, "Internal error"));
     render(<IcesWindow />);
 
-    const board = await screen.findByRole("table", { name: /owed — provisional/i });
-    expect(within(board).getByText("Team 6").closest("tr")?.textContent).toContain("x2");
-    expect(within(board).getAllByRole("row")[1].textContent).toContain("x2");
-    expect(within(board).getByText("Team 13").closest("tr")?.textContent).toContain("2 ices this season");
-    expect(screen.getByRole("note").textContent).toMatch(/ledger unavailable \(internal error\)/i);
+    expect((await screen.findByRole("note")).textContent).toMatch(/ledger unavailable \(internal error\)/i);
+    expect(screen.queryByRole("table", { name: /owed — provisional/i })).toBeNull();
 
     const week1 = pastWeek(1);
     expect(within(week1).getByText(/^Week 1 · \d+ ices · provisional$/)).toBeTruthy();
     expect(within(week1).getByText("Romeo Doubs")).toBeTruthy();
     expect(within(week1).getByText("Lowest score")).toBeTruthy();
 
-    const live = screen.getByRole("region", { name: /week 3 — live, provisional/i });
-    expect(within(live).getByText(/no empty slots this week/i)).toBeTruthy();
+    expect(within(pastWeek(3)).getByText(/no empty slots this week/i)).toBeTruthy();
   });
 
   it("shows W1 completed, W2 owed with late rows, and the season summary from the ledger", async () => {
@@ -77,7 +73,7 @@ describe("Ice Ledger window", () => {
       expect.stringContaining("Late ice 1"),
     ]);
 
-    expect(screen.getByRole("region", { name: /week 3 — live, provisional/i })).toBeTruthy();
+    expect(pastWeek(3)).toBeTruthy();
   });
 });
 
@@ -86,7 +82,7 @@ const TIMED: typeof SCENARIO_LEDGER = {
   ...SCENARIO_LEDGER,
   ices: SCENARIO_LEDGER.ices.map((ice, i) => (i === 0 ? { ...ice, chugSeconds: 9.1 } : i === 1 ? { ...ice, chugSeconds: 6.8, chugger: { name: "Ace" } } : ice)),
 };
-const pastWeek = (week: number) => screen.getByText(new RegExp(`^Week ${week} ·`)).closest("details")!;
+const pastWeek = (week: number) => screen.getByText(new RegExp(`^Week ${week} [·—]`)).closest("details")!;
 
 describe("Ice Ledger layout", () => {
   beforeEach(() => {
@@ -96,67 +92,29 @@ describe("Ice Ledger layout", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("leads with stats, then who owes, the live week, past weeks and the season summary", async () => {
+  it("is only the record: every week newest first, then the season summary", async () => {
     const { container } = render(<IcesWindow />);
     await screen.findByRole("table", { name: "Season summary" });
 
     const titles = [...container.querySelectorAll(".xp-group-title, summary")].map((e) => e.textContent);
-    expect(titles).toEqual([
-      "Season at a glance",
-      "Who owes now",
-      "Week 3 — live, provisional",
-      expect.stringMatching(/^Week 2 ·/),
-      expect.stringMatching(/^Week 1 ·/),
-      "Season summary",
-    ]);
+    expect(titles).toEqual(["Week 3 — live, provisional", expect.stringMatching(/^Week 2 ·/), expect.stringMatching(/^Week 1 ·/), "Season summary"]);
+    expect(screen.queryByRole("region", { name: "Season at a glance" })).toBeNull();
+    expect(screen.queryByRole("list", { name: "Who owes now" })).toBeNull();
   });
 
-  it("counts the stat strip from the ledger", async () => {
-    render(<IcesWindow />);
-    const strip = within(await screen.findByRole("region", { name: "Season at a glance" }));
-    const stat = (label: string) => strip.getByText(label).closest("li")!.textContent;
-
-    expect(stat("Owed now")).toContain("6");
-    expect(stat("Late")).toContain("3");
-    expect(stat("Completed")).toContain("5");
-    expect(stat("Next deadline")).toContain("2d 0h");
-    expect(stat("Fastest chug")).toMatch(/6\.8s.*Ace/);
-    expect(strip.getByRole("button", { name: /Fastest chug/ })).toBeTruthy();
-  });
-
-  it("opens only the newest past week, and each summary toggles its week", async () => {
+  it("opens only the newest week, and each summary toggles its week", async () => {
     render(<IcesWindow />);
     await screen.findByRole("table", { name: "Season summary" });
-    expect(pastWeek(2).open).toBe(true);
+    expect(pastWeek(3).open).toBe(true);
+    expect(pastWeek(2).open).toBe(false);
     expect(pastWeek(1).open).toBe(false);
     expect(screen.getByText(/^Week 2 ·/).textContent).toBe("Week 2 · 3 ices · 0 done · 3 late");
     expect(screen.getByText(/^Week 1 ·/).textContent).toBe("Week 1 · 5 ices · 5 done · 0 late");
 
     fireEvent.click(screen.getByText(/^Week 1 ·/));
     expect(pastWeek(1).open).toBe(true);
-    fireEvent.click(screen.getByText(/^Week 2 ·/));
-    expect(pastWeek(2).open).toBe(false);
-  });
-
-  it("groups who owes by team, with each ice's due time and an upload on my own team only", async () => {
-    vi.mocked(getMe).mockResolvedValue({ sub: "s", email: "e", isAdmin: false, profile: { name: "P", username: "p", rosterId: 13, createdAt: "", updatedAt: "" } });
-    render(
-      <ProfileProvider>
-        <IcesWindow />
-      </ProfileProvider>,
-    );
-    const owes = await screen.findByRole("list", { name: "Who owes now" });
-    const teams = [...owes.children] as HTMLElement[];
-    expect(teams.map((t) => t.textContent?.match(/Team \d+/)?.[0])).toEqual(["Team 13", "Team 12"]);
-    const mine = within(teams[0]).getByRole("list", { name: "Team 13 owed ices" });
-    expect(within(mine).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
-      expect.stringMatching(/W2.*due in 2d 0h/),
-      expect.stringMatching(/W2.*due in 2d 0h/),
-      expect.stringMatching(/W2.*Late ice.*LATE/),
-      expect.stringMatching(/W2.*Late ice.*LATE/),
-    ]);
-    expect(await within(teams[0]).findByRole("button", { name: "Upload chug" })).toBeTruthy();
-    expect(within(teams[1]).queryByRole("button", { name: "Upload chug" })).toBeNull();
+    fireEvent.click(screen.getByText(/^Week 3 —/));
+    expect(pastWeek(3).open).toBe(false);
   });
 
   it("folds the season summary away on the phone only", async () => {

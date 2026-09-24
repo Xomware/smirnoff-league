@@ -321,6 +321,23 @@
   font: 28px/1.2 var(--g-display);
 }
 
+[data-theme="glacier"] .ledger-stat-grid[data-compact] .ledger-stat-value {
+  font-size: 22px;
+}
+
+[data-theme="glacier"] .ledger-stat-grid[data-compact] :is(.ledger-stat:not(:has(> .xp-drill)), .ledger-stat > .xp-drill) {
+  padding: 10px 12px;
+}
+
+[data-theme="glacier"] .ov-tiles .ledger-stat-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+[data-theme="glacier"] .ov-tiles .ledger-stat-sub {
+  font-size: 13px;
+}
+
 [data-theme="glacier"] .ledger-stat[data-alarm] {
   border-color: rgb(255 122 131 / 0.55);
 }

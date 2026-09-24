@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { iceCauseText } from "@/components/videos/ice-label";
 import { UploadChug } from "@/components/videos/UploadChug";
+import { DrillContext } from "@/components/views/drill-link";
 import { IceBottleIcon } from "@/components/xp/icons";
 import { myDue } from "@/lib/ices/chug-board";
 import { useLedger } from "@/lib/ices/use-ledger";
@@ -17,6 +18,7 @@ export function YourIces() {
   const ledger = useLedger();
   const { data } = useLeague();
   const { myRosterId, setEditing } = useProfile();
+  const open = useContext(DrillContext);
   const [upload, setUpload] = useState(false);
   const ok = ledger.status === "ok" ? ledger.ledger : null;
   const now = useNow(ok?.weeks.flatMap((w) => (w.deadlineUtc ? [Date.parse(w.deadlineUtc)] : [])) ?? []);
@@ -39,7 +41,7 @@ export function YourIces() {
     const owed = ledger.ledger.ices.filter((i) => due.iceIds.includes(i.iceId)).sort((a, b) => a.week - b.week);
     return (
       <>
-        <p className="m-owe">
+        <button type="button" className="m-owe m-owe-open" aria-label={`${due.count} owed, open Ice Ledger`} onClick={() => open({ kind: "ices" })}>
           <span className="m-owe-count">{due.count}</span>
           <span>
             {due.count === 1 ? "ice" : "ices"} owed
@@ -49,7 +51,7 @@ export function YourIces() {
               </span>
             )}
           </span>
-        </p>
+        </button>
         <ul aria-label="Your owed ices" className="m-owed-list">
           {owed.map((ice) => (
             <li key={ice.iceId}>

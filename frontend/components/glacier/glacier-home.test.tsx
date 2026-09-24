@@ -118,6 +118,9 @@ describe("GlacierHome", () => {
     expect(await region("News").findByRole("list", { name: "Latest league news" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "At a glance" })).toBeNull();
     expect(screen.queryByRole("navigation", { name: "Jump to a section" })).toBeNull();
+
+    fireEvent.click(within(region("Your ices").getByRole("button", { name: /^\d+ owed by Team 13, open Ice Ledger$/ })).getByText(/owed by/));
+    expect(window.location.search).toBe("?open=ices");
   });
 
   it("links every quick hitter to the page behind it", async () => {
@@ -140,8 +143,8 @@ describe("GlacierHome", () => {
       ["Owes the most", /Team 13.*4 owed/, "?open=ices"],
     ];
     for (const [label, text, search] of facts) {
-      const more = await region("Quick hitters").findByRole("button", { name: `View more: ${label}` });
-      expect(more.closest("li")!.textContent).toMatch(text);
+      const more = await region("Quick hitters").findByRole("button", { name: new RegExp(`^${label}: .*, open `) });
+      expect(more.textContent).toMatch(text);
       fireEvent.click(more);
       expect(window.location.search).toBe(search);
       goHome();
@@ -177,7 +180,7 @@ describe("GlacierHome", () => {
       .map((li) => li.textContent);
     expect(rows).toEqual(["Top ScoreTeam 1182.68 pts", "Biggest BlowoutTeam 167.70 pts", "Closest EscapeTeam 211.30 pts"]);
 
-    fireEvent.click(within(awards).getByRole("button", { name: "View more: Week 2 awards" }));
+    fireEvent.click(within(awards).getByRole("button", { name: "Biggest Blowout: Team 1, open Week 2 awards" }));
     expect(window.location.search).toBe("?open=awards:2");
     expect(await screen.findByRole("list", { name: "Week 2 awards" })).toBeTruthy();
   });

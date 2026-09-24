@@ -66,7 +66,9 @@ describe("Home awards", () => {
 
     const awards = await screen.findByRole("region", { name: "Week 2 awards" });
     expect(within(awards).getAllByRole("listitem")).toHaveLength(3);
-    fireEvent.click(within(awards).getByRole("button", { name: "View more: Week 2 awards" }));
+    const rows = within(awards).getAllByRole("button");
+    expect(rows).toHaveLength(3);
+    fireEvent.click(within(rows[2]).getByText(/pts$/));
     expect(open).toHaveBeenCalledWith({ kind: "awards", week: 2 });
   });
 });

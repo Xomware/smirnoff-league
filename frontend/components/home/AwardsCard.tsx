@@ -14,13 +14,12 @@ const SHOWN = 3;
 interface AwardsCardProps {
   className: string;
   titleClass: string;
-  moreClass: string;
   Heading?: "h2" | "h3";
 }
 
 // The latest final week's first three awards. Nothing shows until a week has
 // awards, so Home doesn't hold a slot open for them.
-export function AwardsCard({ className, titleClass, moreClass, Heading = "h3" }: AwardsCardProps) {
+export function AwardsCard({ className, titleClass, Heading = "h3" }: AwardsCardProps) {
   const { weeks, teamFor } = useAwards();
   const open = useContext(DrillContext);
   const title = useId();
@@ -35,24 +34,24 @@ export function AwardsCard({ className, titleClass, moreClass, Heading = "h3" }:
       <ul className="awards-brief-list">
         {latest.awards.slice(0, SHOWN).map((award) => {
           const Icon = AWARD_ICONS[award.id];
+          const who = award.winners.map((w) => teamFor(w.rosterId).name).join(", ");
           return (
             <li key={award.id}>
-              <Icon width={24} height={24} />
-              <span className="awards-brief-label">{awardLabel(award.id)}</span>
-              <span className="awards-brief-who">{award.winners.map((w) => teamFor(w.rosterId).name).join(", ")}</span>
-              <span className="awards-brief-stat">{awardStat(award)}</span>
+              <button
+                type="button"
+                className="awards-brief-open"
+                aria-label={`${awardLabel(award.id)}: ${who}, open Week ${latest.week} awards`}
+                onClick={() => open({ kind: "awards", week: latest.week })}
+              >
+                <Icon width={24} height={24} />
+                <span className="awards-brief-label">{awardLabel(award.id)}</span>
+                <span className="awards-brief-who">{who}</span>
+                <span className="awards-brief-stat">{awardStat(award)}</span>
+              </button>
             </li>
           );
         })}
       </ul>
-      <button
-        type="button"
-        className={moreClass}
-        aria-label={`View more: Week ${latest.week} awards`}
-        onClick={() => open({ kind: "awards", week: latest.week })}
-      >
-        View more
-      </button>
     </section>
   );
 }
