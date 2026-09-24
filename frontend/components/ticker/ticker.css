@@ -280,6 +280,10 @@ body:has(.tk[data-dock]) .xp-desktop {
   bottom: calc(var(--taskbar-top) + var(--tk-dock));
 }
 
+body:has(.tk[data-dock]) .palette-fab {
+  bottom: calc(var(--taskbar-top) + var(--tk-dock) + 1rem);
+}
+
 body:has(.tk[data-dock]) .xp-desktop-icons {
   max-height: calc(100dvh - var(--taskbar-top) - var(--tk-dock) - 1.5rem);
 }
