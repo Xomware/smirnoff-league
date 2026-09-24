@@ -272,6 +272,98 @@
   gap: 16px;
 }
 
+/* Ice Ledger: frost stat tiles, like Home's, then collapsible weeks. */
+[data-theme="glacier"] .ledger-stat-grid {
+  gap: 12px;
+}
+
+[data-theme="glacier"] .ledger-stat {
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 16px;
+  background: var(--g-row);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+}
+
+[data-theme="glacier"] .ledger-stat:has(> .xp-drill) {
+  padding: 0;
+}
+
+[data-theme="glacier"] .ledger-stat > .xp-drill {
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 15px;
+}
+
+[data-theme="glacier"] .ledger-stat > .xp-drill:hover {
+  background: var(--g-hover);
+}
+
+[data-theme="glacier"] .ledger-stat > .xp-drill:active {
+  background: var(--g-press);
+}
+
+[data-theme="glacier"] .ledger-stat > .xp-drill:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+[data-theme="glacier"] .ledger-stat-label {
+  color: var(--g-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+[data-theme="glacier"] .ledger-stat-value {
+  color: var(--g-text-strong);
+  font: 28px/1.2 var(--g-display);
+}
+
+[data-theme="glacier"] .ledger-stat[data-alarm] {
+  border-color: rgb(255 122 131 / 0.55);
+}
+
+[data-theme="glacier"] .ledger-stat[data-alarm] .ledger-stat-value {
+  color: var(--g-red-text);
+}
+
+[data-theme="glacier"] .ledger-stat-sub {
+  color: var(--g-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Only a late ice gets the red pill; one still on the clock stays frost. */
+[data-theme="glacier"] .who-owes .xp-watch-tag.who-owes-due:not([data-level="late"]) {
+  border-color: var(--g-frost-edge);
+  color: var(--g-text-strong);
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] .who-owes-due[data-level="late"] {
+  border-color: var(--g-red);
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+[data-theme="glacier"] :is(.ledger-week, .ices-summary) > summary {
+  cursor: pointer;
+}
+
+[data-theme="glacier"] :is(.ledger-week, .ices-summary):not([open]) > summary {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+[data-theme="glacier"] :is(.ledger-week, .ices-summary) > summary:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
 /* The Ices ledger's late list and other plain lists inside a section. */
 [data-theme="glacier"] .xp-group ol.grid > li {
   min-height: 44px;

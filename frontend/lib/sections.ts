@@ -61,6 +61,7 @@ export const SECTIONS: Section[] = [
       { label: "Standings", kind: "standings" },
       { label: "Teams", kind: "teams" },
       { label: "Brackets", kind: "brackets" },
+      { label: "Awards", kind: "awards" },
       { label: "Draft recap", kind: "recap" },
       { label: "News", kind: "news" },
     ],

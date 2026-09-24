@@ -621,3 +621,26 @@ li[data-mine] > .gh-card {
 .glacier-page:has(.gh) {
   padding-top: 24px;
 }
+
+.gh-awards {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--gh-row-edge);
+  border-radius: 14px;
+  background: var(--gh-row);
+}
+
+.gh-awards .awards-brief-list {
+  gap: 8px;
+}
+
+.gh-awards .awards-brief-who {
+  color: var(--gh-muted);
+  font-size: 14px;
+}
+
+.gh-awards-more {
+  justify-self: start;
+  min-height: 44px;
+}

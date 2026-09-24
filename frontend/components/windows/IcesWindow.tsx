@@ -7,18 +7,23 @@ import { canTime, ChugTimeButton, ChugTimeDialog } from "@/components/videos/Chu
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
 import { DrillLink } from "@/components/views/drill-link";
+import { LedgerStats } from "@/components/views/ledger-stats";
 import { LedgerWeek } from "@/components/views/ledger-week";
 import { WeekIces } from "@/components/views/week-ices";
+import { WhoOwes } from "@/components/views/who-owes";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { WarningIcon } from "@/components/xp/icons";
 import { TeamName } from "@/components/xp/TeamName";
 import type { Ledger, LedgerIce, LedgerSummary } from "@/lib/api/ledger";
 import type { RosterTally } from "@/lib/ices/tally";
 import { useLedger } from "@/lib/ices/use-ledger";
+import { useNow } from "@/lib/ices/use-now";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { byRoster } from "@/lib/league/drill";
 import { type Team, useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
+
+import "./ledger.css";
 
 interface BoardProps {
   owed: RosterTally[];
@@ -72,7 +77,7 @@ function SeasonSummary({ rows, teamFor }: SummaryProps) {
   const sorted = [...rows].sort((a, b) => outstanding(b) - outstanding(a) || b.late - a.late || a.rosterId - b.rosterId);
   return (
     <table className="xp-table">
-      <caption className="mb-2 text-left text-sm font-bold">Season summary</caption>
+      <caption className="sr-only">Season summary</caption>
       <thead>
         <tr>
           <th scope="col" className="w-10">#</th>
@@ -105,29 +110,6 @@ function SeasonSummary({ rows, teamFor }: SummaryProps) {
   );
 }
 
-function LateLeaders({ rows, teamFor }: SummaryProps) {
-  const late = rows.filter((s) => s.late > 0).sort((a, b) => b.late - a.late || a.rosterId - b.rosterId);
-  return (
-    <section className="xp-group" aria-label="Late Ices">
-      <h3 className="xp-group-title">Late Ices</h3>
-      {late.length === 0 ? (
-        <p>No late ices yet.</p>
-      ) : (
-        <ol className="grid gap-1">
-          {late.map((s) => (
-            <li key={s.rosterId} className="flex items-center justify-between gap-2">
-              <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
-                <TeamName name={teamFor(s.rosterId).name} iced={s.lateOwed > 0} ices={0} />
-              </DrillLink>
-              <span className="font-bold tabular-nums">{s.late}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-    </section>
-  );
-}
-
 // Every roster gets a row, including the ones the ledger has never iced.
 const summaryFor = (ledger: Ledger, rosterIds: number[]): LedgerSummary[] =>
   rosterIds.map(
@@ -135,42 +117,61 @@ const summaryFor = (ledger: Ledger, rosterIds: number[]): LedgerSummary[] =>
       ledger.summary.find((s) => s.rosterId === rosterId) ?? { rosterId, owed: 0, completed: 0, late: 0, lateOwed: 0, overdue: 0 },
   );
 
-export function IcesWindow() {
+const plural = (n: number, one: string) => `${n} ${n === 1 ? one : `${one}s`}`;
+
+function weekLine(week: number, ices: LedgerIce[]): string {
+  const originals = ices.filter((i) => i.reason !== "late");
+  const done = originals.filter((i) => i.status === "completed").length;
+  return `Week ${week} · ${plural(originals.length, "ice")} · ${done} done · ${ices.length - originals.length} late`;
+}
+
+interface IceLedgerProps {
+  // The phone folds the season summary away; Ice standings already ranks the season there.
+  phone?: boolean;
+}
+
+export function IceLedger({ phone = false }: IceLedgerProps) {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
   const { tally, error: icesError } = useSeasonIces(currentWeek);
   const ledgerState = useLedger();
   const { myRosterId, me } = useProfile();
-  const [uploadFor, setUploadFor] = useState<string | null>(null);
+  const [upload, setUpload] = useState<string[] | null>(null);
   const [timing, setTiming] = useState<LedgerIce | null>(null);
+  const ledger = ledgerState.status === "ok" ? ledgerState.ledger : null;
+  const now = useNow(ledger?.weeks.flatMap((w) => (w.deadlineUtc ? [Date.parse(w.deadlineUtc)] : [])) ?? []);
   const error = leagueError ?? icesError;
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
   if (!data || !tally || !currentWeek || ledgerState.status === "loading") return <p role="status">Tallying the ices...</p>;
 
-  const ledger = ledgerState.status === "ok" ? ledgerState.ledger : null;
   const finalized = new Set(ledger?.weeks.filter((w) => w.finalizedAt).map((w) => w.week));
   const summary = ledger && summaryFor(ledger, tally.owed.map((t) => t.rosterId));
-  const weeks = Array.from({ length: currentWeek }, (_, i) => currentWeek - i);
+  const past = Array.from({ length: currentWeek - 1 }, (_, i) => currentWeek - 1 - i);
   const isAdmin = me?.isAdmin ?? false;
   const rowAction = (ice: LedgerIce) => {
-    if (ice.status === "owed" && canUpload(ice, myRosterId, isAdmin)) return <UploadChugButton onClick={() => setUploadFor(ice.iceId)} />;
+    if (ice.status === "owed" && canUpload(ice, myRosterId, isAdmin)) return <UploadChugButton onClick={() => setUpload([ice.iceId])} />;
     if (canTime(ice, myRosterId, isAdmin)) return <ChugTimeButton ice={ice} onClick={() => setTiming(ice)} />;
   };
 
+  const ledgerWeek = (week: number) => (
+    <LedgerWeek ices={ledger!.ices.filter((i) => i.week === week)} players={data.players} teamFor={teamFor} action={rowAction} />
+  );
+  const provisional = (week: number, live: boolean) => {
+    const ices = (live ? tally.live : tally.weeks.find((w) => w.week === week))?.ices ?? [];
+    if (ices.length === 0) return <p>{live ? "No empty slots this week." : "No ices this week."}</p>;
+    return <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />;
+  };
+
+  const liveLabel = `Week ${currentWeek} — live, provisional`;
+  const liveFinal = ledger && finalized.has(currentWeek);
+
   return (
-    <div className="grid gap-3">
-      {summary ? (
+    <div className="grid grid-cols-1 gap-3">
+      {ledger ? (
         <>
-          <div className="ices-summary">
-            <div className="xp-table-scroll">
-              <SeasonSummary rows={summary} teamFor={teamFor} />
-            </div>
-            <p className="xp-note mt-2">
-              Owed and completed count weekly ices. Late counts late ices; overdue is owed past its week&apos;s deadline.
-            </p>
-          </div>
-          <LateLeaders rows={summary} teamFor={teamFor} />
+          <LedgerStats ledger={ledger} now={now} teamFor={teamFor} />
+          <WhoOwes ledger={ledger} now={now} players={data.players} teamFor={teamFor} myRosterId={myRosterId} onUpload={setUpload} />
         </>
       ) : (
         <div className="ices-summary">
@@ -184,39 +185,46 @@ export function IcesWindow() {
         </div>
       )}
 
-      {weeks.map((week) => {
-        if (ledger && finalized.has(week)) {
-          return (
-            <section key={week} className="xp-group" aria-label={`Week ${week}`}>
-              <h3 className="xp-group-title">Week {week}</h3>
-              <LedgerWeek
-                ices={ledger.ices.filter((i) => i.week === week)}
-                players={data.players}
-                teamFor={teamFor}
-                action={rowAction}
-              />
-            </section>
-          );
-        }
-        const live = week === currentWeek;
-        const label = live ? `Week ${week} — live, provisional` : `Week ${week} — provisional`;
-        const ices = (live ? tally.live : tally.weeks.find((w) => w.week === week))?.ices ?? [];
+      <section className="xp-group" aria-label={liveFinal ? `Week ${currentWeek}` : liveLabel}>
+        <h3 className="xp-group-title">{liveFinal ? `Week ${currentWeek}` : liveLabel}</h3>
+        {liveFinal ? (
+          ledgerWeek(currentWeek)
+        ) : (
+          <>
+            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Only empty slots count now.</p>
+            {provisional(currentWeek, true)}
+          </>
+        )}
+      </section>
+
+      {past.map((week, i) => {
+        const final = ledger && finalized.has(week);
+        const line = final
+          ? weekLine(week, ledger.ices.filter((ice) => ice.week === week))
+          : `Week ${week} · ${plural(tally.weeks.find((w) => w.week === week)?.ices.length ?? 0, "ice")} · provisional`;
         return (
-          <section key={week} className="xp-group" aria-label={label}>
-            <h3 className="xp-group-title">{label}</h3>
-            {live && <p className="xp-note">Zeros and the lowest score lock in when the week ends. Only empty slots count now.</p>}
-            {ices.length === 0 ? (
-              <p>{live ? "No empty slots this week." : "No ices this week."}</p>
-            ) : (
-              <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />
-            )}
-          </section>
+          <details key={week} className="xp-group ledger-week" open={i === 0}>
+            <summary className="xp-group-title">{line}</summary>
+            {final ? ledgerWeek(week) : provisional(week, false)}
+          </details>
         );
       })}
-      {ledger &&
-        uploadFor &&
-        createPortal(<UploadChug ices={ledger.ices} initialIceIds={[uploadFor]} onClose={() => setUploadFor(null)} />, document.body)}
+
+      {summary && (
+        <details className="ices-summary" open={!phone}>
+          <summary className="xp-group-title">Season summary</summary>
+          <div className="xp-table-scroll">
+            <SeasonSummary rows={summary} teamFor={teamFor} />
+          </div>
+          <p className="xp-note mt-2">
+            Owed and completed count weekly ices. Late counts late ices; overdue is owed past its week&apos;s deadline.
+          </p>
+        </details>
+      )}
+      {ledger && upload && createPortal(<UploadChug ices={ledger.ices} initialIceIds={upload} onClose={() => setUpload(null)} />, document.body)}
       {timing && <ChugTimeDialog ice={timing} label={iceLabel(timing, teamFor, data.players)} onClose={() => setTiming(null)} />}
     </div>
   );
 }
+
+export const IcesWindow = () => <IceLedger />;

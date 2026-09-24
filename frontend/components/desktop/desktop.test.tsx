@@ -16,6 +16,7 @@ import { Taskbar } from "@/components/xp/Taskbar";
 import { track } from "@/lib/activity/tracker";
 import { DesktopProvider } from "@/lib/desktop/desktop-context";
 import { stubSleeper } from "@/lib/test/league-mock";
+import { setTickerHidden } from "@/lib/ticker/prefs";
 import { Desktop } from "./Desktop";
 
 function renderDesktop() {
@@ -63,8 +64,15 @@ describe("DesktopWindow", () => {
     fireEvent.pointerMove(bar, { pointerId: 1, clientX: 5000, clientY: 5000 });
     fireEvent.pointerUp(bar, { pointerId: 1 });
 
-    // jsdom's viewport is 1024x768, less the 44px taskbar.
+    // jsdom's viewport is 1024x768, less the 44px taskbar and the 32px ticker docked on it.
     expect(parseFloat(standings.style.left) + parseFloat(standings.style.width)).toBe(1024);
+    expect(parseFloat(standings.style.top) + parseFloat(standings.style.height)).toBe(768 - 44 - 32);
+
+    setTickerHidden(true);
+    fireEvent.pointerDown(bar, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });
+    fireEvent.pointerMove(bar, { pointerId: 1, clientX: 100, clientY: 5000 });
+    fireEvent.pointerUp(bar, { pointerId: 1 });
+    setTickerHidden(false);
     expect(parseFloat(standings.style.top) + parseFloat(standings.style.height)).toBe(768 - 44);
 
     fireEvent.pointerDown(bar, { button: 0, pointerId: 1, clientX: 100, clientY: 100 });

@@ -18,6 +18,7 @@ import {
   ScoresIcon,
   StandingsIcon,
   StarIcon,
+  TrophyIcon,
 } from "./icons";
 
 const ITEMS = [
@@ -26,6 +27,7 @@ const ITEMS = [
   { kind: "scores", label: "Scores", Icon: ScoresIcon },
   { kind: "standings", label: "Standings", Icon: StandingsIcon },
   { kind: "brackets", label: "Brackets", Icon: BracketIcon },
+  { kind: "awards", label: "Weekly Awards", Icon: TrophyIcon },
   { kind: "news", label: "League News", Icon: NewsFeedIcon },
   { kind: "writeup", label: "News Drop", Icon: NewspaperIcon },
   { kind: "recap", label: "Draft Recap", Icon: MediaPlayerIcon },

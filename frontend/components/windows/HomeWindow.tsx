@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+import { AwardsCard } from "@/components/home/AwardsCard";
 import { ChugBoard } from "@/components/home/ChugBoard";
 import { ChugReel } from "@/components/home/ChugReel";
 import { DrillLink } from "@/components/views/drill-link";
@@ -162,6 +163,7 @@ export function HomeWindow() {
       {tally && ledger.status !== "loading" && (
         <WhoOwes owed={owing} provisional={ledger.status !== "ok"} teamFor={teamFor} />
       )}
+      <AwardsCard className="xp-group" titleClass="xp-group-title" moreClass="xp-button awards-brief-more" />
     </div>
   );
 }

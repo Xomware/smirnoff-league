@@ -4,8 +4,8 @@ import { TEAM_TABS } from "@/components/views/team-view";
 import { REGISTRY, type WindowKind } from "./registry";
 import {
   activeWindow,
+  bottomChrome,
   desktopReducer,
-  TASKBAR_HEIGHT,
   windowId,
   type WindowParams,
   type WindowState,
@@ -37,13 +37,15 @@ const PARAMS: Partial<Record<WindowKind, (value: string) => WindowParams | null>
     return week ? { week: Number(week), matchup: Number(matchup) } : null;
   },
   writeup: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
+  awards: (v) => (POSITIVE.test(v) ? { week: Number(v) } : null),
   folder: (v) => (v === "ices" ? { id: v } : null),
   admin: (v) => (ADMIN_PANELS.includes(v as AdminPanel) ? { panel: v } : null),
 };
 
 // Kinds whose value may be left off: a bare `writeup` is the latest edition,
-// a bare `admin` the category view, and a view with tabs opens on its first.
-const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats"]);
+// a bare `admin` the category view, bare `awards` the latest final week, and
+// a view with tabs opens on its first.
+const OPTIONAL = new Set<WindowKind>(["writeup", "admin", "my-team", "stats", "awards"]);
 
 const isKind = (kind: string): kind is WindowKind => Object.hasOwn(REGISTRY, kind);
 
@@ -89,7 +91,7 @@ export function openLinks(base: WindowState[], links: WindowLink[], vw: number, 
   if (links.length === 0) return base;
   return links.reduce<WindowState[]>((state, { kind, params }) => {
     const { w, h } = REGISTRY[kind].defaultSize;
-    const open = { type: "open", kind, params, size: { w: Math.min(w, vw), h: Math.min(h, vh - TASKBAR_HEIGHT) } } as const;
+    const open = { type: "open", kind, params, size: { w: Math.min(w, vw), h: Math.min(h, vh - bottomChrome()) } } as const;
     const id = windowId(kind, params);
     const saved = base.find((s) => showing(s) === id);
     if (!saved || state.some((s) => s.id === saved.id || showing(s) === id)) return desktopReducer(state, open);

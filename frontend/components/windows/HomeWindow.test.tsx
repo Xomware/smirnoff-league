@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/api/writeups", async (importOriginal) => ({
@@ -6,6 +6,7 @@ vi.mock("@/lib/api/writeups", async (importOriginal) => ({
   listWriteups: vi.fn(),
 }));
 
+import { DrillContext } from "@/components/views/drill-link";
 import { listWriteups } from "@/lib/api/writeups";
 import { espnEvent, jsonResponse } from "@/lib/test/espn-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -51,6 +52,22 @@ describe("Home is ice-first", () => {
     expect(within(owes).getByText("Team 13")).toBeTruthy();
     expect(screen.queryByText("Latest news")).toBeNull();
     expect(screen.queryByRole("region", { name: /news/i })).toBeNull();
+  });
+});
+
+describe("Home awards", () => {
+  it("previews the latest final week's awards and opens the full page", async () => {
+    const open = vi.fn();
+    render(
+      <DrillContext.Provider value={open}>
+        <HomeWindow />
+      </DrillContext.Provider>,
+    );
+
+    const awards = await screen.findByRole("region", { name: "Week 2 awards" });
+    expect(within(awards).getAllByRole("listitem")).toHaveLength(3);
+    fireEvent.click(within(awards).getByRole("button", { name: "View more: Week 2 awards" }));
+    expect(open).toHaveBeenCalledWith({ kind: "awards", week: 2 });
   });
 });
 
