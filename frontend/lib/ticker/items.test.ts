@@ -4,6 +4,7 @@ import type { Ledger } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
 import type { Writeup } from "@/lib/api/writeups";
 import type { Game } from "@/lib/league/use-week-games";
+import type { WeekAwards } from "@/lib/awards/awards";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { type TickerSources, tickerItems } from "./items";
 
@@ -35,6 +36,7 @@ const base: TickerSources = {
   videos: [VIDEO],
   writeups: WRITEUPS,
   standings: [1, 2, 3, 4].map((rosterId) => ({ rosterId, wins: 5 - rosterId, losses: rosterId - 1, ties: 0, pf: 100, pa: 90 })),
+  awards: null,
   teamName: (r) => `Team ${r}`,
   // Thursday 2026-09-24 13:00 ET, three days before W2's Sunday deadline.
   now: Date.parse("2026-09-24T17:00:00Z"),
@@ -77,6 +79,19 @@ describe("tickerItems", () => {
     expect(items.find((i) => i.tag === "NEWS DROP")?.to).toEqual({ kind: "writeup", week: 2 });
     expect(items.find((i) => i.text.startsWith("Commish"))?.to).toEqual({ kind: "chug-rankings" });
     expect(items.find((i) => i.tag === "DUE")?.to).toEqual({ kind: "ices" });
+  });
+
+  it("heads each of the latest final week's awards with its winners, linked to that week's awards", () => {
+    const awards: WeekAwards = {
+      week: 2,
+      awards: [
+        { id: "top-score", value: 182.68, winners: [{ rosterId: 1 }] },
+        { id: "ice-king", value: 2, winners: [{ rosterId: 6 }, { rosterId: 13 }] },
+      ],
+    };
+    const items = tickerItems({ ...base, awards }).filter((i) => i.tag === "AWARD");
+    expect(items.map((i) => i.text)).toEqual(["Top Score W2 · Team 1 182.68 pts", "Ice King W2 · Team 6, Team 13 2 ices"]);
+    expect(items.every((i) => i.to.kind === "awards" && i.to.week === 2 && !i.trouble)).toBe(true);
   });
 
   it("drops the countdown once the last deadline has passed, and skips missing sources", () => {

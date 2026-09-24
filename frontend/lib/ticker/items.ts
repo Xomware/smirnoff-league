@@ -2,6 +2,7 @@ import type { DrillTarget } from "@/components/views/drill-link";
 import type { Ledger, LedgerIce } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
 import type { Writeup } from "@/lib/api/writeups";
+import { awardLabel, awardStat, type WeekAwards } from "@/lib/awards/awards";
 import { countdown, currentWeek, urgency } from "@/lib/ices/chug-board";
 import type { Standing } from "@/lib/league/standings";
 import type { Game } from "@/lib/league/use-week-games";
@@ -24,6 +25,8 @@ export interface TickerSources {
   videos: Video[];
   writeups: Writeup[];
   standings: Standing[] | null;
+  /** The latest finalized week's awards. */
+  awards: WeekAwards | null;
   teamName: (rosterId: number) => string;
   now: number;
 }
@@ -112,10 +115,21 @@ function due({ ledger, now }: TickerSources): TickerItem[] {
   return [{ id: "due", tag: "DUE", text: `Ices due ${when} ET · ${left}`, to: { kind: "ices" }, trouble: urgency(next, now) === "soon" }];
 }
 
+function awards({ awards: latest, teamName }: TickerSources): TickerItem[] {
+  if (!latest) return [];
+  const { week } = latest;
+  return latest.awards.map((a) => ({
+    id: `award:${week}:${a.id}`,
+    tag: "AWARD",
+    text: `${awardLabel(a.id)} W${week} · ${a.winners.map((w) => teamName(w.rosterId)).join(", ")} ${awardStat(a)}`,
+    to: { kind: "awards", week },
+  }));
+}
+
 /** Every source's items, dealt round-robin so no one kind runs for long. */
 export function tickerItems(s: TickerSources): TickerItem[] {
   const [iced, late] = ices(s);
-  const groups = [scores(s), iced, chugs(s), standings(s), late, news(s), due(s)];
+  const groups = [scores(s), iced, chugs(s), standings(s), late, news(s), due(s), awards(s)];
   const longest = Math.max(...groups.map((g) => g.length));
   return Array.from({ length: longest }, (_, i) => groups.flatMap((g) => (g[i] ? [g[i]] : []))).flat();
 }

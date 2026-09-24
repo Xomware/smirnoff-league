@@ -66,6 +66,18 @@ export function ChugRankIcon(props: IconProps) {
   );
 }
 
+export function TrophyIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 2.5h9v3a4.5 4.5 0 0 1-9 0z" className="fill-(--xp-gold) stroke-(--xp-wood)" />
+      <path d="M3.5 3.5h-2v1a2.5 2.5 0 0 0 2.5 2.5M12.5 3.5h2v1a2.5 2.5 0 0 1-2.5 2.5" className="fill-none stroke-(--xp-wood)" />
+      <path d="M7 10h2v2.5H7z" className="fill-(--xp-gold) stroke-(--xp-wood)" />
+      <rect x="4.5" y="12.5" width="7" height="2" className="fill-(--xp-wood)" />
+      <path d="M6 4v2" className="stroke-(--xp-cream)" />
+    </Icon>
+  );
+}
+
 export function HomeIcon(props: IconProps) {
   return (
     <Icon {...props}>

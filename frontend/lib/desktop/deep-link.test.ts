@@ -53,6 +53,13 @@ describe("parseOpen", () => {
     ]);
   });
 
+  it("opens Awards on the latest week or the week it names", () => {
+    expect(parseOpen("?open=awards,awards:3,awards:0,awards:x")).toEqual([
+      { kind: "awards", params: {} },
+      { kind: "awards", params: { week: 3 } },
+    ]);
+  });
+
   it("returns nothing without an open param", () => {
     expect(parseOpen("")).toEqual([]);
     expect(parseOpen("?other=1")).toEqual([]);

@@ -4,6 +4,7 @@ import { useContext, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { LINE_ICONS } from "@/components/glacier/GlacierPhone";
 import { DrillContext } from "@/components/views/drill-link";
+import { useAwards } from "@/lib/awards/use-awards";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useNow } from "@/lib/ices/use-now";
 import { useDefaultWeek } from "@/lib/league/default-week";
@@ -148,10 +149,15 @@ function LiveTicker({ xp, dock }: TickerProps) {
   const ledger = useLedger();
   const videos = useVideos().state;
   const writeups = useWriteups().state;
+  const awards = useAwards();
   const ok = ledger.status === "ok" ? ledger.ledger : null;
   const now = useNow(ok?.weeks.flatMap((w) => (w.deadlineUtc ? [Date.parse(w.deadlineUtc)] : [])) ?? []);
 
-  const ready = !!data && games !== null && [ledger, videos, writeups].every((s) => s.status !== "loading");
+  const ready =
+    !!data &&
+    games !== null &&
+    [ledger, videos, writeups].every((s) => s.status !== "loading") &&
+    (awards.weeks !== null || awards.error !== null);
   const items = useMemo(
     () =>
       ready &&
@@ -164,10 +170,11 @@ function LiveTicker({ xp, dock }: TickerProps) {
         videos: videos.status === "ok" ? videos.videos : [],
         writeups: writeups.status === "ok" ? writeups.writeups : [],
         standings: data ? sortStandings(data.rosters) : null,
+        awards: awards.weeks?.at(-1) ?? null,
         teamName: (r) => teamFor(r).name,
         now,
       }),
-    [ready, week, current, games, live, liveGames, ok, videos, writeups, data, teamFor, now],
+    [ready, week, current, games, live, liveGames, ok, videos, writeups, awards.weeks, data, teamFor, now],
   );
   return <TickerBar items={items || null} xp={xp} dock={dock} />;
 }

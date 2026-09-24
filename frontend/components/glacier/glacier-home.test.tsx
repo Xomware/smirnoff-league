@@ -168,6 +168,20 @@ describe("GlacierHome", () => {
     expect(window.location.search).toBe("?open=recap");
   });
 
+  it("shows the latest final week's top three awards in the news, and opens the rest", async () => {
+    renderHome();
+
+    const awards = await region("News").findByRole("region", { name: "Week 2 awards" });
+    const rows = within(awards)
+      .getAllByRole("listitem")
+      .map((li) => li.textContent);
+    expect(rows).toEqual(["Top ScoreTeam 1182.68 pts", "Biggest BlowoutTeam 167.70 pts", "Closest EscapeTeam 211.30 pts"]);
+
+    fireEvent.click(within(awards).getByRole("button", { name: "View more: Week 2 awards" }));
+    expect(window.location.search).toBe("?open=awards:2");
+    expect(await screen.findByRole("list", { name: "Week 2 awards" })).toBeTruthy();
+  });
+
   it("snapshots the standings as the top 3, your team and the bottom 2", async () => {
     vi.mocked(getMe).mockResolvedValue(claimed(7));
     renderHome();
