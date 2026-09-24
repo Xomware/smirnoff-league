@@ -466,6 +466,7 @@ CloudWatch log groups are `/aws/lambda/<function>` in `us-east-1`:
 | `smirnoff-ledger-get` | ledger read |
 | `smirnoff-ices-chug-time` | chug times |
 | `smirnoff-videos-presign`, `smirnoff-videos-confirm`, `smirnoff-videos-list` | chug videos |
+| `smirnoff-videos-social`, `smirnoff-videos-react`, `smirnoff-videos-comment`, `smirnoff-videos-comment-delete`, `smirnoff-videos-social-recent` | video reactions and comments |
 | `smirnoff-writeups-list` | write-up read |
 | `smirnoff-admin-finalize`, `smirnoff-admin-ice-adjust`, `smirnoff-admin-ice-complete`, `smirnoff-admin-chug-time`, `smirnoff-admin-settings`, `smirnoff-admin-writeup-presign`, `smirnoff-admin-writeup-publish` | admin actions |
 

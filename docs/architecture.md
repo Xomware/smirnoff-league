@@ -14,7 +14,7 @@ Operational steps live in [`runbook.md`](runbook.md).
 | Auth | The shared Xomware Cognito pool, Google as the only identity provider. This stack creates no pool and no client: the pool and the `smirnoff-client` app client live in `Xomware/xomware-infrastructure` (`terraform/cognito.tf`). It reads the pool ARN from SSM `/xomware/shared/cognito/user-pool-arn` | `infrastructure/terraform/data_cognito.tf`, `frontend/lib/auth/amplify.ts` |
 | API | API Gateway (module `api-gateway-service` v2.8.0) at `api.<domain_name>`, one Python Lambda per endpoint, every route on the native `COGNITO_USER_POOLS` authorizer | `infrastructure/terraform/api_gateway.tf`, `lambda.tf`, `acm.tf`, `route53.tf` |
 | Shared code | One Lambda layer, `smirnoff-shared-packages`: `backend/lambdas/common/` plus `backend/requirements.txt` | `infrastructure/terraform/lambda_layers.tf`, `.github/workflows/deploy-backend.yml` |
-| Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`, `smirnoff-activity`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
+| Tables | DynamoDB `smirnoff-users`, `smirnoff-ices`, `smirnoff-settings`, `smirnoff-media`, `smirnoff-activity`, `smirnoff-video-social`. On-demand, CMK-encrypted, PITR on, deletion protection on, no GSIs | `infrastructure/terraform/dynamodb.tf`, `kms.tf` |
 | Media bucket | Private `smirnoff-media-<account id>`, SSE-KMS, public access blocked. `videos/` holds chug videos, `writeups/` holds write-up PDFs and their rendered page WebPs | `infrastructure/terraform/s3_media.tf` |
 | Cron | EventBridge rule, `rate(15 minutes)`, invoking `smirnoff-cron-tick`: finalize, reconcile late ices, then alert emails | `infrastructure/terraform/lambdas_cron.tf`, `backend/lambdas/cron_tick/handler.py` |
 | Write-up renderer | `smirnoff-writeup-render`, invoked by S3 `ObjectCreated` on `writeups/*source.pdf`; rasterizes pages with pypdfium2 and Pillow | `infrastructure/terraform/lambda_writeup_render.tf`, `backend/lambdas/writeup_render/handler.py` |
@@ -38,6 +38,8 @@ query string (`lambda.tf`).
 | `GET /ledger/get` | `ledger_get` | signed in |
 | `POST /ices/chug-time` | `ices_chug_time` | signed in; own roster only, admins any ice and any chugger |
 | `POST /videos/presign`, `POST /videos/confirm`, `GET /videos/list` | `videos_*` | signed in; presign requires the caller's roster to own at least one listed ice, confirm requires the uploader; admins pass both |
+| `GET /videos/social?videoId=`, `POST /videos/react`, `POST /videos/comment`, `POST /videos/comment-delete` | `videos_social`, `videos_react`, `videos_comment`, `videos_comment_delete` | signed in; reacting and commenting need a profile. 5 reaction types, comments 1-280 chars, 10 a minute per user (429). Delete: author or admin. Each returns the video's reactions and comments; authors carry rosterId and name, never an email |
+| `GET /videos/social-recent` | `videos_social_recent` | signed in with a profile; others' comments on videos the caller chugged in or uploaded, newest 50, for the client-derived notification list |
 | `GET /writeups/list` | `writeups_list` | signed in |
 | `POST /activity/track` | `activity_track` | signed in; a batch of 1-50 `{ kind, target, at }` events. sub, email and device come from the token and User-Agent, never the body |
 | `GET`/`POST /email/unsubscribe?token=` | `email_unsubscribe` | public; HMAC token from `common/unsubscribe.py` turns off one alert type or all email. GET only renders a confirmation form (scanners prefetch GETs); POST unsubscribes, from the form or RFC 8058 one-click. Returns HTML |
@@ -54,6 +56,7 @@ Responses use a `{ data, error, meta }` envelope (`backend/lambdas/common/api.py
 | `smirnoff-ices` | `season` (`"2026"`), `iceId` | one row per ice: reason, status, completedAt, source, chugSeconds, chugger, timedBy, timedAt, videoId, parentIceId, note, updatedBy | `common/ices_dynamo.py` |
 | `smirnoff-settings` | `season`, `key` (`WEEK#01`..`WEEK#17`, `TOILET_BRACKET`, `MAIL#<sub>#<eventId>`) | per-week `iceRulesActive`, `lowestScope`, `finalizedAt`, `deadlineUtc`; toilet bowl `byes`; the alert-email sent log (`status` `sent`/`failed`, `at`) | `common/ices_dynamo.py`, `ledger_get/handler.py`, `common/mailer.py` |
 | `smirnoff-media` | `kind` (`video`/`writeup`), `mediaId` (`W{ww}#{uuid}`) | video: iceIds, rosterIds (older rows: iceId, rosterId), uploaderSub, s3Key, bytes, status. write-up: week, title, pdfKey, pageKeys, status (`pending`/`rendered`/`failed`), failReason, publishedAt | `common/media_dynamo.py` |
+| `smirnoff-video-social` | `pk` (`VIDEO#{mediaId}`, `RATE#{sub}`), `sk` | `REACT#{sub}`: types (string set). `COMMENT#{UTC ISO time}#{id}`: commentId, sub, text, createdAt. `RATE#` rows: count per UTC minute, expiresAt (TTL, 1 hour) | `common/social_dynamo.py` |
 | `smirnoff-activity` | `sub`, `at` (`{UTC ISO time}#{8 hex}`) | kind (`signin`/`open`/`drill`/`upload`/`publish`), target (a window id such as `team:6`), email, ua, expiresAt (TTL, 90 days) | `common/activity_dynamo.py` |
 
 The season is hard-coded as `SEASON = "2026"` in `common/ices_dynamo.py`.
@@ -502,7 +505,8 @@ the same component in either shell.
   `smirnoff-lambda-exec`. On DynamoDB it gets only `GetItem`, `PutItem`,
   `UpdateItem` and `Query` on `smirnoff-*` tables, plus `Scan` on `smirnoff-users`
   for the mailer and `/admin/users`, and `BatchWriteItem` on `smirnoff-activity`
-  for `/activity/track`; no handler deletes or transacts. SES `SendEmail` and
+  for `/activity/track`, and `DeleteItem` on `smirnoff-video-social` for
+  `/videos/comment-delete`; no handler transacts. SES `SendEmail` and
   `SendRawEmail` on the domain identity and config set only. On the media bucket it
   may put and get `videos/*`, put `writeups/*/source.pdf` (to sign the upload), get
   `writeups/*`, and list the bucket so a HEAD on a missing key is a 404, not a 403 (`iam_lambda.tf`).
