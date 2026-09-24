@@ -29,7 +29,7 @@ export function WeekView({ week }: WeekViewProps) {
   );
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       {lowest && (
         <p className="xp-note flex flex-wrap items-center gap-2">
           {isLive ? "Lowest score so far" : "Lowest score of the week"}:
@@ -40,7 +40,7 @@ export function WeekView({ week }: WeekViewProps) {
         </p>
       )}
 
-      <ul aria-label="Matchups" className="grid gap-2 sm:grid-cols-2">
+      <ul aria-label="Matchups" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {pairs.map((sides) => (
           <li key={sides[0].matchup_id} className="xp-bracket-match">
             {sides.map((s) => (

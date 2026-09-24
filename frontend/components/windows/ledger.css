@@ -296,36 +296,8 @@
   }
 }
 
-/* The phone's season summary: a row per team, its counts under the name. */
-.summary-rows > li + li {
-  border-top: 1px solid var(--xp-face-shadow);
-}
-
-.summary-row {
-  display: grid;
-  grid-template-columns: 1.5rem minmax(0, 1fr);
-  align-items: center;
-  gap: 0.25rem 0.5rem;
-  padding: 0.5rem 0;
-}
-
-.summary-stats {
-  display: grid;
-  grid-column: 2;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.25rem;
-}
-
-.summary-stats dt {
-  font-size: 0.6875rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: var(--xp-title-dark);
-}
-
-.summary-stats dd {
-  font-weight: bold;
-  font-variant-numeric: tabular-nums;
+.summary-board {
+  --board-cols: 1.5rem minmax(0, 1fr) repeat(4, 2.25rem);
 }
 
 .ov-tiles .ledger-stat-sub {

@@ -541,8 +541,12 @@
     padding: 10px 12px;
   }
 
-  [data-theme="glacier"] .xp-player-row .xp-player-name {
-    flex-basis: calc(100% - 60px);
+  [data-theme="glacier"] .xp-player-row > .xp-player-name {
+    flex-basis: calc(100% - 128px);
+  }
+
+  [data-theme="glacier"] .xp-player-row > .xp-player-name + :not(.xp-player-pts) {
+    margin-left: 60px;
   }
 
   [data-theme="glacier"] .ice-team {

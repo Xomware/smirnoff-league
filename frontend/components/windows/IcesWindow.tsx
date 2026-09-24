@@ -7,6 +7,7 @@ import { FilterBar, FilterEmpty } from "@/components/filters/FilterBar";
 import { canTime, ChugTimeButton, ChugTimeDialog } from "@/components/videos/ChugTime";
 import { iceLabel } from "@/components/videos/ice-label";
 import { canUpload, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { BoardHead } from "@/components/views/board";
 import { DrillLink } from "@/components/views/drill-link";
 import { LedgerWeek } from "@/components/views/ledger-week";
 import { WeekIces } from "@/components/views/week-ices";
@@ -70,7 +71,7 @@ const NUMBERS = [
 interface SummaryProps {
   rows: LedgerSummary[];
   teamFor: (rosterId: number) => Team;
-  // A row per team with its four counts under the name, so nothing scrolls sideways.
+  // A chart row per team with narrow count columns, so nothing scrolls sideways.
   stacked?: boolean;
 }
 
@@ -79,27 +80,31 @@ function SeasonSummary({ rows, teamFor, stacked = false }: SummaryProps) {
   const sorted = [...rows].sort((a, b) => outstanding(b) - outstanding(a) || b.late - a.late || a.rosterId - b.rosterId);
   const team = (s: LedgerSummary) => (
     <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
-      <TeamName name={teamFor(s.rosterId).name} iced={outstanding(s) > 0} ices={0} />
+      {/* The count columns already say owed and late, and the tags would crowd the name out. */}
+      <TeamName name={teamFor(s.rosterId).name} iced={outstanding(s) > 0} ices={0} badges={!stacked} />
     </DrillLink>
   );
   if (stacked)
     return (
-      <ol aria-label="Season summary" className="summary-rows">
-        {sorted.map((s, i) => (
-          <li key={s.rosterId} className="summary-row">
-            <span className="ov-rank">{i + 1}</span>
-            {team(s)}
-            <dl className="summary-stats">
+      <div className="board summary-board">
+        <BoardHead labels={["#", "Team", "Owed", "Done", "Late", "Over"]} />
+        <ol aria-label="Season summary">
+          {sorted.map((s, i) => (
+            <li key={s.rosterId} className="board-row">
+              <span className="board-rank">{i + 1}</span>
+              <span className="board-who">
+                <span className="board-name">{team(s)}</span>
+              </span>
               {NUMBERS.map(({ key, short }) => (
-                <div key={key}>
-                  <dt>{short}</dt>
-                  <dd>{s[key]}</dd>
-                </div>
+                <span key={key} className="board-num">
+                  {s[key]}
+                  <span className="sr-only"> {short.toLowerCase()}</span>
+                </span>
               ))}
-            </dl>
-          </li>
-        ))}
-      </ol>
+            </li>
+          ))}
+        </ol>
+      </div>
     );
   return (
     <table className="xp-table">
