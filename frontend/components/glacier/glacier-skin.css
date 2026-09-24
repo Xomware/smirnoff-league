@@ -652,13 +652,28 @@
   color: var(--g-red-text);
 }
 
-[data-theme="glacier"] .rank-cards {
+[data-theme="glacier"] {
+  --board-bar: rgb(91 191 232 / 0.55);
+  --board-bar-top: var(--g-red-text);
+}
+
+[data-theme="glacier"] .board {
+  overflow: hidden;
   border-color: var(--g-line);
   border-radius: 18px;
 }
 
-[data-theme="glacier"] .rank-card-row {
+[data-theme="glacier"] .board-head {
   border-bottom-color: var(--g-line);
+  color: var(--g-label);
+}
+
+[data-theme="glacier"] .board-row {
+  border-bottom-color: var(--g-line);
+}
+
+[data-theme="glacier"] .board-sub {
+  color: var(--g-muted);
 }
 
 /* Empty, note and error states */
