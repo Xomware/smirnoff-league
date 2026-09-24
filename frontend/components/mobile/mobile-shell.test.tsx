@@ -105,6 +105,8 @@ const tab = (name: string) => tabBar().getByRole("button", { name });
 const back = () => screen.getByRole("button", { name: "Back" });
 // Screens under the top one stay mounted but hidden, so query the visible one.
 const top = () => within(document.querySelector<HTMLElement>(".m-screen:not([hidden])")!);
+const subtab = (section: string, name: string) =>
+  within(screen.getByRole("navigation", { name: `${section} pages` })).getByRole("button", { name });
 
 beforeEach(() => {
   // jsdom has no layout, so no scrollIntoView.
@@ -166,15 +168,16 @@ describe("shell choice", () => {
     renderShell();
     fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: /Standings/ }));
-    await waitFor(() => expect(title()).toBe("League Standings"));
+    await waitFor(() => expect(title()).toBe("League"));
 
     act(() => {
       screenNow = LANDSCAPE;
       listeners.forEach((fn) => fn());
     });
 
-    expect(title()).toBe("League Standings");
-    fireEvent.click(back());
+    expect(title()).toBe("League");
+    expect(subtab("League", "Standings").getAttribute("aria-current")).toBe("page");
+    act(() => window.history.back());
     await waitFor(() => expect(title()).toBe("Menu"));
   });
 });
@@ -210,6 +213,7 @@ describe("Glacier", () => {
 
     drawerTab("Games");
     expect(title()).toBe("Games");
+    fireEvent.click(subtab("Games", "Scores"));
     expect(await top().findByRole("button", { name: "Previous week" })).toBeTruthy();
 
     drawerTab("Home");
@@ -247,7 +251,7 @@ describe("tabs", () => {
     renderShell();
     fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: /Brackets/ }));
-    await waitFor(() => expect(title()).toBe("Brackets"));
+    await waitFor(() => expect(title()).toBe("Games"));
     expect(vi.mocked(track).mock.calls).toEqual([
       ["open", "tab:menu"],
       ["open", "brackets"],
@@ -258,8 +262,9 @@ describe("tabs", () => {
     renderShell();
     fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: "Draft recap" }));
-    await waitFor(() => expect(title()).toBe("Now Playing - Draft Recap"));
-    fireEvent.click(back());
+    await waitFor(() => expect(top().getByTitle("Smirnoff League draft recap")).toBeTruthy());
+    expect(title()).toBe("League");
+    fireEvent.click(tab("Menu"));
     await waitFor(() => expect(title()).toBe("Menu"));
 
     fireEvent.click(top().getByRole("button", { name: "My Profile" }));
@@ -297,7 +302,7 @@ describe("Home", () => {
     renderShell();
     fireEvent.click(await top().findByRole("button", { name: "All games" }));
     expect(tab("Games").getAttribute("aria-current")).toBe("page");
-    expect(window.location.search).toBe("?open=games");
+    expect(window.location.search).toBe("?open=watch");
   });
 });
 
@@ -305,6 +310,7 @@ describe("Games", () => {
   it("steps weeks and pushes a game with both lineups, Back and the browser's back both returning", async () => {
     renderShell();
     fireEvent.click(tab("Games"));
+    fireEvent.click(subtab("Games", "Scores"));
     expect(await top().findByText("No matchups for week 3 yet.")).toBeTruthy();
 
     fireEvent.click(top().getByRole("button", { name: "Previous week" }));
@@ -313,7 +319,7 @@ describe("Games", () => {
 
     fireEvent.click(within(games).getByRole("button", { name: /Team 13/ }));
     await waitFor(() => expect(title()).toBe("Week 2"));
-    expect(window.location.search).toMatch(/^\?open=games,game:2-\d+$/);
+    expect(window.location.search).toMatch(/^\?open=scores,game:2-\d+$/);
     expect(top().getAllByRole("region", { name: /lineup$/ })).toHaveLength(2);
     expect(top().getByRole("region", { name: "Team 13 lineup" })).toBeTruthy();
     expect(top().getByRole("list", { name: "Team 13 ices" }).textContent).toContain("Lowest score");
@@ -366,6 +372,7 @@ describe("Ices", () => {
   it("ranks the season or this week with a segmented control, not tabs", async () => {
     renderShell();
     fireEvent.click(tab("Ices"));
+    fireEvent.click(subtab("Ices", "Ice standings"));
     const ranks = within(await top().findByRole("list", { name: "Ice standings" }));
     expect(ranks.getAllByRole("listitem").map((r) => parseInt(r.textContent!))).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
 
@@ -397,15 +404,16 @@ function expectStacked(label: string, sections: string[]) {
 }
 
 describe("Ice Rankings", () => {
-  it("has a Menu row and a section in the Ices tab", async () => {
+  it("has a Menu row and a sub-tab in the Ices tab", async () => {
     renderShell();
     fireEvent.click(tab("Ices"));
+    fireEvent.click(subtab("Ices", "Rankings"));
     expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
 
     fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: "Rankings" }));
-    await waitFor(() => expect(title()).toBe("Ice Rankings"));
-    expect(window.location.search).toBe("?open=menu,chug-rankings");
+    await waitFor(() => expect(window.location.search).toBe("?open=chug-rankings"));
+    expect(tab("Ices").getAttribute("aria-current")).toBe("page");
   });
 });
 
@@ -428,13 +436,13 @@ describe("screens that were tabbed on the desktop", () => {
     expect(within(top().getByRole("list", { name: "Weekly results" })).getAllByRole("listitem")).toHaveLength(2);
 
     fireEvent.click(within(top().getByRole("list", { name: "Weekly results" })).getByRole("button", { name: "91.46 - 134.46" }));
-    await waitFor(() => expect(window.location.search).toBe("?open=menu,team:6,game:1-7"));
+    await waitFor(() => expect(window.location.search).toBe("?open=standings,team:6,game:1-7"));
     expect(title()).toBe("Week 1");
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Team 6"));
 
     fireEvent.click(within(top().getByRole("list", { name: /^Starters/ })).getAllByRole("button")[0]);
-    await waitFor(() => expect(window.location.search).toMatch(/^\?open=menu,team:6,player:\w+$/));
+    await waitFor(() => expect(window.location.search).toMatch(/^\?open=standings,team:6,player:\w+$/));
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Team 6"));
   });

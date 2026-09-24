@@ -79,11 +79,11 @@ describe("Glacier phone header", () => {
     expect(screen.getByRole("banner").hasAttribute("data-scrolled")).toBe(false);
   });
 
-  it("puts Home, Games, Ices and League first in the drawer", async () => {
+  it("puts the five sections first in the drawer", async () => {
     renderGlacier();
     fireEvent.click(burger());
     const quick = within(within(drawer()).getByRole("navigation", { name: "Main" }));
-    expect(quick.getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "League"]);
+    expect(quick.getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "League", "News Drop"]);
     expect(quick.getByRole("button", { name: "Home" }).getAttribute("aria-current")).toBe("page");
 
     fireEvent.click(quick.getByRole("button", { name: "Games" }));
@@ -92,7 +92,7 @@ describe("Glacier phone header", () => {
 
     fireEvent.click(burger());
     fireEvent.click(quick.getByRole("button", { name: "League" }));
-    await waitFor(() => expect(title()).toBe("League Standings"));
+    await waitFor(() => expect(title()).toBe("League"));
   });
 });
 
@@ -122,13 +122,13 @@ describe("Glacier phone menu drawer", () => {
     expect(drawer().getAttribute("aria-modal")).toBe("true");
     expect(title()).toBe("Smirnoff League");
     expect(drawer().contains(document.activeElement)).toBe(true);
-    expect(await within(drawer()).findByRole("button", { name: /Standings/ })).toBeTruthy();
+    expect(await within(drawer()).findByRole("button", { name: "Sign out" })).toBeTruthy();
   });
 
   it("keeps Tab and Shift+Tab inside the drawer", async () => {
     renderGlacier();
     fireEvent.click(burger());
-    await within(drawer()).findByRole("button", { name: /Standings/ });
+    await within(drawer()).findByRole("button", { name: "Sign out" });
     const all = focusables();
     const [first, last] = [all[0], all[all.length - 1]];
 
@@ -165,9 +165,9 @@ describe("Glacier phone menu drawer", () => {
   it("opens a row's screen over the current tab and closes", async () => {
     renderGlacier();
     fireEvent.click(burger());
-    fireEvent.click(await within(drawer()).findByRole("button", { name: /Brackets/ }));
+    fireEvent.click(await within(drawer()).findByRole("button", { name: "Settings" }));
 
-    await waitFor(() => expect(title()).toBe("Brackets"));
+    await waitFor(() => expect(title()).toBe("Settings"));
     expect(isOpen()).toBe(false);
     expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
   });

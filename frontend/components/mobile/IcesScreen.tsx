@@ -6,7 +6,6 @@ import { createPortal } from "react-dom";
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { iceCauseText } from "@/components/videos/ice-label";
 import { teamList, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
-import { ChugRankingsView } from "@/components/views/chug-rankings-view";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { MediaPlayerIcon } from "@/components/xp/icons";
@@ -95,6 +94,34 @@ function WhoOwes({ ledger, teamFor, onUpload }: OwesProps) {
   );
 }
 
+export function LedgerScreen() {
+  const { teamFor } = useLeague();
+  const ledger = useLedger();
+  const [upload, setUpload] = useState<string[] | null>(null);
+
+  if (ledger.status === "loading") return <p role="status">Opening the ledger...</p>;
+  if (ledger.status === "error") return <p role="alert">The ledger is unavailable ({ledger.message}).</p>;
+  return (
+    <div className="m-page">
+      <WhoOwes ledger={ledger.ledger} teamFor={teamFor} onUpload={setUpload} />
+      {upload && createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={upload} onClose={() => setUpload(null)} />, document.body)}
+    </div>
+  );
+}
+
+export function VideosScreen() {
+  const { teamFor } = useLeague();
+  const ledger = useLedger();
+
+  if (ledger.status === "loading") return <p role="status">Rewinding the chug tapes...</p>;
+  if (ledger.status === "error") return <p role="alert">The ledger is unavailable ({ledger.message}), so the videos are hidden.</p>;
+  return (
+    <div className="m-page">
+      <Gallery ledger={ledger.ledger} teamFor={teamFor} />
+    </div>
+  );
+}
+
 interface GalleryProps {
   ledger: Ledger;
   teamFor: (rosterId: number) => Team;
@@ -146,7 +173,7 @@ function Gallery({ ledger, teamFor }: GalleryProps) {
   );
 }
 
-export function IcesScreen() {
+export function IceStandingsScreen() {
   const { data, error: leagueError, teamFor } = useLeague();
   const { myRosterId } = useProfile();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
@@ -154,7 +181,6 @@ export function IcesScreen() {
   const ledger = useLedger();
   const week = useDefaultWeek();
   const [mode, setMode] = useState<"season" | "week">("season");
-  const [upload, setUpload] = useState<string[] | null>(null);
   const error = leagueError ?? icesError;
 
   const rows = useMemo(() => {
@@ -201,19 +227,6 @@ export function IcesScreen() {
           ))}
         </ol>
       </section>
-      {ledger.status === "ok" && (
-        <>
-          <WhoOwes ledger={ledger.ledger} teamFor={teamFor} onUpload={setUpload} />
-          <section aria-label="Ice rankings" className="m-section m-rankings">
-            <ChugRankingsView />
-          </section>
-          <Gallery ledger={ledger.ledger} teamFor={teamFor} />
-        </>
-      )}
-      {ledger.status === "error" && <p role="alert">The ledger is unavailable ({ledger.message}), so who owes and the videos are hidden.</p>}
-      {upload &&
-        ledger.status === "ok" &&
-        createPortal(<UploadChug ices={ledger.ledger.ices} initialIceIds={upload} onClose={() => setUpload(null)} />, document.body)}
     </div>
   );
 }
