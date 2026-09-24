@@ -1,14 +1,16 @@
 "use client";
 
-import { type ReactNode, useId, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useId, useMemo, useState } from "react";
 
 import { chugTime } from "@/components/videos/ChugTime";
 import {
+  barWidth,
   chuggerRankings,
   chugsFrom,
   chugWeeks,
   rankLabel,
   type Ranked,
+  rankSpoken,
   type Sort,
   type SortKey,
   sortRankings,
@@ -20,6 +22,7 @@ import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
 import { DrillLink } from "./drill-link";
 
+import "./board.css";
 import "./chug-rankings.css";
 
 const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
@@ -35,7 +38,33 @@ const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
 const firstDir = (key: SortKey): Sort["dir"] => (key === "count" ? "desc" : "asc");
 
 function RankCell({ row }: { row: Ranked }) {
-  return <span className={row.rank === 1 ? "rank-label rank-top" : "rank-label"}>{rankLabel(row)}</span>;
+  const spoken = rankSpoken(row);
+  return (
+    <span className={row.rank === 1 ? "rank-label rank-top" : "rank-label"}>
+      {spoken ? (
+        <>
+          <span aria-hidden="true">{rankLabel(row)}</span>
+          <span className="sr-only">{spoken}</span>
+        </>
+      ) : (
+        rankLabel(row)
+      )}
+    </span>
+  );
+}
+
+function Bar({ width, top }: { width: number; top: boolean }) {
+  return <span aria-hidden="true" className={top ? "board-bar board-bar-top" : "board-bar"} style={{ "--bar": `${width}%` } as CSSProperties} />;
+}
+
+function BoardHead({ labels }: { labels: string[] }) {
+  return (
+    <div className="board-head" aria-hidden="true">
+      {labels.map((l) => (
+        <span key={l}>{l}</span>
+      ))}
+    </div>
+  );
 }
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
@@ -73,14 +102,23 @@ export function ChugRankingsView() {
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: firstDir(key) }));
 
-  const cardRow = (key: string, row: Ranked & { name: string | null; rosterId: number }, stats: ReactNode) => (
-    <li key={key} className={`rank-card-row ${mine(row) ?? ""}`}>
+  const prs = rows.map((r) => r.pr);
+  const prBar = (r: Ranked & { pr: number }) => <Bar width={barWidth(r.pr, Math.min(...prs), Math.max(...prs))} top={r.rank === 1} />;
+  const times = weekly.map((c) => c.seconds);
+  const timeBar = (c: Ranked & { seconds: number }) => (
+    <Bar width={barWidth(c.seconds, Math.min(...times), Math.max(...times))} top={c.rank === 1} />
+  );
+
+  // A chugger nobody named goes by their team, so the team line would only repeat it.
+  const boardRow = (key: string, row: Ranked & { name: string | null; rosterId: number }, bar: ReactNode, nums: ReactNode) => (
+    <li key={key} className={`board-row ${mine(row) ?? ""}`}>
       <RankCell row={row} />
-      <span className="min-w-0">
-        <span className="block truncate font-bold">{who(row)}</span>
-        <span className="block truncate text-xs">{teamLink(row.rosterId)}</span>
+      <span className="board-who">
+        <span className="board-name">{row.name ?? teamLink(row.rosterId)}</span>
+        {row.name !== null && row.name !== team(row.rosterId) && <span className="board-sub">{teamLink(row.rosterId)}</span>}
+        {bar}
       </span>
-      <span className="rank-card-stats">{stats}</span>
+      {nums}
     </li>
   );
 
@@ -121,7 +159,10 @@ export function ChugRankingsView() {
                       <td>
                         <RankCell row={r} />
                       </td>
-                      <td className="font-bold">{who(r)}</td>
+                      <td className="font-bold">
+                        {who(r)}
+                        <span className="block max-w-48">{prBar(r)}</span>
+                      </td>
                       <td>{teamLink(r.rosterId)}</td>
                       <td className="text-right tabular-nums">{chugTime(r.pr)}</td>
                       <td className="text-right tabular-nums">{chugTime(r.avg)}</td>
@@ -131,11 +172,32 @@ export function ChugRankingsView() {
                 </tbody>
               </table>
             </div>
-            <ol className="rank-cards" aria-label="Chuggers ranked by personal best">
-              {sorted.map((r) =>
-                cardRow(r.key, r, `PR ${chugTime(r.pr)} · AVG ${chugTime(r.avg)} · ${r.count} ${r.count === 1 ? "chug" : "chugs"}`),
-              )}
-            </ol>
+            <div className="board rank-cards rank-board">
+              <BoardHead labels={["RK", "Chugger", "PR", "AVG", "#"]} />
+              <ol aria-label="Chuggers ranked by personal best">
+                {sorted.map((r) =>
+                  boardRow(
+                    r.key,
+                    r,
+                    prBar(r),
+                    <>
+                      <span className="board-num">
+                        <span className="sr-only">PR </span>
+                        {chugTime(r.pr)}
+                      </span>
+                      <span className="board-num">
+                        <span className="sr-only">average </span>
+                        {chugTime(r.avg)}
+                      </span>
+                      <span className="board-num">
+                        {r.count}
+                        <span className="sr-only">{r.count === 1 ? " chug" : " chugs"}</span>
+                      </span>
+                    </>,
+                  ),
+                )}
+              </ol>
+            </div>
           </section>
 
           <section aria-labelledby={weekTitle} className="grid gap-2">
@@ -170,7 +232,10 @@ export function ChugRankingsView() {
                       <td>
                         <RankCell row={c} />
                       </td>
-                      <td className="font-bold">{who(c)}</td>
+                      <td className="font-bold">
+                        {who(c)}
+                        <span className="block max-w-48">{timeBar(c)}</span>
+                      </td>
                       <td>{teamLink(c.rosterId)}</td>
                       <td className="text-right tabular-nums">{chugTime(c.seconds)}</td>
                     </tr>
@@ -178,9 +243,12 @@ export function ChugRankingsView() {
                 </tbody>
               </table>
             </div>
-            <ol className="rank-cards" aria-label={`Week ${week} chugs ranked by time`}>
-              {weekly.map((c) => cardRow(c.iceId, c, chugTime(c.seconds)))}
-            </ol>
+            <div className="board rank-cards rank-board-week">
+              <BoardHead labels={["RK", "Chugger", "Time"]} />
+              <ol aria-label={`Week ${week} chugs ranked by time`}>
+                {weekly.map((c) => boardRow(c.iceId, c, timeBar(c), <span className="board-num">{chugTime(c.seconds)}</span>))}
+              </ol>
+            </div>
           </section>
 
           <div className="rank-summary">

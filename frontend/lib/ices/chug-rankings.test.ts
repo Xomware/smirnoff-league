@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { LedgerIce } from "@/lib/api/ledger";
-import { chuggerRankings, chugsFrom, chugWeeks, rankLabel, sortRankings, summaryCards, weekRankings } from "./chug-rankings";
+import { barWidth, chuggerRankings, chugsFrom, chugWeeks, rankLabel, rankSpoken, sortRankings, summaryCards, weekRankings } from "./chug-rankings";
 
 let n = 0;
 const ice = (week: number, rosterId: number, chugSeconds: number | undefined, name?: string): LedgerIce => ({
@@ -32,11 +32,11 @@ describe("chugsFrom", () => {
 });
 
 describe("chuggerRankings", () => {
-  it("reproduces the reference: Tied-1, Tied-1, 3, 4", () => {
+  it("reproduces the reference: T1, T1, 3, 4", () => {
     const rows = chuggerRankings(chugsFrom(REFERENCE));
     expect(rows.map((r) => [rankLabel(r), r.name, r.pr, r.avg, r.count])).toEqual([
-      ["Tied-1", "Chugger A", 8, 8, 1],
-      ["Tied-1", "Chugger B", 8, 8, 1],
+      ["T1", "Chugger A", 8, 8, 1],
+      ["T1", "Chugger B", 8, 8, 1],
       ["3", "Chugger C", 10, 10, 2],
       ["4", "Chugger D", 13, 13, 1],
     ]);
@@ -70,12 +70,12 @@ describe("chuggerRankings", () => {
 });
 
 describe("weekRankings", () => {
-  it("ranks each chug by time with ties: Tied-1, Tied-1, Tied-3, Tied-3, 5", () => {
+  it("ranks each chug by time with ties: T1, T1, T3, T3, 5", () => {
     expect(weekRankings(chugsFrom(REFERENCE), 1).map((r) => [rankLabel(r), r.name, r.seconds])).toEqual([
-      ["Tied-1", "Chugger A", 8],
-      ["Tied-1", "Chugger B", 8],
-      ["Tied-3", "Chugger C", 10],
-      ["Tied-3", "Chugger C", 10],
+      ["T1", "Chugger A", 8],
+      ["T1", "Chugger B", 8],
+      ["T3", "Chugger C", 10],
+      ["T3", "Chugger C", 10],
       ["5", "Chugger D", 13],
     ]);
   });
@@ -85,6 +85,26 @@ describe("weekRankings", () => {
     expect(chugWeeks(chugs)).toEqual([1, 2, 3]);
     expect(weekRankings(chugs, 3).map((r) => [rankLabel(r), r.name])).toEqual([["1", "Later"]]);
     expect(weekRankings(chugs, 4)).toEqual([]);
+  });
+});
+
+describe("rank labels", () => {
+  it("says a tie out loud as an ordinal, and nothing extra for a clear rank", () => {
+    expect(rankSpoken({ rank: 1, tied: true })).toBe("Tied for 1st");
+    expect(rankSpoken({ rank: 2, tied: true })).toBe("Tied for 2nd");
+    expect(rankSpoken({ rank: 3, tied: true })).toBe("Tied for 3rd");
+    expect(rankSpoken({ rank: 11, tied: true })).toBe("Tied for 11th");
+    expect(rankSpoken({ rank: 22, tied: true })).toBe("Tied for 22nd");
+    expect(rankSpoken({ rank: 4, tied: false })).toBeNull();
+  });
+});
+
+describe("barWidth", () => {
+  it("fills the bar for the fastest, shrinks in proportion to the slowest, and fills every bar when all tie", () => {
+    expect(barWidth(8, 8, 12)).toBe(100);
+    expect(barWidth(10, 8, 12)).toBe(58);
+    expect(barWidth(12, 8, 12)).toBe(15);
+    expect(barWidth(9, 9, 9)).toBe(100);
   });
 });
 

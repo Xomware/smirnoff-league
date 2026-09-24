@@ -49,7 +49,16 @@ export const chugsFrom = (ices: LedgerIce[]): Chug[] =>
 
 export const chugWeeks = (chugs: Chug[]) => [...new Set(chugs.map((c) => c.week))].sort((a, b) => a - b);
 
-export const rankLabel = ({ rank, tied }: Ranked) => (tied ? `Tied-${rank}` : String(rank));
+export const rankLabel = ({ rank, tied }: Ranked) => (tied ? `T${rank}` : String(rank));
+
+const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] ?? "th"}`;
+
+// "T1" reads as "tee one" aloud, so a tie gets spoken words beside it.
+export const rankSpoken = ({ rank, tied }: Ranked) => (tied ? `Tied for ${ordinal(rank)}` : null);
+
+// Fastest fills the bar and the slowest keeps a sliver, so every row still shows one.
+export const barWidth = (seconds: number, fastest: number, slowest: number) =>
+  slowest === fastest ? 100 : Math.round(15 + (85 * (slowest - seconds)) / (slowest - fastest));
 
 // Competition ranking: equals share a rank and the next rank skips past them (1, 1, 3).
 function rank<T>(rows: T[], cmp: (a: T, b: T) => number, order: (a: T, b: T) => number): (T & Ranked)[] {

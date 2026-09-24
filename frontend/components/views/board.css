@@ -1,0 +1,85 @@
+/* A board is a phone-width chart: a small column header, then one row per
+   entry with the name on the left and right-aligned number columns. A view
+   sets --board-cols to its own column widths. */
+.board {
+  --board-cols: 2.25rem minmax(0, 1fr) 3.5rem;
+  border: 1px solid var(--xp-face-shadow);
+  background: var(--xp-cream);
+}
+
+.board-head,
+.board-row {
+  display: grid;
+  grid-template-columns: var(--board-cols);
+  align-items: center;
+  column-gap: 0.5rem;
+  padding-inline: 0.625rem;
+}
+
+.board-head {
+  min-height: 1.75rem;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  font-size: 0.6875rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.board-head > :nth-child(n + 3) {
+  text-align: right;
+}
+
+.board-row {
+  min-height: 3.25rem;
+  padding-block: 0.375rem;
+  border-bottom: 1px solid var(--xp-face);
+}
+
+.board-row:last-child {
+  border-bottom: 0;
+}
+
+.board-row.xp-mine {
+  background: var(--ice-tint);
+}
+
+.board-who {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.board-name,
+.board-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-name {
+  font-weight: bold;
+}
+
+.board-sub {
+  font-size: 0.75rem;
+}
+
+.board-num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.board-bar {
+  display: block;
+  width: var(--bar);
+  height: 0.25rem;
+  margin-top: 0.125rem;
+  border-radius: 0.125rem;
+  background: var(--board-bar, var(--ice-frost));
+}
+
+.board-bar-top {
+  background: var(--board-bar-top, var(--xp-title));
+}
