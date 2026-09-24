@@ -72,8 +72,7 @@
     .writeup-main,
     .notifs-list,
     .cp-side-box,
-    .cp-main,
-    .chug-toolbar
+    .cp-main
   ),
 .glacier-panel :is(.xp-table-scroll, .overflow-x-auto, .rank-wide):not(:is(.xp-group, .xp-dialog, .ices-summary) *) {
   position: relative;
@@ -220,7 +219,7 @@
 }
 
 @media (pointer: coarse) {
-  [data-theme="glacier"] :is(.xp-button, .xp-button.chug-row-button, .xp-step, .xp-select, .xp-tab, .rank-chip, .news-chip) {
+  [data-theme="glacier"] :is(.xp-button, .xp-button.chug-row-button, .xp-step, .xp-select, .xp-tab, .rank-chip) {
     min-height: 44px;
   }
 }

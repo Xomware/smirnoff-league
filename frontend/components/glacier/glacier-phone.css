@@ -432,6 +432,24 @@
   padding: 20px 16px 24px;
 }
 
+/* A sheet rising from the bottom, like Filters: full width, as tall as it needs. */
+.gp-drawer[data-side="bottom"] .gp-drawer-panel {
+  top: auto;
+  left: 0;
+  width: auto;
+  max-height: 85dvh;
+  padding-left: env(safe-area-inset-left);
+  border-top: 1px solid var(--g-frost-edge);
+  border-left: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -18px 48px rgb(2 12 24 / 0.55);
+  transform: translateY(100%);
+}
+
+.gp-drawer[data-side="bottom"][data-open="true"] .gp-drawer-panel {
+  transform: none;
+}
+
 /* The drawer's sections, one row each. */
 .gp-quick {
   display: grid;

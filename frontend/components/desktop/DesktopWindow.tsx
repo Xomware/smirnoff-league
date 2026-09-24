@@ -2,7 +2,7 @@
 
 import { Component, type PointerEvent, type ReactNode, useLayoutEffect, useRef } from "react";
 
-import { type DrillTarget, NavigateContext } from "@/components/views/drill-link";
+import { type DrillTarget, NavigateContext, ViewParamsContext } from "@/components/views/drill-link";
 import {
   BackArrowIcon,
   CloseGlyph,
@@ -12,7 +12,6 @@ import {
   MinimizeGlyph,
   RestoreGlyph,
 } from "@/components/xp/icons";
-import { TabParamContext } from "@/components/xp/Tabs";
 import { track, viewTarget } from "@/lib/activity/tracker";
 import { useAlerts } from "@/lib/alerts/alerts";
 import { windowUrl } from "@/lib/desktop/deep-link";
@@ -186,9 +185,9 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
       <div className="xp-window-body" key={viewKey(win.kind, win.params)}>
         <WindowBoundary>
           <NavigateContext value={navigate}>
-            <TabParamContext value={(tab) => dispatch({ type: "retab", id, tab })}>
+            <ViewParamsContext value={(params) => dispatch({ type: "patch", id, params })}>
               <Body params={win.params} />
-            </TabParamContext>
+            </ViewParamsContext>
           </NavigateContext>
         </WindowBoundary>
       </div>

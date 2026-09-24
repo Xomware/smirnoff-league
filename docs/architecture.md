@@ -365,8 +365,12 @@ the same component in either shell.
     back to the registry's component. Ice Stats and team profiles show their own
     sections as tabs (`components/xp/Tabs.tsx`) on every shell, one at a time. The
     picked tab is the view's `tab` param, so links carry it (`stats:positions`,
-    `team:6:ices`); `TabParamContext` lets each shell write it back without a
+    `team:6:ices`); `ViewParamsContext` lets each shell write it back without a
     history step, and `viewKey` leaves it out so a switch never remounts the view.
+    Chug videos, the ledger and League News filter through one bar
+    (`components/filters/FilterBar.tsx`) held the same way, as the view's `filter`
+    param: `videos:week-3.sort-fastest`, `ices:team-6.status-owed`, `news:type-chugs`.
+    Below 640px it collapses into a Filters button and a bottom sheet.
     Each tab keeps a stack of screens (`lib/phone/nav.ts`), mirrored into browser
     history so hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`).
     A `?open=` link to a window a tab already shows (Scores, Ice Watch, Ice Standings,

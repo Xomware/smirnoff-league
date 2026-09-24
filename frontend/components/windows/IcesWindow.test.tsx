@@ -92,12 +92,12 @@ describe("Ice Ledger layout", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("is only the record: every week newest first, then the season summary", async () => {
+  it("is only the record: the filters, every week newest first, then the season summary", async () => {
     const { container } = render(<IcesWindow />);
     await screen.findByRole("table", { name: "Season summary" });
 
     const titles = [...container.querySelectorAll(".xp-group-title, summary")].map((e) => e.textContent);
-    expect(titles).toEqual(["Week 3 — live, provisional", expect.stringMatching(/^Week 2 ·/), expect.stringMatching(/^Week 1 ·/), "Season summary"]);
+    expect(titles).toEqual(["Filters", "Week 3 — live, provisional", expect.stringMatching(/^Week 2 ·/), expect.stringMatching(/^Week 1 ·/), "Season summary"]);
     expect(screen.queryByRole("region", { name: "Season at a glance" })).toBeNull();
     expect(screen.queryByRole("list", { name: "Who owes now" })).toBeNull();
   });
@@ -171,5 +171,66 @@ describe("Ice Ledger chug times", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Save time" }));
 
     expect((await within(dialog).findByRole("alert")).textContent).toBe("The time didn't save (That ice is not on your roster).");
+  });
+});
+
+describe("Ice Ledger filters", () => {
+  const renderLedger = async () => {
+    vi.mocked(getLedger).mockResolvedValue(SCENARIO_LEDGER);
+    render(<IcesWindow />);
+    await screen.findByRole("table", { name: "Season summary" });
+  };
+  const pick = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  const weekTitles = () => [...document.querySelectorAll("details.ledger-week > summary")].map((s) => s.textContent);
+  const summaryTeams = () => within(screen.getByRole("table", { name: "Season summary" })).getAllByRole("row").slice(1).map((r) => cells(r)[1]);
+  const lists = (week: number) => within(pastWeek(week)).getAllByRole("list").map((l) => l.getAttribute("aria-label"));
+
+  it("offers every team and the four statuses", async () => {
+    await renderLedger();
+    const team = [...(screen.getByLabelText("Team") as HTMLSelectElement).options].map((o) => o.textContent);
+    expect(team[0]).toBe("All");
+    expect(team).toHaveLength(15);
+    expect([...(screen.getByLabelText("Status") as HTMLSelectElement).options].map((o) => o.textContent)).toEqual(["All", "Owed", "Late", "Paid"]);
+    expect(screen.getByRole("status").textContent).toMatch(/^\d+ ices$/);
+  });
+
+  it("narrows the week cards and the season summary to one team, hiding weeks it wasn't iced", async () => {
+    await renderLedger();
+    pick("Team", "13");
+    expect(weekTitles()).toEqual(["Week 2 · 2 ices · 0 done · 2 late"]);
+    expect(lists(2)).toEqual(["Team 13 ices"]);
+    expect(summaryTeams()).toEqual([expect.stringContaining("Team 13")]);
+    expect(screen.getByRole("status").textContent).toBe("4 ices");
+  });
+
+  it("narrows rows by status: paid, late and owed", async () => {
+    await renderLedger();
+    pick("Status", "paid");
+    expect(weekTitles()).toEqual([expect.stringMatching(/^Week 1 · 5 ices · 5 done/)]);
+    expect(screen.getByRole("status").textContent).toBe("5 ices");
+
+    pick("Status", "late");
+    expect(weekTitles()).toEqual([expect.stringMatching(/^Week 2 · 0 ices · 0 done · 3 late/)]);
+    const late = within(pastWeek(2)).getAllByRole("listitem").map((li) => li.textContent);
+    expect(late).toHaveLength(3);
+    expect(late.every((t) => t.includes("Late ice 1"))).toBe(true);
+
+    pick("Status", "owed");
+    expect(within(pastWeek(2)).getAllByRole("listitem")).toHaveLength(6);
+    expect(screen.queryByText(/^Week 1 ·/)).toBeNull();
+    expect(summaryTeams()).toHaveLength(14);
+  });
+
+  it("says nothing matches and clears back to every week", async () => {
+    await renderLedger();
+    pick("Team", "6");
+    pick("Status", "owed");
+    expect(weekTitles()).toEqual([]);
+    expect(screen.getByText("No ices match these filters.")).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("0 ices");
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(weekTitles()).toHaveLength(3);
+    expect(screen.queryByText("No ices match these filters.")).toBeNull();
   });
 });

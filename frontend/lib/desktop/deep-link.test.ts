@@ -67,6 +67,20 @@ describe("parseOpen", () => {
     ]);
   });
 
+  it("reads the filters a videos, ledger or news link carries", () => {
+    expect(parseOpen("?open=videos:week-3.team-6.ice-zero.sort-fastest,ices:status-owed,news:type-chugs,videos,news:Type-x,ices:status,videos:week-3:team-6")).toEqual([
+      { kind: "videos", params: { filter: "week-3.team-6.ice-zero.sort-fastest" } },
+      { kind: "ices", params: { filter: "status-owed" } },
+      { kind: "news", params: { filter: "type-chugs" } },
+      { kind: "videos", params: {} },
+    ]);
+  });
+
+  it("writes a filtered window's link back the way it reads", () => {
+    const windows = openLinks([], parseOpen("?open=ices:team-6.status-late,videos:week-2"), 1440, 900);
+    expect(openParam(windows)).toBe("ices:team-6.status-late,videos:week-2");
+  });
+
   it("returns nothing without an open param", () => {
     expect(parseOpen("")).toEqual([]);
     expect(parseOpen("?other=1")).toEqual([]);

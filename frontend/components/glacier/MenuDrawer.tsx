@@ -9,10 +9,13 @@ interface MenuDrawerProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  title?: string;
+  // The Menu slides in from the right; a sheet like Filters rises from the bottom.
+  side?: "right" | "bottom";
 }
 
 // Stays mounted while closed, inert, so it can slide out as well as in.
-export function MenuDrawer({ id, open, onClose, children }: MenuDrawerProps) {
+export function MenuDrawer({ id, open, onClose, children, title = "Menu", side = "right" }: MenuDrawerProps) {
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,12 +37,12 @@ export function MenuDrawer({ id, open, onClose, children }: MenuDrawerProps) {
   };
 
   return (
-    <div className="gp-drawer" data-open={open} inert={!open}>
+    <div className="gp-drawer" data-open={open} data-side={side} inert={!open}>
       <div className="gp-drawer-scrim" aria-hidden="true" onClick={onClose} />
-      <div ref={panel} id={id} role="dialog" aria-modal="true" aria-label="Menu" className="gp-drawer-panel" onKeyDown={onKeyDown}>
+      <div ref={panel} id={id} role="dialog" aria-modal="true" aria-label={title} className="gp-drawer-panel" onKeyDown={onKeyDown}>
         <div className="gp-drawer-head">
-          <h2>Menu</h2>
-          <button type="button" className="gp-drawer-close" aria-label="Close menu" onClick={onClose}>
+          <h2>{title}</h2>
+          <button type="button" className="gp-drawer-close" aria-label={`Close ${title.toLowerCase()}`} onClick={onClose}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>

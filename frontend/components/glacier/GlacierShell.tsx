@@ -9,13 +9,12 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { Ticker } from "@/components/ticker/Ticker";
 import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
-import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
+import { DrillContext, type DrillTarget, NavigateContext, ViewParamsContext } from "@/components/views/drill-link";
 import { NotificationBell } from "@/components/xp/NotificationBell";
-import { TabParamContext } from "@/components/xp/Tabs";
 import { track } from "@/lib/activity/tracker";
 import { parseOpen } from "@/lib/desktop/deep-link";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
-import { viewKey, windowId } from "@/lib/desktop/windows";
+import { patchParams, viewKey, windowId, type WindowParams } from "@/lib/desktop/windows";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useProfile } from "@/lib/profile/use-profile";
 import { descriptionOf, type PageView, pagesFor, pageView, SECTIONS, sectionOf } from "@/lib/sections";
@@ -89,9 +88,9 @@ export function GlacierShell() {
     heading.current?.focus({ preventScroll: true });
   };
   const drill = ({ kind, ...params }: DrillTarget) => go({ kind, params });
-  // A tab switch stays on the page, so it replaces the page's history entry.
-  const retab = (tab: string) => {
-    const to = { kind, params: { ...params, tab } };
+  // A tab or filter switch stays on the page, so it replaces the page's history entry.
+  const patch = (next: WindowParams) => {
+    const to = { kind, params: patchParams(params, next) };
     setNav((nav) => ({ ...nav, view: to }));
     window.history.replaceState(null, "", urlOf(to));
   };
@@ -171,9 +170,9 @@ export function GlacierShell() {
                   <Icicles className="glacier-icicles" d={PANEL_ICICLES} />
                   <Crystal />
                   <WindowBoundary key={viewKey(kind, params)}>
-                    <TabParamContext value={retab}>
+                    <ViewParamsContext value={patch}>
                       <Body params={params} />
-                    </TabParamContext>
+                    </ViewParamsContext>
                   </WindowBoundary>
                 </section>
               </>

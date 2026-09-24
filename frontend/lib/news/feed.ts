@@ -14,12 +14,14 @@ export interface NewsItem {
   headline: Part[];
 }
 
+// Every kind of item the feed makes; there is no awards item to filter on.
 export const FILTERS = {
   all: { label: "All", events: ["move", "trade", "ice", "paid", "writeup"] },
-  moves: { label: "Transactions", events: ["move"] },
+  ices: { label: "Ices", events: ["ice"] },
+  chugs: { label: "Chugs", events: ["paid"] },
+  moves: { label: "Roster moves", events: ["move"] },
   trades: { label: "Trades", events: ["trade"] },
-  ices: { label: "Ices", events: ["ice", "paid"] },
-  writeups: { label: "News drops", events: ["writeup"] },
+  drops: { label: "News drops", events: ["writeup"] },
 } satisfies Record<string, { label: string; events: NewsItem["event"][] }>;
 
 export type NewsFilter = keyof typeof FILTERS;

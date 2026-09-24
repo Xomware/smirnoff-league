@@ -157,15 +157,17 @@ describe("sortFeed and filterFeed", () => {
   it("filters by type", () => {
     const ids = (f: Parameters<typeof filterFeed>[1]) => filterFeed(feed, f, null).map((i) => i.id);
     expect(ids("all")).toEqual(["a", "b", "c", "d", "e"]);
+    expect(ids("ices")).toEqual(["c"]);
+    expect(ids("chugs")).toEqual(["d"]);
     expect(ids("moves")).toEqual(["a"]);
     expect(ids("trades")).toEqual(["b"]);
-    expect(ids("ices")).toEqual(["c", "d"]);
-    expect(ids("writeups")).toEqual(["e"]);
+    expect(ids("drops")).toEqual(["e"]);
   });
 
   it("filters by team, alone and with a type", () => {
     expect(filterFeed(feed, "all", 2).map((i) => i.id)).toEqual(["a", "b", "d"]);
     expect(filterFeed(feed, "ices", 5).map((i) => i.id)).toEqual(["c"]);
+    expect(filterFeed(feed, "chugs", 5).map((i) => i.id)).toEqual([]);
   });
 });
 

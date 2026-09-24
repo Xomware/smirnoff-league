@@ -3,6 +3,7 @@
 import { useEffect, useReducer, useRef } from "react";
 
 import { track } from "@/lib/activity/tracker";
+import { patchParams, type WindowParams } from "@/lib/desktop/windows";
 import { type Nav, navFromLinks, navReducer, parseScreens, type Screen, screenId, stackOf, stackUrl, type Tab } from "./nav";
 
 interface Entry {
@@ -70,7 +71,7 @@ export function usePhoneNav() {
       // Entries under the top must all be this tab's, or its Back would land on
       // another tab. A tab switch or a reset first rewinds history to where the
       // two stacks agree; history.go is async, so the rebuild waits for popstate.
-      // A tab switch on the top screen only rewrites the top entry.
+      // A tab or filter switch on the top screen only rewrites the top entry.
       const keep = same === at.current ? same : Math.max(same - 1, 0);
       if (keep < at.current) {
         rewinding.current = true;
@@ -102,10 +103,10 @@ export function usePhoneNav() {
       track("open", screenId(screen));
     },
     back: () => window.history.back(),
-    retab: (tab: string) => {
+    patch: (params: WindowParams) => {
       const stack = stackOf(nav);
       const top = stack[stack.length - 1];
-      dispatch({ type: "set", tab: nav.tab, stack: [...stack.slice(0, -1), { ...top, params: { ...top.params, tab } }] });
+      dispatch({ type: "set", tab: nav.tab, stack: [...stack.slice(0, -1), { ...top, params: patchParams(top.params, params) }] });
     },
   };
 }
