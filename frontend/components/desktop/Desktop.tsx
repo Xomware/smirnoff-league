@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
+import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
 import { DrillContext } from "@/components/views/drill-link";
 import { openLinks, parseOpen, syncUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
@@ -92,6 +93,7 @@ export function Desktop() {
           Wallpaper: arifovic Jelic Zora, CC BY-SA 3.0
         </a>
       </main>
+      <ChugReelPopup />
     </DrillContext.Provider>
   );
 }

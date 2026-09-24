@@ -1,0 +1,447 @@
+.reel-popup {
+  --card: 12.5rem;
+  --gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: min(46rem, 100%);
+  max-height: calc(100dvh - 2rem);
+  font-size: 0.8125rem;
+  box-shadow: 3px 4px 12px rgb(10 30 80 / 0.5);
+}
+
+.reel-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.reel-exe {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reel-x {
+  flex: none;
+}
+
+.reel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  padding: 0.75rem 1rem 0.25rem;
+}
+
+.reel-head h2 {
+  font: bold 1.125rem var(--xp-title-font);
+}
+
+.reel-head p {
+  color: var(--xp-title-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.reel-stage {
+  display: grid;
+  gap: 0.5rem;
+  min-height: 0;
+  padding: 0.5rem 0;
+}
+
+.reel-viewport {
+  overflow: hidden;
+}
+
+.reel-track {
+  display: flex;
+  gap: var(--gap);
+  padding: 0.5rem calc(50% - var(--card) / 2);
+  transform: translateX(calc(var(--at) * (var(--card) + var(--gap)) * -1));
+  transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+
+.reel-slide {
+  flex: none;
+  width: var(--card);
+}
+
+.reel-card {
+  display: grid;
+  width: 100%;
+  border: 1px solid var(--xp-text);
+  text-align: left;
+  background: var(--xp-cream);
+  cursor: var(--cursor-pointer, pointer);
+  transition:
+    opacity 0.4s,
+    transform 0.4s;
+}
+
+.reel-slide:not([data-current]) .reel-card {
+  opacity: 0.6;
+  transform: scale(0.92);
+}
+
+.reel-card:hover {
+  opacity: 1;
+}
+
+.reel-card:focus-visible {
+  outline: 2px dotted var(--xp-text);
+  outline-offset: 3px;
+}
+
+.reel-card:active {
+  filter: brightness(0.9);
+}
+
+.reel-poster {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--xp-screen);
+}
+
+.reel-poster video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.reel-play {
+  position: relative;
+  filter: drop-shadow(0 1px 2px rgb(10 20 40 / 0.8));
+  transition: transform 0.2s;
+}
+
+.reel-card:hover .reel-play {
+  transform: scale(1.15);
+}
+
+.reel-new {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 2px;
+  font-size: 0.6875rem;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--xp-text-inverse);
+  background: var(--xp-close-dark);
+}
+
+.reel-meta {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  min-width: 0;
+}
+
+.reel-team {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.reel-avatar {
+  overflow: hidden;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.reel-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reel-team-name,
+.reel-fact > :last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reel-team-name {
+  font-weight: bold;
+}
+
+.reel-fact {
+  display: flex;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.75rem;
+}
+
+.reel-fact-label {
+  flex: none;
+  width: 2.25rem;
+  color: var(--xp-title-dark);
+  font-weight: bold;
+}
+
+.reel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-inline: 1rem;
+}
+
+.reel-step {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+}
+
+.reel-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-width: 0;
+}
+
+.reel-dot {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 2.75rem;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.reel-dot::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--xp-title-dark);
+  border-radius: 50%;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
+
+.reel-dot:hover::before {
+  transform: scale(1.3);
+}
+
+.reel-dot[aria-current]::before {
+  background: var(--xp-title-dark);
+  transform: scale(1.3);
+}
+
+.reel-dot:focus-visible {
+  outline: 2px dotted var(--xp-text);
+  outline-offset: -4px;
+}
+
+.reel-count {
+  font-size: 0.75rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--xp-title-dark);
+}
+
+.reel-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 1rem;
+}
+
+/* Glacier: a frost sheet with the display face; the title bar shrinks to the X. */
+
+[data-theme="glacier"] .reel-popup {
+  --card: 13.5rem;
+  --gap: 1.25rem;
+  border-color: rgb(143 227 255 / 0.5);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 48px rgb(143 227 255 / 0.18),
+    0 24px 60px rgb(2 12 24 / 0.6);
+}
+
+[data-theme="glacier"] .xp-backdrop .reel-popup .reel-bar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  padding: 0;
+}
+
+[data-theme="glacier"] .reel-bar > :not(.reel-x) {
+  display: none;
+}
+
+[data-theme="glacier"] .reel-x {
+  width: 44px;
+  height: 44px;
+}
+
+[data-theme="glacier"] .reel-x:focus-visible {
+  outline: 3px solid var(--g-focus);
+  outline-offset: 2px;
+}
+
+[data-theme="glacier"] .reel-head {
+  padding: 26px 76px 4px 28px;
+}
+
+[data-theme="glacier"] .reel-head h2 {
+  color: var(--g-text-strong);
+  font: 28px/1.15 var(--g-display);
+}
+
+[data-theme="glacier"] .reel-head p,
+[data-theme="glacier"] .reel-count {
+  color: var(--g-label);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Room for the current card's glow, which the clip box would otherwise cut square. */
+[data-theme="glacier"] .reel-track {
+  padding-block: 28px;
+}
+
+[data-theme="glacier"] .reel-stage {
+  padding-block: 0 8px;
+}
+
+[data-theme="glacier"] .reel-card {
+  overflow: hidden;
+  border: 1px solid var(--g-frost-edge);
+  border-radius: 18px;
+  color: var(--g-text);
+  background: var(--g-frost);
+}
+
+[data-theme="glacier"] .reel-slide[data-current] .reel-card {
+  border-color: var(--g-link);
+  box-shadow:
+    0 0 0 1px rgb(143 227 255 / 0.35),
+    0 0 28px rgb(143 227 255 / 0.35);
+}
+
+[data-theme="glacier"] .reel-card:focus-visible {
+  outline: 3px solid var(--g-focus);
+}
+
+[data-theme="glacier"] .reel-meta {
+  padding: 10px 14px 14px;
+  font-size: 15px;
+}
+
+[data-theme="glacier"] .reel-fact {
+  font-size: 13px;
+}
+
+[data-theme="glacier"] .reel-fact-label {
+  width: 2.5rem;
+  color: var(--g-label);
+}
+
+[data-theme="glacier"] .reel-avatar {
+  border-radius: 999px;
+}
+
+[data-theme="glacier"] .reel-new {
+  border-radius: 999px;
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+[data-theme="glacier"] .reel-dot::before {
+  border-color: var(--g-link);
+}
+
+[data-theme="glacier"] .reel-dot[aria-current]::before {
+  background: var(--g-link);
+  box-shadow: 0 0 10px rgb(143 227 255 / 0.7);
+}
+
+[data-theme="glacier"] .reel-dot:focus-visible {
+  outline: 3px solid var(--g-focus);
+}
+
+[data-theme="glacier"] .reel-footer {
+  padding: 8px 24px 24px;
+}
+
+[data-theme="glacier"] .xp-button.reel-continue {
+  border-color: var(--g-red);
+  color: var(--g-snow);
+  background: var(--g-red);
+  box-shadow: 0 4px 0 #a8121d;
+}
+
+[data-theme="glacier"] .xp-button.reel-continue:hover {
+  background: #e02a36;
+}
+
+[data-theme="glacier"] .xp-button.reel-continue:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #a8121d;
+}
+
+/* Phone: a near full-screen sheet, one card with its neighbours peeking. */
+
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  .reel-backdrop {
+    padding: 0.5rem;
+  }
+
+  .reel-popup,
+  [data-theme="glacier"] .reel-popup {
+    --card: min(64vw, 17rem);
+    --gap: 0.75rem;
+    width: 100%;
+    height: calc(100dvh - 1rem);
+    max-height: none;
+  }
+
+  .reel-stage {
+    flex: 1;
+    align-content: center;
+    overflow-y: auto;
+  }
+
+  .reel-footer > .xp-button {
+    flex: 1;
+  }
+
+  [data-theme="glacier"] .reel-head {
+    padding: 22px 70px 4px 20px;
+  }
+
+  [data-theme="glacier"] .reel-head h2 {
+    font-size: 24px;
+  }
+
+  [data-theme="glacier"] .reel-footer {
+    padding: 8px 16px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reel-track,
+  .reel-card,
+  .reel-play,
+  .reel-dot::before {
+    transition: none;
+  }
+}
