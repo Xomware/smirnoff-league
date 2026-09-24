@@ -100,8 +100,17 @@ function renderShell() {
 }
 
 const title = () => screen.getByRole("heading", { level: 1 }).textContent;
-const tabBar = () => within(screen.getByRole("navigation", { name: "Tabs" }));
-const tab = (name: string) => tabBar().getByRole("button", { name });
+const drawer = () => within(screen.getByRole("dialog", { name: "Menu", hidden: true }));
+const openDrawer = () => fireEvent.click(within(screen.getByRole("banner")).getByRole("button", { name: "Menu" }));
+// XP's sections open from its drawer, as Glacier's do.
+const section = (name: string) => {
+  openDrawer();
+  fireEvent.click(within(drawer().getByRole("navigation", { name: "Main" })).getByRole("button", { name }));
+};
+const drawerRow = async (name: string) => {
+  openDrawer();
+  fireEvent.click(await drawer().findByRole("button", { name }));
+};
 const back = () => screen.getByRole("button", { name: "Back" });
 // Screens under the top one stay mounted but hidden, so query the visible one.
 const top = () => within(document.querySelector<HTMLElement>(".m-screen:not([hidden])")!);
@@ -139,7 +148,7 @@ describe("shell choice", () => {
   ])("%s: phone app %s", (_, phone, s) => {
     viewport(s);
     renderShell();
-    expect(screen.queryByRole("navigation", { name: "Tabs" }) !== null).toBe(phone);
+    expect(document.querySelector(".m-app") !== null).toBe(phone);
     expect(document.querySelector(".xp-desktop") !== null).toBe(!phone);
     expect(document.body.classList.contains("xp-cursor")).toBe(!phone);
   });
@@ -166,8 +175,7 @@ describe("shell choice", () => {
 
   it("keeps the screen when the phone rotates", async () => {
     renderShell();
-    fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /Standings/ }));
+    section("League");
     await waitFor(() => expect(title()).toBe("League"));
 
     act(() => {
@@ -178,7 +186,7 @@ describe("shell choice", () => {
     expect(title()).toBe("League");
     expect(subtab("League", "Standings").getAttribute("aria-current")).toBe("page");
     act(() => window.history.back());
-    await waitFor(() => expect(title()).toBe("Menu"));
+    await waitFor(() => expect(title()).toBe("Smirnoff League"));
   });
 });
 
@@ -225,65 +233,67 @@ describe("Glacier", () => {
     const { container } = renderShell();
     expect(container.querySelector("[data-theme]")).toBeNull();
     expect(container.querySelector(".glacier-effects")).toBeNull();
-    expect(tabBar().getAllByRole("button")).toHaveLength(4);
+    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
     expect(container.querySelector(".m-hero")).not.toBeNull();
   });
 });
 
-describe("tabs", () => {
-  it("has exactly four: Home, Games, Ices and Menu", () => {
+describe("XP drawer", () => {
+  it("has no tab bar, and starts on Home", () => {
     renderShell();
-    expect(tabBar().getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
-    expect(tab("Home").getAttribute("aria-current")).toBe("page");
+    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
     expect(title()).toBe("Smirnoff League");
+    openDrawer();
+    expect(within(drawer().getByRole("navigation", { name: "Main" })).getByRole("button", { name: "Home" }).getAttribute("aria-current")).toBe("page");
   });
 
-  it.each(["Home", "Games", "Menu"])("%s has no tab strip of its own", async (name) => {
+  it.each([
+    ["Home", "/"],
+    ["Games", "/?open=watch"],
+    ["Menu", "/?open=menu"],
+  ])("%s has no tab strip of its own", async (_, url) => {
     withWeek3();
+    window.history.replaceState(null, "", url);
     renderShell();
-    fireEvent.click(tab(name));
     await waitFor(() => expect(top().queryByRole("status")).toBeNull());
     expect(top().queryByRole("tablist")).toBeNull();
   });
 
-  it("tracks each tab and each pushed screen as an open", async () => {
+  it("tracks the drawer and each page it opens as an open", async () => {
     vi.mocked(track).mockClear();
     renderShell();
-    fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: /Brackets/ }));
+    section("Games");
     await waitFor(() => expect(title()).toBe("Games"));
     expect(vi.mocked(track).mock.calls).toEqual([
       ["open", "tab:menu"],
-      ["open", "brackets"],
+      ["open", "watch"],
     ]);
   });
 
-  it("reaches the draft recap, my profile and settings from Menu", async () => {
+  it("reaches the draft recap, my profile and settings", async () => {
     renderShell();
-    fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: "Draft recap" }));
+    section("League");
+    fireEvent.click(subtab("League", "Recap"));
     await waitFor(() => expect(top().getByTitle("Smirnoff League draft recap")).toBeTruthy());
     expect(title()).toBe("League");
-    fireEvent.click(tab("Menu"));
-    await waitFor(() => expect(title()).toBe("Menu"));
 
-    fireEvent.click(top().getByRole("button", { name: "My Profile" }));
+    await drawerRow("My Profile");
     await waitFor(() => expect(title()).toBe("My Profile"));
     expect(await top().findByRole("textbox", { name: "Full name" })).toBeTruthy();
     fireEvent.click(back());
-    await waitFor(() => expect(title()).toBe("Menu"));
+    await waitFor(() => expect(title()).toBe("League"));
 
-    fireEvent.click(top().getByRole("button", { name: "Settings" }));
+    await drawerRow("Settings");
     await waitFor(() => expect(title()).toBe("Settings"));
     expect(await top().findByRole("checkbox", { name: /Email me alerts/ })).toBeTruthy();
-    expect(window.location.search).toBe("?open=menu,settings");
+    expect(window.location.search).toBe("?open=recap,settings");
   });
 
   it("lists the Control Panel only for an admin", async () => {
     renderShell();
-    fireEvent.click(tab("Menu"));
-    await top().findByRole("heading", { name: "Thirteen" });
-    expect(top().queryByRole("button", { name: /Control Panel/ })).toBeNull();
+    openDrawer();
+    await drawer().findByRole("button", { name: "Sign out" });
+    expect(drawer().queryByRole("button", { name: /Control Panel/ })).toBeNull();
   });
 });
 
@@ -301,7 +311,8 @@ describe("Home", () => {
   it("opens the Games tab from All games", async () => {
     renderShell();
     fireEvent.click(await top().findByRole("button", { name: "All games" }));
-    expect(tab("Games").getAttribute("aria-current")).toBe("page");
+    expect(title()).toBe("Games");
+    expect(subtab("Games", "This week").getAttribute("aria-current")).toBe("page");
     expect(window.location.search).toBe("?open=watch");
   });
 });
@@ -309,7 +320,7 @@ describe("Home", () => {
 describe("Games", () => {
   it("steps weeks and pushes a game with both lineups, Back and the browser's back both returning", async () => {
     renderShell();
-    fireEvent.click(tab("Games"));
+    section("Games");
     fireEvent.click(subtab("Games", "Scores"));
     expect(await top().findByText("No matchups for week 3 yet.")).toBeTruthy();
 
@@ -339,7 +350,7 @@ describe("Games", () => {
   it("opens a deep-linked game over the Games tab", async () => {
     window.history.replaceState(null, "", "/?open=games,game:1-1");
     renderShell();
-    expect(tab("Games").getAttribute("aria-current")).toBe("page");
+    expect(subtab("Games", "Scores").getAttribute("aria-current")).toBe("page");
     expect(title()).toBe("Week 1");
     expect(await top().findAllByRole("region", { name: /lineup$/ })).toHaveLength(2);
     fireEvent.click(back());
@@ -354,12 +365,12 @@ describe("scenario at 393px", () => {
     const row = await screen.findByRole("list", { name: "This week's matchups" });
     fireEvent.click(within(row).getAllByRole("button")[0]);
     await waitFor(() => expect(title()).toBe("Week 3"));
-    expect(tab("Home").getAttribute("aria-current")).toBe("page");
+    expect(window.location.search).toMatch(/^\?open=home,game:3-\d+$/);
 
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Smirnoff League"));
 
-    fireEvent.click(tab("Ices"));
+    section("Ices");
     expect(title()).toBe("Ices");
     const owes = within(await top().findByRole("list", { name: "Who owes now" }));
     fireEvent.click(owes.getByRole("button", { name: "Upload chug" }));
@@ -371,8 +382,8 @@ describe("scenario at 393px", () => {
 describe("Ices", () => {
   it("ranks the season or this week with a segmented control, not tabs", async () => {
     renderShell();
-    fireEvent.click(tab("Ices"));
-    fireEvent.click(subtab("Ices", "Ice standings"));
+    section("Ices");
+    fireEvent.click(subtab("Ices", "Standings"));
     const ranks = within(await top().findByRole("list", { name: "Ice standings" }));
     expect(ranks.getAllByRole("listitem").map((r) => parseInt(r.textContent!))).toEqual(Array.from({ length: 14 }, (_, i) => i + 1));
 
@@ -386,7 +397,7 @@ describe("Ices", () => {
 
   it("lists who owes now, most first, with only my own row offering an upload", async () => {
     renderShell();
-    fireEvent.click(tab("Ices"));
+    section("Ices");
     const rows = [...(await top().findByRole("list", { name: "Who owes now" })).children] as HTMLElement[];
     expect(rows.map((r) => r.textContent?.match(/Team \d+/)?.[0])).toEqual(["Team 13", "Team 12"]);
     expect(within(rows[0]).getByRole("button", { name: "Upload chug" })).toBeTruthy();
@@ -400,28 +411,24 @@ function expectTabbed(label: string, sections: string[]) {
   expect(strip.getAllByRole("tab").map((t) => t.textContent)).toEqual(sections);
   expect(strip.getByRole("tab", { name: sections[0] }).getAttribute("aria-selected")).toBe("true");
   expect(top().getAllByRole("tabpanel")).toHaveLength(1);
-  expect(document.querySelectorAll(".m-screen:not([hidden]) nav")).toHaveLength(0);
+  expect(document.querySelectorAll(".m-screen:not([hidden]) nav:not(.m-subtabs)")).toHaveLength(0);
 }
 
 describe("Ice Rankings", () => {
-  it("has a Menu row and a sub-tab in the Ices tab", async () => {
+  it("is a sub-tab in the Ices section", async () => {
     renderShell();
-    fireEvent.click(tab("Ices"));
+    section("Ices");
     fireEvent.click(subtab("Ices", "Rankings"));
     expect(await top().findByRole("heading", { name: "Ice Rankings" })).toBeTruthy();
-
-    fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: "Rankings" }));
-    await waitFor(() => expect(window.location.search).toBe("?open=chug-rankings"));
-    expect(tab("Ices").getAttribute("aria-current")).toBe("page");
+    expect(window.location.search).toBe("?open=chug-rankings");
   });
 });
 
 describe("screens that were tabbed on the desktop", () => {
   it("tabs Ice Stats' sections", async () => {
     renderShell();
-    fireEvent.click(tab("Menu"));
-    fireEvent.click(top().getByRole("button", { name: "Stats" }));
+    section("Ices");
+    fireEvent.click(subtab("Ices", "Stats"));
     await top().findByRole("tablist", { name: "Ice Stats sections" });
     expectTabbed("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
   });
@@ -429,7 +436,7 @@ describe("screens that were tabbed on the desktop", () => {
   it("tabs a team profile, and drills from its lineup to a player and back", async () => {
     window.history.replaceState(null, "", "/?open=team:6");
     renderShell();
-    expect(tab("Menu").getAttribute("aria-current")).toBe("page");
+    expect(subtab("League", "Standings").getAttribute("aria-current")).toBe("page");
     await top().findByRole("tablist", { name: "Team 6 sections" });
     expect(title()).toBe("Team 6");
     expectTabbed("Team 6 sections", ["Results", "Ices", "Moves", "Head-to-head", "Lineup"]);

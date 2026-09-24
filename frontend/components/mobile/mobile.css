@@ -2,13 +2,16 @@
 @media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
   :root {
     --taskbar-height: 4rem;
+    --m-bar-height: 3.5rem;
   }
 
-  /* A toast above the tab bar, not a balloon pointing at a tray that isn't there. */
+  /* A toast hanging under the title bar, as Glacier's does, rather than a
+     balloon pointing at a tray that isn't there or sitting on the page. */
   .xp-balloon {
+    top: calc(var(--m-bar-height) + env(safe-area-inset-top) + 0.5rem);
     right: 0.75rem;
+    bottom: auto;
     left: 0.75rem;
-    bottom: calc(var(--taskbar-top) + 0.5rem);
     width: auto;
     font-size: 1rem;
   }
@@ -108,7 +111,7 @@
   flex: none;
   align-items: center;
   gap: 0.25rem;
-  min-height: calc(3.5rem + env(safe-area-inset-top));
+  min-height: calc(var(--m-bar-height, 3.5rem) + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) calc(var(--m-pad) - 0.5rem) 0 calc(var(--m-pad) - 0.5rem);
   color: var(--xp-text-inverse);
   background: linear-gradient(var(--xp-title-light), var(--xp-title) 22%, var(--xp-title) 80%, var(--xp-title-dark));
@@ -132,6 +135,7 @@
 
 .m-back,
 .m-search,
+.m-burger,
 .m-bar .notif-bell {
   display: grid;
   flex: none;
@@ -149,6 +153,7 @@
 
 .m-back:active,
 .m-search:active,
+.m-burger:active,
 .m-bar .notif-bell:active {
   background: rgb(0 0 0 / 0.15);
 }
@@ -178,104 +183,58 @@
   visibility: hidden;
 }
 
-.m-tabs {
-  display: grid;
-  flex: none;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.25rem;
-  padding: 0.25rem calc(var(--m-pad) - 0.5rem) calc(0.25rem + env(safe-area-inset-bottom));
-  background: linear-gradient(var(--xp-taskbar-light), var(--xp-taskbar) 14%, var(--xp-taskbar) 86%, var(--xp-taskbar-dark));
-}
-
-.m-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.125rem;
-  min-height: 3.5rem;
-  border-radius: 0.625rem;
-  font-size: 0.875rem;
-  color: var(--xp-text-inverse);
-  cursor: pointer;
-}
-
-.m-tab svg,
-.m-tab img {
-  height: 24px;
-}
-
-.m-tab:active {
-  background: rgb(0 0 0 / 0.18);
-}
-
-.m-tab[aria-current="page"] {
-  font-weight: bold;
-  background: linear-gradient(var(--xp-taskbar-dark), var(--xp-tray));
-  box-shadow: inset 1px 1px 3px var(--xp-screen);
-}
-
-.m-app .m-tabs :focus-visible {
-  outline-color: var(--xp-text-inverse);
-  outline-offset: -3px;
-}
-
-/* A section's pages, as XP tabs under the title bar. The row scrolls
-   sideways and fades at an edge while there are more tabs that way. */
+/* A section's pages, as a grid of XP buttons at the top of the page. It
+   scrolls away with the page: two rows of thumb-sized buttons are too tall
+   to pin over it. */
 .m-subtabs {
-  --fade-start: 0px;
-  --fade-end: 0px;
-  position: relative;
-  display: flex;
-  flex: none;
-  gap: 2px;
-  padding: 0.375rem var(--m-pad) 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  background: var(--xp-face);
-  box-shadow: inset 0 -1px 0 var(--xp-face-shadow);
-  mask-image: linear-gradient(to right, transparent, black var(--fade-start), black calc(100% - var(--fade-end)), transparent);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.375rem;
+  margin-bottom: 0.625rem;
 }
 
-.m-subtabs[data-more-start] {
-  --fade-start: 2rem;
-}
-
-.m-subtabs[data-more-end] {
-  --fade-end: 2rem;
+.m-subtabs[data-cols="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .m-subtab {
-  flex: none;
+  min-width: 0;
   min-height: 2.75rem;
-  padding: 0 1rem;
-  border: 1px solid var(--xp-face-shadow);
-  border-bottom: 0;
-  border-radius: 4px 4px 0 0;
+  padding: 0 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--xp-button-border);
+  border-radius: 3px;
   color: var(--xp-text);
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  background: linear-gradient(var(--xp-cream), var(--xp-face));
+  background: linear-gradient(var(--xp-cream), var(--xp-face) 85%, var(--xp-face-shadow));
   cursor: pointer;
 }
 
 @media (hover: hover) {
   .m-subtab:hover {
-    box-shadow: inset 0 2px 0 var(--xp-gold);
+    box-shadow: inset 0 0 0 2px var(--xp-gold);
   }
 }
 
 .m-subtab:active {
-  background: var(--xp-face);
+  background: var(--xp-face-shadow);
 }
 
 .m-subtab[aria-current="page"] {
+  border-color: var(--xp-select);
   font-weight: bold;
-  background: var(--m-bg);
-  box-shadow: inset 0 3px 0 var(--xp-gold);
+  background: var(--xp-cream);
+  box-shadow: inset 0 -3px 0 var(--xp-gold);
 }
 
-.m-app .m-subtabs :focus-visible {
-  outline-offset: -3px;
+/* What the page holds, in a line under its sub-tabs. */
+.m-lede {
+  margin-bottom: 1rem;
+  color: var(--m-muted);
+  font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
 /* Page building blocks. */
@@ -328,12 +287,6 @@
 
 .m-rows {
   overflow: hidden;
-}
-
-.m-theme-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 0.75rem;
 }
 
 .m-rows > li + li {
@@ -957,9 +910,37 @@
   gap: 0.75rem;
 }
 
-/* A view's own tabs, big enough for a thumb. */
+/* A view's own tabs, big enough for a thumb, wrapping onto a second row
+   rather than hiding the rest off the side. */
+.m-app .xp-tab-strip {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  mask-image: none;
+}
+
+/* At most three to a row, so five tabs split three and two rather than four and one. */
 .m-app .xp-tab {
+  flex: 1 1 30%;
   min-height: 2.75rem;
+}
+
+/* Wrapped, XP's tabs are buttons: a folder tab only reads on the row touching the page. */
+.m-app:not(.glacier) .xp-tab-strip {
+  gap: 0.25rem;
+  padding: 0 0 0.375rem;
+}
+
+.m-app:not(.glacier) .xp-tab,
+.m-app:not(.glacier) .xp-tab[aria-selected="true"] {
+  margin: 0;
+  padding: 0 0.625rem;
+  border-bottom: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+}
+
+.m-app:not(.glacier) .xp-tab[aria-selected="true"] {
+  border-color: var(--xp-select);
+  box-shadow: inset 0 -3px 0 var(--xp-gold);
 }
 
 /* A desktop chart card, as a phone card: no title bar. */
@@ -1136,14 +1117,8 @@
 
 /* A phone on its side: the same app, with the bars trimmed to leave room for content. */
 @media (max-height: 500px) {
-  .m-bar {
-    min-height: calc(2.75rem + env(safe-area-inset-top));
-  }
-
-  .m-tab {
-    flex-direction: row;
-    gap: 0.5rem;
-    min-height: 2.75rem;
+  :root {
+    --m-bar-height: 2.75rem;
   }
 
   .m-screen {
@@ -1170,4 +1145,94 @@
   border: 1px solid var(--m-line);
   border-radius: 0.875rem;
   background: var(--xp-cream);
+}
+
+/* XP's Menu drawer: a Start menu sliding in from the right, blue header,
+   sections on white and the account rows on the menu's pale blue side. */
+.m-app:not(.glacier) .gp-drawer-panel {
+  border-left: 2px solid var(--xp-taskbar-dark);
+  background: var(--xp-cream);
+  box-shadow: -3px 0 10px rgb(10 30 80 / 0.5);
+}
+
+.m-app:not(.glacier) .gp-drawer-head {
+  min-height: 3.5rem;
+  padding: 0 0.625rem 0 1rem;
+  border: 0;
+  color: var(--xp-text-inverse);
+  background: linear-gradient(var(--xp-title-light), var(--xp-title-dark));
+}
+
+.m-app:not(.glacier) .gp-drawer-head h2 {
+  color: inherit;
+  font: bold 1.25rem var(--xp-title-font);
+  letter-spacing: 0;
+  text-transform: none;
+  text-shadow: 1px 1px var(--xp-frame);
+}
+
+.m-app:not(.glacier) .gp-drawer-close {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--xp-text-inverse);
+  border-radius: 3px;
+  color: var(--xp-text-inverse);
+  background: linear-gradient(135deg, var(--xp-close), var(--xp-close-dark));
+}
+
+.m-app:not(.glacier) .gp-drawer-close:active {
+  filter: brightness(0.85);
+}
+
+.m-app:not(.glacier) .gp-drawer-head :focus-visible {
+  outline-color: var(--xp-text-inverse);
+}
+
+.m-app:not(.glacier) .gp-drawer-body {
+  padding: 0;
+}
+
+.m-app:not(.glacier) .gp-quick {
+  gap: 0;
+  margin: 0;
+  padding: 0.375rem;
+}
+
+.m-app:not(.glacier) .gp-quick button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border-radius: 3px;
+  color: var(--xp-text);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.m-app:not(.glacier) .gp-quick button:active {
+  color: var(--xp-text-inverse);
+  background: var(--xp-select);
+}
+
+.m-app:not(.glacier) .gp-quick button[aria-current="page"] {
+  box-shadow: inset 3px 0 0 var(--xp-gold);
+  background: color-mix(in srgb, var(--xp-select) 14%, var(--xp-cream));
+}
+
+.m-app:not(.glacier) .gp-quick :focus-visible {
+  outline-offset: -3px;
+}
+
+.m-app:not(.glacier) .gp-account {
+  padding: 0.75rem 0.375rem;
+  border-top: 1px solid var(--xp-face-shadow);
+  background: var(--xp-menu-side);
+}
+
+.m-app:not(.glacier) .gp-account .m-card {
+  border: 0;
+  box-shadow: none;
+  background: none;
 }

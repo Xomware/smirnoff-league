@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -67,7 +70,7 @@ afterEach(() => {
 });
 
 describe("phone section sub-tabs", () => {
-  it.each(SECTIONS.filter((s) => !s.account && s.pages.length > 1).map((s) => [s.label, s.pages.map((p) => p.label)] as const))(
+  it.each(SECTIONS.filter((s) => !s.account && s.pages.length > 1).map((s) => [s.label, s.pages.map((p) => p.short ?? p.label)] as const))(
     "%s shows its subpages as tabs and renders one at a time",
     async (section, labels) => {
       renderPhone();
@@ -95,30 +98,30 @@ describe("phone section sub-tabs", () => {
     expect(top().queryByRole("list", { name: "Chug videos" })).toBeNull();
     expect(window.location.search).toBe("?open=ices-overview");
 
-    fireEvent.click(subtabs("Ices").getByRole("button", { name: "Ice standings" }));
+    fireEvent.click(subtabs("Ices").getByRole("button", { name: "Standings" }));
     expect(await top().findByRole("list", { name: "Ice standings" })).toBeTruthy();
     expect(top().queryByRole("list", { name: "Who owes now" })).toBeNull();
     expect(window.location.search).toBe("?open=ice-standings");
     expect(title()).toBe("Ices");
 
-    fireEvent.click(subtabs("Ices").getByRole("button", { name: "Chug videos" }));
+    fireEvent.click(subtabs("Ices").getByRole("button", { name: "Videos" }));
     expect(window.location.search).toBe("?open=videos");
 
     act(() => window.history.back());
-    await waitFor(() => expect(current("Ices")).toEqual(["Ice standings"]));
+    await waitFor(() => expect(current("Ices")).toEqual(["Standings"]));
     expect(window.location.search).toBe("?open=ice-standings");
     act(() => window.history.forward());
-    await waitFor(() => expect(current("Ices")).toEqual(["Chug videos"]));
+    await waitFor(() => expect(current("Ices")).toEqual(["Videos"]));
   });
 
   it.each([
     ["?open=chug-rankings", "Ices", "Rankings"],
     ["?open=ices-overview", "Ices", "Overview"],
     ["?open=ices", "Ices", "Ledger"],
-    ["?open=recap", "League", "Draft recap"],
+    ["?open=recap", "League", "Recap"],
     ["?open=news", "League", "News"],
-    ["?open=writeup", "News Drop", "Latest edition"],
-    ["?open=week:2", "Games", "Week view"],
+    ["?open=writeup", "News Drop", "Latest"],
+    ["?open=week:2", "Games", "Week"],
   ])("deep link %s selects %s > %s", (search, section, label) => {
     window.history.replaceState(null, "", `/${search}`);
     renderPhone();
@@ -191,28 +194,117 @@ describe("Glacier phone drawer", () => {
   });
 });
 
-describe("XP phone", () => {
-  it("keeps its four tabs and gives Ices XP sub-tabs, one page at a time", async () => {
-    renderPhone("xp");
-    const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    expect(tabs.getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "Menu"]);
+const inject = (...files: string[]) => {
+  const style = document.createElement("style");
+  style.textContent = files.map((f) => readFileSync(join(__dirname, f), "utf8")).join("\n");
+  document.head.append(style);
+};
+const THEME_CSS = { xp: ["mobile.css"], glacier: ["mobile.css", "../glacier/glacier-phone.css"] };
 
-    fireEvent.click(tabs.getByRole("button", { name: "Ices" }));
+describe("XP phone", () => {
+  it("has no tab bar: a hamburger in the title bar opens an XP drawer that keeps focus", async () => {
+    renderPhone("xp");
+    expect(screen.queryByRole("navigation", { name: "Tabs" })).toBeNull();
+    const burger = within(screen.getByRole("banner")).getByRole("button", { name: "Menu" });
+    expect(burger.getAttribute("aria-expanded")).toBe("false");
+
+    burger.focus();
+    openDrawer();
+    expect(burger.getAttribute("aria-expanded")).toBe("true");
+    const dialog = screen.getByRole("dialog", { name: "Menu" });
+    expect(dialog.closest(".m-app")!.classList.contains("glacier")).toBe(false);
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    await drawer().findByRole("button", { name: "Sign out" });
+    const main = within(drawer().getByRole("navigation", { name: "Main" }));
+    expect(main.getAllByRole("button").map((b) => b.textContent)).toEqual(["Home", "Games", "Ices", "League", "News Drop"]);
+    const account = within(drawer().getByRole("navigation", { name: "Account" }));
+    expect(account.getAllByRole("button").map((b) => b.textContent)).toEqual(["My Profile", "Settings", "Classic XP", "Glacier", "Sign out"]);
+
+    const all = [...dialog.querySelectorAll<HTMLElement>("button:not([disabled])")];
+    all[all.length - 1].focus();
+    fireEvent.keyDown(document.activeElement!, { key: "Tab" });
+    expect(document.activeElement).toBe(all[0]);
+    fireEvent.keyDown(document.activeElement!, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(all[all.length - 1]);
+
+    fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+    expect(dialog.closest(".gp-drawer")!.hasAttribute("inert")).toBe(true);
+    expect(document.activeElement).toBe(burger);
+  });
+
+  it("adds the Control Panel to the drawer for an admin", async () => {
+    signIn(true);
+    renderPhone("xp");
+    openDrawer();
+    expect(await within(drawer().getByRole("navigation", { name: "Account" })).findByRole("button", { name: "Control Panel" })).toBeTruthy();
+  });
+
+  it("opens Ices from the drawer with XP sub-tabs, one page at a time", async () => {
+    renderPhone("xp");
+    drawerSection("Ices");
+    expect(title()).toBe("Ices");
     expect(current("Ices")).toEqual(["Overview"]);
     expect(await top().findByRole("list", { name: "Who owes now" })).toBeTruthy();
-    expect(top().queryByRole("list", { name: "Ice standings" })).toBeNull();
 
     fireEvent.click(subtabs("Ices").getByRole("button", { name: "Rankings" }));
     expect(window.location.search).toBe("?open=chug-rankings");
-    expect(tabs.getByRole("button", { name: "Ices" }).getAttribute("aria-current")).toBe("page");
+    expect(document.activeElement).toBe(subtabs("Ices").getByRole("button", { name: "Rankings" }));
   });
 
-  it("opens a League page from Menu with its sub-tabs, Menu still lit", () => {
+  it("opens My Profile from the drawer over the current page with Back", async () => {
     renderPhone("xp");
-    const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    fireEvent.click(tabs.getByRole("button", { name: "Menu" }));
-    fireEvent.click(top().getByRole("button", { name: /Draft recap/ }));
-    expect(current("League")).toEqual(["Draft recap"]);
-    expect(tabs.getByRole("button", { name: "Menu" }).getAttribute("aria-current")).toBe("page");
+    drawerSection("League");
+    openDrawer();
+    fireEvent.click(drawer().getByRole("button", { name: "My Profile" }));
+    await waitFor(() => expect(title()).toBe("My Profile"));
+    expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
   });
 });
+
+describe.each(["xp", "glacier"] as const)("sub-tab grid, %s phone", (theme) => {
+  it("lays Ices' six pages out three across, every one on screen with no sideways scroll", () => {
+    inject(...THEME_CSS[theme]);
+    window.history.replaceState(null, "", "/?open=ices-overview");
+    renderPhone(theme);
+    const grid = screen.getByRole("navigation", { name: "Ices pages" });
+    expect(within(grid).getAllByRole("button").map((b) => b.textContent)).toEqual(["Overview", "Ledger", "Standings", "Rankings", "Stats", "Videos"]);
+    const style = getComputedStyle(grid);
+    expect(style.display).toBe("grid");
+    expect(style.gridTemplateColumns).toBe("repeat(3, minmax(0, 1fr))");
+    expect(style.overflowX).not.toMatch(/auto|scroll/);
+  });
+
+  it("puts Games' four pages two by two", () => {
+    inject(...THEME_CSS[theme]);
+    window.history.replaceState(null, "", "/?open=watch");
+    renderPhone(theme);
+    const grid = screen.getByRole("navigation", { name: "Games pages" });
+    expect(within(grid).getAllByRole("button").map((b) => b.textContent)).toEqual(["This week", "Scores", "Week", "Brackets"]);
+    expect(getComputedStyle(grid).gridTemplateColumns).toBe("repeat(2, minmax(0, 1fr))");
+  });
+
+  it("scrolls away with the page instead of sitting over it", () => {
+    window.history.replaceState(null, "", "/?open=ices-overview");
+    renderPhone(theme);
+    expect(shown()[0].contains(screen.getByRole("navigation", { name: "Ices pages" }))).toBe(true);
+  });
+});
+
+describe("page descriptions", () => {
+  const pages = SECTIONS.flatMap((s) => s.pages.map((p) => [s.label, p.label, p] as const));
+
+  it.each(pages)("%s > %s has a one-line description", (_, __, page) => {
+    expect(page.description).toMatch(/^[A-Z].{15,90}[.]$/);
+  });
+
+  // Alternating themes covers both without rendering every page twice.
+  const opened = pages.filter(([, , p]) => p.kind !== "home").map(([s, l, p], i) => [s, l, i % 2 ? "xp" : "glacier", p] as const);
+
+  it.each(opened)("%s > %s shows its description on the %s phone", async (_, __, theme, page) => {
+    signIn(true);
+    window.history.replaceState(null, "", `/?open=${page.kind === "week" ? "week:2" : page.kind}`);
+    renderPhone(theme);
+    expect(await top().findByText(page.description)).toBeTruthy();
+  });
+});
+

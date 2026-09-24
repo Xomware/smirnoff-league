@@ -58,20 +58,46 @@ export function ProvisionalBoard({ owed, teamFor }: BoardProps) {
 }
 
 const NUMBERS = [
-  { key: "owed", label: "Owed" },
-  { key: "completed", label: "Completed" },
-  { key: "late", label: "Late" },
-  { key: "overdue", label: "Overdue" },
+  { key: "owed", label: "Owed", short: "Owed" },
+  { key: "completed", label: "Completed", short: "Done" },
+  { key: "late", label: "Late", short: "Late" },
+  { key: "overdue", label: "Overdue", short: "Overdue" },
 ] as const;
 
 interface SummaryProps {
   rows: LedgerSummary[];
   teamFor: (rosterId: number) => Team;
+  // A row per team with its four counts under the name, so nothing scrolls sideways.
+  stacked?: boolean;
 }
 
-function SeasonSummary({ rows, teamFor }: SummaryProps) {
+function SeasonSummary({ rows, teamFor, stacked = false }: SummaryProps) {
   const outstanding = (s: LedgerSummary) => s.owed + s.lateOwed;
   const sorted = [...rows].sort((a, b) => outstanding(b) - outstanding(a) || b.late - a.late || a.rosterId - b.rosterId);
+  const team = (s: LedgerSummary) => (
+    <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
+      <TeamName name={teamFor(s.rosterId).name} iced={outstanding(s) > 0} ices={0} />
+    </DrillLink>
+  );
+  if (stacked)
+    return (
+      <ol aria-label="Season summary" className="summary-rows">
+        {sorted.map((s, i) => (
+          <li key={s.rosterId} className="summary-row">
+            <span className="ov-rank">{i + 1}</span>
+            {team(s)}
+            <dl className="summary-stats">
+              {NUMBERS.map(({ key, short }) => (
+                <div key={key}>
+                  <dt>{short}</dt>
+                  <dd>{s[key]}</dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))}
+      </ol>
+    );
   return (
     <table className="xp-table">
       <caption className="sr-only">Season summary</caption>
@@ -90,11 +116,7 @@ function SeasonSummary({ rows, teamFor }: SummaryProps) {
         {sorted.map((s, i) => (
           <tr key={s.rosterId}>
             <td>{i + 1}</td>
-            <td className="md:max-w-0">
-              <DrillLink to={{ kind: "team", rosterId: s.rosterId }}>
-                <TeamName name={teamFor(s.rosterId).name} iced={outstanding(s) > 0} ices={0} />
-              </DrillLink>
-            </td>
+            <td className="md:max-w-0">{team(s)}</td>
             {NUMBERS.map(({ key }) => (
               <td key={key} className="text-right tabular-nums">
                 {s[key]}
@@ -200,9 +222,13 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
       {summary && (
         <details className="ices-summary" open={!phone}>
           <summary className="xp-group-title">Season summary</summary>
-          <div className="xp-table-scroll">
-            <SeasonSummary rows={summary} teamFor={teamFor} />
-          </div>
+          {phone ? (
+            <SeasonSummary rows={summary} teamFor={teamFor} stacked />
+          ) : (
+            <div className="xp-table-scroll">
+              <SeasonSummary rows={summary} teamFor={teamFor} />
+            </div>
+          )}
           <p className="xp-note mt-2">
             Owed and completed count weekly ices. Late counts late ices; overdue is owed past its week&apos;s deadline.
           </p>

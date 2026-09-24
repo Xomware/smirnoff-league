@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type ComponentType, type UIEvent, useEffect, useId, useRef, useState } from "react";
+import { type ComponentType, type MouseEvent, type UIEvent, useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
@@ -15,11 +15,10 @@ import { FONTS } from "@/components/glacier/Frost";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Ticker } from "@/components/ticker/Ticker";
 import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
-import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
+import { BackArrowIcon, MenuIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { TabParamContext } from "@/components/xp/Tabs";
 import { track } from "@/lib/activity/tracker";
@@ -30,7 +29,7 @@ import { useLeague } from "@/lib/league/use-league";
 import { pageTab, rootOf, type Screen, type ScreenKind, screenId, sectionFor, stackOf, type Tab, TABS } from "@/lib/phone/nav";
 import { usePhoneNav } from "@/lib/phone/use-phone-nav";
 import { useProfile } from "@/lib/profile/use-profile";
-import { type PageKind, pagesFor, pageView, SECTIONS } from "@/lib/sections";
+import { descriptionOf, type PageKind, pagesFor, pageView, SECTIONS } from "@/lib/sections";
 import { GameScreen } from "./GameScreen";
 import { GamesScreen } from "./GamesScreen";
 import { HomeScreen } from "./HomeScreen";
@@ -77,14 +76,6 @@ const OVERRIDES: Partial<Record<WindowKind, Body>> = {
 const isPhoneKind = (kind: ScreenKind): kind is keyof typeof PHONE_SCREENS => kind in PHONE_SCREENS;
 const bodyOf = (kind: ScreenKind): Body => (isPhoneKind(kind) ? PHONE_SCREENS[kind] : (OVERRIDES[kind] ?? REGISTRY[kind].component));
 
-// XP's tab bar. League and News Drop open from its Menu, so Menu stays lit on them.
-const TAB_BAR: { tab: Tab; label: string; Icon: typeof HomeIcon }[] = [
-  { tab: "home", label: "Home", Icon: HomeIcon },
-  { tab: "games", label: "Games", Icon: ScoresIcon },
-  { tab: "ices", label: "Ices", Icon: IceBottleIcon },
-  { tab: "menu", label: "Menu", Icon: MenuIcon },
-];
-
 const GlacierPhoneHome = () => <GlacierHome phone />;
 
 function useScreenTitle(): (screen: Screen) => string {
@@ -119,7 +110,7 @@ interface MobileShellProps {
 
 export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const glacier = theme === "glacier";
-  const { nav, push, selectTab, open, back, retab } = usePhoneNav();
+  const { nav, push, open, back, retab } = usePhoneNav();
   const title = useScreenTitle();
   const week = useDefaultWeek();
   const isAdmin = useProfile().me?.isAdmin ?? false;
@@ -135,15 +126,18 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const drawerId = useId();
   const section = sectionFor(nav.tab);
   const subPages = section ? pagesFor(section, isAdmin) : [];
-  const bar = TAB_BAR.some((t) => t.tab === nav.tab) ? nav.tab : "menu";
+  const picked = useRef(false);
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
-  // A sub-tab stays put, so it keeps focus.
+  // A picked sub-tab went with its old screen, so its twin on the new one takes focus.
   useEffect(() => {
     if (shown.current === topKey) return;
     shown.current = topKey;
-    if (!document.activeElement?.closest(".m-subtabs")) heading.current?.focus({ preventScroll: true });
-    setScrolled((screens.current?.querySelector(".m-screen:not([hidden])")?.scrollTop ?? 0) > 24);
+    const page = screens.current?.querySelector<HTMLElement>(".m-screen:not([hidden])");
+    const tab = picked.current && page?.querySelector<HTMLElement>('.m-subtab[aria-current="page"]');
+    picked.current = false;
+    (tab || heading.current)?.focus({ preventScroll: true });
+    setScrolled((page?.scrollTop ?? 0) > 24);
   }, [topKey]);
 
   // Scroll doesn't bubble, so this listens in the capture phase; a carousel's sideways scroll isn't the page's.
@@ -167,7 +161,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     else push(screen);
   };
   const drill = ({ kind, ...params }: DrillTarget) => go({ kind, params });
-  const openMenu = () => {
+  // Safari never focuses a tapped button, and the drawer hands focus back to whatever had it.
+  const openMenu = (e: MouseEvent<HTMLButtonElement>) => {
+    e.currentTarget.focus();
     setMenuOpen(true);
     track("open", "tab:menu");
   };
@@ -200,39 +196,32 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
         </button>
         <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
-        {glacier && (
-          <button
-            type="button"
-            className="m-burger"
-            aria-label="Menu"
-            aria-haspopup="dialog"
-            aria-expanded={menuOpen}
-            aria-controls={drawerId}
-            onClick={openMenu}
-          >
-            <LineIcon d={LINE_ICONS.menu} />
-          </button>
-        )}
+        <button
+          type="button"
+          className="m-burger"
+          aria-label="Menu"
+          aria-haspopup="dialog"
+          aria-expanded={menuOpen}
+          aria-controls={drawerId}
+          onClick={openMenu}
+        >
+          {glacier ? <LineIcon d={LINE_ICONS.menu} /> : <MenuIcon width={24} height={24} />}
+        </button>
       </header>
       <DrillContext.Provider value={drill}>
         <Ticker xp={!glacier} />
         <ChugReelPopup />
       </DrillContext.Provider>
-      {section && subPages.length > 1 && (
-        <SubTabs
-          label={`${section.label} pages`}
-          pages={subPages}
-          current={stack[0].kind as PageKind}
-          onPick={(page) => open(nav.tab, pageView(page, week))}
-        />
-      )}
       <PushContext value={go}>
         <DrillContext.Provider value={drill}>
           <NavigateContext value={drill}>
             <main ref={screens} className="m-screens" onScrollCapture={glacier ? onScroll : undefined}>
-              {TABS.flatMap((tab) =>
-                (nav.stacks[tab] ?? []).map((screen, i, all) => {
+              {TABS.flatMap((tab) => {
+                const tabSection = sectionFor(tab);
+                const pages = tabSection ? pagesFor(tabSection, isAdmin) : [];
+                return (nav.stacks[tab] ?? []).map((screen, i, all) => {
                   const Body = glacier && screen.kind === "home" ? GlacierPhoneHome : bodyOf(screen.kind);
+                  const description = screen.kind !== "home" && descriptionOf(screen.kind);
                   return (
                     // Screens under the top one stay mounted, so Back returns to
                     // them as they were left: scroll, week picked.
@@ -242,12 +231,19 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       aria-label={title(screen)}
                       hidden={tab !== nav.tab || i !== all.length - 1}
                     >
-                      {/* Glacier keeps the toggle in the drawer, not on its dashboard Home. */}
-                      {screen.kind === "home" && !glacier && (
-                        <div className="m-theme-row">
-                          <ThemeToggle />
-                        </div>
+                      {/* In the page rather than over it, so the grid scrolls away and gives the page its room. */}
+                      {tabSection && pages.length > 1 && (
+                        <SubTabs
+                          label={`${tabSection.label} pages`}
+                          pages={pages}
+                          current={all[0].kind as PageKind}
+                          onPick={(page) => {
+                            picked.current = true;
+                            open(tab, pageView(page, week));
+                          }}
+                        />
                       )}
+                      {description && <p className="m-lede">{description}</p>}
                       <WindowBoundary>
                         <TabParamContext value={retab}>
                           <Body params={screen.params} />
@@ -255,33 +251,21 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       </WindowBoundary>
                     </section>
                   );
-                }),
-              )}
+                });
+              })}
             </main>
           </NavigateContext>
         </DrillContext.Provider>
       </PushContext>
-      {!glacier && (
-        <nav className="m-tabs" aria-label="Tabs">
-          {TAB_BAR.map(({ tab, label, Icon }) => (
-            <button key={tab} type="button" className="m-tab" aria-current={tab === bar ? "page" : undefined} onClick={() => selectTab(tab)}>
-              <Icon width={24} height={24} />
-              {label}
-            </button>
-          ))}
-        </nav>
-      )}
       <CommandPalette
         phone
         open={searching}
         onOpenChange={setSearching}
         onGo={navigate}
       />
-      {glacier && (
-        <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
-          <DrawerNav tab={nav.tab} onSection={sectionFromMenu} onPage={pageFromMenu} />
-        </MenuDrawer>
-      )}
+      <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
+        <DrawerNav tab={nav.tab} xp={!glacier} onSection={sectionFromMenu} onPage={pageFromMenu} />
+      </MenuDrawer>
       {glacier && <Effects />}
     </div>
   );

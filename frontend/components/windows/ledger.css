@@ -141,6 +141,16 @@
   min-width: 0;
 }
 
+.ov-count {
+  flex: none;
+  margin-right: auto;
+  font-weight: normal;
+}
+
+.ov-count::before {
+  content: "· ";
+}
+
 .ov-all {
   flex: none;
   white-space: nowrap;
@@ -259,11 +269,63 @@
   min-height: 2.75rem;
 }
 
-/* A phone's stat and tile text wraps rather than clipping a name. */
+/* A phone's stat and tile text wraps between words; a name too long for its
+   tile ends in an ellipsis rather than breaking mid-word. */
 .ledger-stat-grid[data-compact] .ledger-stat-sub,
 .ov-tiles .ledger-stat-sub {
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   white-space: normal;
+}
+
+/* Three tiles across leave a small phone's names no room, so they stack. */
+@media (max-width: 379.98px) {
+  .ov-tiles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ov-tiles .ledger-stat > .xp-drill {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ov-tiles .ledger-stat-sub {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+/* The phone's season summary: a row per team, its counts under the name. */
+.summary-rows > li + li {
+  border-top: 1px solid var(--xp-face-shadow);
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.summary-stats {
+  display: grid;
+  grid-column: 2;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.summary-stats dt {
+  font-size: 0.6875rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--xp-title-dark);
+}
+
+.summary-stats dd {
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
 }
 
 .ov-tiles .ledger-stat-sub {

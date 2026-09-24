@@ -270,8 +270,9 @@ describe("My Team", () => {
     expect(within(head).getByRole("img", { name: "Your team" })).toBeTruthy();
   });
 
-  it("opens your team from the phone's Menu", async () => {
+  it("opens your team from the phone's search", async () => {
     viewport(true);
+    Element.prototype.scrollIntoView = vi.fn();
     render(
       <ProfileProvider>
         <DesktopProvider>
@@ -279,9 +280,9 @@ describe("My Team", () => {
         </DesktopProvider>
       </ProfileProvider>,
     );
-    const tabs = within(screen.getByRole("navigation", { name: "Tabs" }));
-    fireEvent.click(tabs.getByRole("button", { name: "Menu" }));
-    fireEvent.click(screen.getByRole("button", { name: /^My Team/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Search" }), { target: { value: "my team" } });
+    fireEvent.click(await screen.findByRole("option", { name: "My Team" }));
 
     await waitFor(() => expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("My Team - Team 6"));
     expect(await screen.findByRole("region", { name: "Team 6" })).toBeTruthy();

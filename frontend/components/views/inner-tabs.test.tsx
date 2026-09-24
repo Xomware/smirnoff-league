@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -200,5 +203,19 @@ describe("inner tab styles", () => {
     const pages = screen.getByRole("navigation", { name: "Ices pages" });
     expect(pages.contains(inner)).toBe(false);
     expect(inner.classList.contains("m-subtabs")).toBe(false);
+  });
+
+  it.each([
+    ["XP phone", ["mobile.css"], "?open=stats", "Ice Stats sections"],
+    ["Glacier phone", ["mobile.css", "../glacier/glacier-skin.css"], "?open=stats", "Ice Stats sections"],
+    ["XP phone", ["mobile.css"], "?open=team:6", "Team 6 sections"],
+  ] as const)("%s wraps its inner tabs onto a second row rather than scrolling sideways", async (shell, files, search, label) => {
+    const style = document.createElement("style");
+    style.textContent = files.map((f) => readFileSync(join(__dirname, "../mobile", f), "utf8")).join("\n");
+    document.head.append(style);
+    open(shell, search);
+    const list = getComputedStyle(await screen.findByRole("tablist", { name: label }));
+    expect(list.flexWrap).toBe("wrap");
+    expect(list.overflowX).toBe("visible");
   });
 });

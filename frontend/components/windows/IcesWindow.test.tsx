@@ -117,10 +117,16 @@ describe("Ice Ledger layout", () => {
     expect(pastWeek(3).open).toBe(false);
   });
 
-  it("folds the season summary away on the phone only", async () => {
+  it("folds the season summary away on the phone only, as stacked rows rather than a wide table", async () => {
     const { unmount } = render(<IceLedger phone />);
-    const table = await screen.findByRole("table", { name: "Season summary" });
-    expect(table.closest("details")!.open).toBe(false);
+    const list = await screen.findByRole("list", { name: "Season summary" });
+    expect(list.closest("details")!.open).toBe(false);
+    expect(screen.queryByRole("table", { name: "Season summary" })).toBeNull();
+    expect(list.closest(".xp-table-scroll")).toBeNull();
+    const first = within(list).getAllByRole("listitem")[0];
+    expect(first.textContent).toContain("Team 13");
+    const stats = [...first.querySelectorAll("dt")].map((dt) => `${dt.textContent} ${dt.nextElementSibling?.textContent}`);
+    expect(stats).toEqual(["Owed 2", "Done 0", "Late 2", "Overdue 2"]);
     unmount();
     render(<IcesWindow />);
     expect((await screen.findByRole("table", { name: "Season summary" })).closest("details")!.open).toBe(true);
