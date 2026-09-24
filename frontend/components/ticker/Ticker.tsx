@@ -40,7 +40,7 @@ function Copy({ items, hidden }: { items: TickerItem[]; hidden?: boolean }) {
   return (
     <ul className="tk-copy" aria-hidden={hidden || undefined} inert={hidden}>
       {items.map((item, i) => (
-        <li key={item.id} data-trouble={item.trouble || undefined}>
+        <li key={item.id} data-tone={item.tone}>
           <Item item={item} />
           <Glyph d={i % 2 ? LINE_ICONS.games : LINE_ICONS.ices} />
         </li>
@@ -102,7 +102,7 @@ export function TickerBar({ items, xp = false, dock = false }: TickerBarProps) {
         </p>
       ) : still ? (
         <div className="tk-step" aria-live="polite">
-          <span data-trouble={current.trouble || undefined}>
+          <span data-tone={current.tone}>
             <Item item={current} />
           </span>
           <span className="tk-count">
@@ -167,6 +167,7 @@ function LiveTicker({ xp, dock }: TickerProps) {
         games,
         live: live && liveGames > 0,
         ledger: ok,
+        players: data?.players ?? {},
         videos: videos.status === "ok" ? videos.videos : [],
         writeups: writeups.status === "ok" ? writeups.writeups : [],
         standings: data ? sortStandings(data.rosters) : null,
