@@ -108,7 +108,7 @@
   padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
 
-/* Home: GlacierHome, made short. Sections scroll sideways instead of down. */
+/* Home: GlacierHome, made short: one quick-hitter card, then short lists. */
 .m-app.glacier .gh {
   gap: 16px;
 }
@@ -147,45 +147,6 @@
   height: 84px;
 }
 
-.m-app.glacier .gh-strip ul {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.m-app.glacier .gh-strip li:first-child {
-  grid-column: 1 / -1;
-}
-
-.m-app.glacier .gh-tile {
-  padding: 9px 12px;
-  border-radius: 16px;
-}
-
-.m-app.glacier .gh-tile-label {
-  font-size: 11px;
-}
-
-.m-app.glacier .gh-tile-value {
-  font-size: 17px;
-}
-
-.m-app.glacier .gh-tile-sub {
-  font-size: 13px;
-}
-
-/* One row of chips that scrolls, rather than three that wrap. */
-.m-app.glacier .gh-jump {
-  flex-wrap: nowrap;
-  margin-inline: calc(-1 * var(--m-pad));
-  padding-inline: var(--m-pad);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.m-app.glacier .gh-chip {
-  min-height: 44px;
-}
-
 .m-app.glacier .gh-grid {
   gap: 22px;
 }
@@ -216,45 +177,18 @@
   box-shadow: 0 5px 0 #a8121d;
 }
 
-/* Each card is 82% wide so the next one peeks in from the edge. */
-.m-app.glacier .gh-carousel {
-  flex-direction: row;
-  gap: 10px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
+.m-app.glacier .gh-fact-value {
+  font-size: 24px;
 }
 
-.m-app.glacier .gh-carousel > li {
-  display: flex;
-  flex: 0 0 82%;
-  scroll-snap-align: start;
+.m-app.glacier .gh-arrow {
+  width: 44px;
+  height: 44px;
 }
 
-.m-app.glacier .gh-carousel :is(.gh-card, .gh-game) {
-  flex-wrap: wrap;
-  min-height: 64px;
-}
-
-.m-app.glacier .gh-dots {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  margin: 0;
-}
-
-.m-app.glacier .gh-dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgb(190 235 255 / 0.35);
-  transition: width 0.2s;
-}
-
-.m-app.glacier .gh-dots span[data-on] {
-  width: 18px;
-  background: var(--g-snow);
+.m-app.glacier .gh-dots button {
+  width: 22px;
+  height: 32px;
 }
 
 /* The m-* surfaces, in frost. */
@@ -506,7 +440,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .m-app.glacier .gh-dots span,
   .m-app.glacier .m-bar,
   .m-app.glacier .m-title,
   .m-bar-icicles,

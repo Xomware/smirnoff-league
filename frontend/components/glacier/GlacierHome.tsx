@@ -1,95 +1,32 @@
 "use client";
 
 import Image from "next/image";
-import { type ReactNode, type Ref, type UIEvent, useContext, useMemo, useState } from "react";
+import { type Ref, useContext, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { chugTime } from "@/components/videos/ChugTime";
 import { iceCauseText } from "@/components/videos/ice-label";
 import { UploadChug } from "@/components/videos/UploadChug";
 import { DrillContext, type DrillTarget } from "@/components/views/drill-link";
 import { TroubleTags } from "@/components/xp/TeamName";
 import { chugBoard, countdown, currentWeek, myDue } from "@/lib/ices/chug-board";
-import { chuggerRankings, chugsFrom } from "@/lib/ices/chug-rankings";
-import { iceStandings } from "@/lib/ices/standings";
 import { type LedgerState, useLedger } from "@/lib/ices/use-ledger";
 import { useNow } from "@/lib/ices/use-now";
-import { useSeasonIces } from "@/lib/ices/use-season-ices";
 import { useTrouble } from "@/lib/ices/use-trouble";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { useLeague } from "@/lib/league/use-league";
 import { useWeekGames } from "@/lib/league/use-week-games";
 import { useProfile } from "@/lib/profile/use-profile";
-import { Crystal, Icicles, PANEL_ICICLES } from "./Frost";
+import { HomeNews } from "./HomeNews";
+import { Panel } from "./HomePanel";
+import { Spotlight } from "./Spotlight";
+import { record, useHitters } from "./use-hitters";
 
 import "./glacier-home.css";
 
 const PREVIEW = 3;
 
-const SECTIONS = [
-  { id: "home-ices", chip: "Your ices" },
-  { id: "home-games", chip: "Games" },
-  { id: "home-standings", chip: "Ice standings" },
-  { id: "home-board", chip: "Chug Board" },
-  { id: "home-rankings", chip: "Chug rankings" },
-];
-
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
-
-interface PanelProps {
-  id: string;
-  label: string;
-  title?: string;
-  all?: DrillTarget;
-  aside?: ReactNode;
-  className: string;
-  children: ReactNode;
-}
-
-function Panel({ id, label, title = label, all, aside, className, children }: PanelProps) {
-  const open = useContext(DrillContext);
-  return (
-    <section id={id} aria-label={label} className={`glacier-panel gh-panel ${className}`}>
-      <Icicles className="glacier-icicles" d={PANEL_ICICLES} />
-      <Crystal />
-      <div className="gh-head">
-        <h2 tabIndex={-1}>{title}</h2>
-        {aside}
-        {all && (
-          <button type="button" className="gh-link" aria-label={`See all: ${label}`} onClick={() => open(all)}>
-            See all
-          </button>
-        )}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-// On a phone the list scrolls sideways; the dots say where you are in it.
-function Carousel({ label, count, children }: { label: string; count: number; children: ReactNode }) {
-  const [at, setAt] = useState(0);
-  const onScroll = (e: UIEvent<HTMLUListElement>) => {
-    const el = e.currentTarget;
-    const room = el.scrollWidth - el.clientWidth;
-    setAt(room > 0 ? Math.round((el.scrollLeft / room) * (count - 1)) : 0);
-  };
-  return (
-    <>
-      <ul aria-label={label} className="gh-carousel" onScroll={onScroll}>
-        {children}
-      </ul>
-      {count > 1 && (
-        <p className="gh-dots" aria-hidden="true">
-          {Array.from({ length: count }, (_, i) => (
-            <span key={i} data-on={i === at || undefined} />
-          ))}
-        </p>
-      )}
-    </>
-  );
-}
 
 const loadingOr = (ledger: LedgerState) =>
   ledger.status === "loading" ? (
@@ -182,7 +119,7 @@ function BoardPreview({ ledger }: { ledger: LedgerState }) {
       ) : board.length === 0 ? (
         <p className="gh-quiet">Nobody owes a chug this week.</p>
       ) : (
-        <Carousel label="Chug Board" count={Math.min(PREVIEW, board.length)}>
+        <ul aria-label="Chug Board" className="gh-list">
           {board.slice(0, PREVIEW).map(({ rosterId, ices }) => {
             const owed = ices.filter((r) => r.ice.status === "owed");
             const next = owed.find((r) => r.deadline !== null);
@@ -198,7 +135,7 @@ function BoardPreview({ ledger }: { ledger: LedgerState }) {
               </li>
             );
           })}
-        </Carousel>
+        </ul>
       )}
     </Panel>
   );
@@ -232,7 +169,7 @@ function GamesPreview({ week, games: state }: { week: number | undefined; games:
       ) : games.length === 0 ? (
         <p className="gh-quiet">No matchups yet this week.</p>
       ) : (
-        <Carousel label={label} count={shown.length}>
+        <ul aria-label={label} className="gh-list">
           {shown.map((game) => {
             const top = Math.max(...game.sides.map((s) => s.points));
             return (
@@ -256,178 +193,65 @@ function GamesPreview({ week, games: state }: { week: number | undefined; games:
               </li>
             );
           })}
-        </Carousel>
+        </ul>
       )}
     </Panel>
   );
 }
 
-function useIceTop() {
-  const { data, error: leagueError } = useLeague();
-  const { tally, finishedWeeks, error: icesError } = useSeasonIces(data ? Math.max(1, data.nfl.week) : undefined);
-  const ledger = useLedger();
-  const rows = useMemo(() => {
-    if (!data || !tally || !finishedWeeks || ledger.status === "loading") return null;
-    const pf = Object.fromEntries(sortStandings(data.rosters).map((s) => [s.rosterId, s.pf]));
-    return iceStandings(tally, finishedWeeks, pf, ledger.status === "ok" ? ledger.ledger.summary : null).filter((r) => r.total > 0);
-  }, [data, tally, finishedWeeks, ledger]);
-  return { rows, error: leagueError ?? icesError };
-}
-
-function StandingsPreview({ rows, error }: ReturnType<typeof useIceTop>) {
-  const { teamFor } = useLeague();
+// The top 3, your team and the bottom 2, so both races fit in one short list.
+function StandingsPreview() {
+  const { data, error, teamFor } = useLeague();
   const { myRosterId } = useProfile();
   const trouble = useTrouble();
   const open = useContext(DrillContext);
-  const shown = rows?.slice(0, PREVIEW) ?? [];
+  const rows = data ? sortStandings(data.rosters) : null;
+  const shown = rows
+    ?.map((r, i) => ({ ...r, rank: i + 1 }))
+    .filter((r) => r.rank <= 3 || r.rank > rows.length - 2 || r.rosterId === myRosterId);
 
   return (
-    <Panel
-      id="home-standings"
-      label="Ice standings"
-      title={rows ? `Ice standings · ${rows.length} iced` : "Ice standings"}
-      className="gh-standings"
-      all={{ kind: "ice-standings" }}
-    >
+    <Panel id="home-standings" label="Standings" className="gh-standings" all={{ kind: "standings" }}>
       {error ? (
         <p role="alert">Could not reach Sleeper ({error}).</p>
-      ) : !rows ? (
-        <p role="status">Ranking the shame...</p>
-      ) : rows.length === 0 ? (
-        <p className="gh-quiet">Nobody has been iced yet. Clean sheet, for now.</p>
+      ) : !shown ? (
+        <p role="status">Loading the standings...</p>
       ) : (
-        <Carousel label="Top of the ice standings" count={shown.length}>
-          {shown.map((r) => (
-            <li key={r.rosterId} data-mine={r.rosterId === myRosterId || undefined} data-trouble={trouble.of(r.rosterId).join(" ") || undefined}>
+        <ul aria-label="Standings snapshot" className="gh-list">
+          {shown.map((r, i) => (
+            <li
+              key={r.rosterId}
+              data-mine={r.rosterId === myRosterId || undefined}
+              data-trouble={trouble.of(r.rosterId).join(" ") || undefined}
+              data-gap={(i > 0 && shown[i - 1].rank !== r.rank - 1) || undefined}
+            >
               <button type="button" className="gh-card gh-card-row" onClick={() => open({ kind: "team", rosterId: r.rosterId })}>
                 <span className="gh-rank">{r.rank}</span>
                 <span className="gh-name">{teamFor(r.rosterId).name}</span>
                 <TroubleTags trouble={trouble.of(r.rosterId)} />
-                <span className="gh-total">{r.total}</span>
+                <span className="gh-total">{record(r)}</span>
               </button>
             </li>
           ))}
-        </Carousel>
+        </ul>
       )}
     </Panel>
   );
 }
 
-function useFastest(ledger: LedgerState) {
-  return useMemo(() => (ledger.status === "ok" ? chuggerRankings(chugsFrom(ledger.ledger.ices)) : null), [ledger]);
-}
-
-function RankingsPreview({ ledger }: { ledger: LedgerState }) {
-  const { teamFor } = useLeague();
-  const open = useContext(DrillContext);
-  const rows = useFastest(ledger);
-  const shown = rows?.slice(0, PREVIEW) ?? [];
-
+function QuickHitters({ week, games, phone }: { week: number | undefined; games: WeekGames; phone: boolean }) {
+  const hitters = useHitters(week, games);
+  if (phone) {
+    const all = hitters && [...hitters.ices, ...hitters.league, ...hitters.chugs];
+    return <Spotlight id="home-hitters" label="Quick hitters" facts={all} />;
+  }
   return (
-    <Panel
-      id="home-rankings"
-      label="Chug rankings"
-      title={rows ? `Chug rankings · ${rows.length} timed` : "Chug rankings"}
-      className="gh-rankings"
-      all={{ kind: "chug-rankings" }}
-    >
-      {!rows ? (
-        loadingOr(ledger)
-      ) : rows.length === 0 ? (
-        <p className="gh-quiet">No chug has been timed yet.</p>
-      ) : (
-        <Carousel label="Fastest chuggers" count={shown.length}>
-          {shown.map((r) => (
-            <li key={r.key}>
-              <button type="button" className="gh-card gh-card-row" onClick={() => open({ kind: "team", rosterId: r.rosterId })}>
-                <span className="gh-rank">{r.rank}</span>
-                <span className="gh-name">{r.name ?? teamFor(r.rosterId).name}</span>
-                <span className="gh-total">{chugTime(r.pr)}</span>
-              </button>
-            </li>
-          ))}
-        </Carousel>
-      )}
-    </Panel>
-  );
-}
-
-interface StripProps {
-  week: number | undefined;
-  ledger: LedgerState;
-  games: WeekGames;
-  standings: ReturnType<typeof useIceTop>;
-}
-
-function StatusStrip({ week, ledger, games, standings }: StripProps) {
-  const { teamFor } = useLeague();
-  const { myRosterId } = useProfile();
-  const open = useContext(DrillContext);
-  const now = useNow(deadlinesOf(ledger));
-  const fastest = useFastest(ledger)?.[0];
-  const ok = ledger.status === "ok" ? ledger.ledger : null;
-  const due = ok && myDue(ok, myRosterId, now);
-  const deadlineUtc = ok?.weeks.find((w) => w.week === currentWeek(ok))?.deadlineUtc;
-  const leader = standings.rows?.[0];
-  const top = games.games && Math.max(0, ...games.games.flatMap((g) => g.sides.map((s) => s.points)));
-
-  const tiles: { label: string; value: string; sub: string; to: DrillTarget; alert?: boolean }[] = [
-    {
-      label: "Your ices",
-      value: myRosterId === null ? "No team" : !ok ? "..." : due ? `${due.count} owed` : "Square",
-      sub: myRosterId === null ? "Claim yours" : (due?.when ?? "Nothing owed"),
-      to: { kind: "ices" },
-      alert: Boolean(due),
-    },
-    {
-      label: "This week",
-      value: week === undefined ? "..." : `Week ${week}`,
-      sub: deadlineUtc ? `Chugs ${countdown(Date.parse(deadlineUtc), now, 0)}` : "No chugs due",
-      to: { kind: "week", week: week ?? 1 },
-    },
-    {
-      label: "Scores",
-      value: !games.games ? "..." : games.live ? (games.liveGames ? `${games.liveGames} live` : "None live") : "Final",
-      sub: top ? `High score ${top.toFixed(2)}` : "No points yet",
-      to: scoresTarget(games),
-    },
-    {
-      label: "Most ices",
-      value: leader ? teamFor(leader.rosterId).name : standings.rows ? "Nobody" : "...",
-      sub: leader ? plural(leader.total, "ice") : "Clean sheet",
-      to: { kind: "ice-standings" },
-    },
-    {
-      label: "Fastest chug",
-      value: fastest ? (fastest.name ?? teamFor(fastest.rosterId).name) : "Nobody",
-      sub: fastest ? chugTime(fastest.pr) : "No times yet",
-      to: { kind: "chug-rankings" },
-    },
-  ];
-
-  return (
-    <section aria-label="At a glance" className="gh-strip">
-      <ul>
-        {tiles.map((t) => (
-          <li key={t.label}>
-            <button type="button" className="gh-tile" data-alert={t.alert || undefined} onClick={() => open(t.to)}>
-              <span className="gh-tile-label">{t.label}</span>
-              <span className="gh-tile-value">{t.value}</span>
-              <span className="gh-tile-sub">{t.sub}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <section aria-label="Quick hitters" className="gh-hitters">
+      <Spotlight id="home-hitters-ices" label="Ice report" facts={hitters?.ices ?? null} />
+      <Spotlight id="home-hitters-league" label="League" facts={hitters?.league ?? null} />
+      <Spotlight id="home-hitters-chugs" label="Chugs" facts={hitters?.chugs ?? null} />
     </section>
   );
-}
-
-function jump(id: string) {
-  const section = document.getElementById(id);
-  if (!section) return;
-  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  section.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-  section.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
 }
 
 function lede(ledger: LedgerState): string {
@@ -451,7 +275,6 @@ export function GlacierHome({ ref, phone = false }: GlacierHomeProps) {
   const { data } = useLeague();
   const ledger = useLedger();
   const games = useWeekGames(week);
-  const standings = useIceTop();
   const open = useContext(DrillContext);
   const Title = phone ? "h2" : "h1";
 
@@ -481,20 +304,13 @@ export function GlacierHome({ ref, phone = false }: GlacierHomeProps) {
         )}
         <Image src="/brand/mascot.png" alt="The league mascot, a robot chugging a Smirnoff Ice" width={146} height={160} priority className="gh-mascot" />
       </section>
-      <StatusStrip week={week} ledger={ledger} games={games} standings={standings} />
-      <nav aria-label="Jump to a section" className="gh-jump">
-        {SECTIONS.map((s) => (
-          <button key={s.id} type="button" className="gh-chip" onClick={() => jump(s.id)}>
-            {s.chip}
-          </button>
-        ))}
-      </nav>
+      <QuickHitters week={week} games={games} phone={phone} />
       <div className="gh-grid">
         <YourIces />
+        <HomeNews />
+        <StandingsPreview />
         <GamesPreview week={week} games={games} />
-        <StandingsPreview {...standings} />
         <BoardPreview ledger={ledger} />
-        <RankingsPreview ledger={ledger} />
       </div>
     </div>
   );
