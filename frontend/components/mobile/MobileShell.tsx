@@ -19,9 +19,10 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
+import { TabParamContext } from "@/components/xp/Tabs";
 import { track } from "@/lib/activity/tracker";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
-import type { WindowParams } from "@/lib/desktop/windows";
+import { viewKey, type WindowParams } from "@/lib/desktop/windows";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 import { pageTab, rootOf, type Screen, type ScreenKind, screenId, sectionFor, stackOf, type Tab, TABS } from "@/lib/phone/nav";
@@ -116,14 +117,14 @@ interface MobileShellProps {
 
 export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const glacier = theme === "glacier";
-  const { nav, push, selectTab, open, back } = usePhoneNav();
+  const { nav, push, selectTab, open, back, retab } = usePhoneNav();
   const title = useScreenTitle();
   const week = useDefaultWeek();
   const isAdmin = useProfile().me?.isAdmin ?? false;
   const heading = useRef<HTMLHeadingElement>(null);
   const stack = stackOf(nav);
   const top = stack[stack.length - 1];
-  const topKey = `${nav.tab}/${stack.length}/${screenId(top)}`;
+  const topKey = `${nav.tab}/${stack.length}/${viewKey(top.kind, top.params)}`;
   const shown = useRef(topKey);
   const [searching, setSearching] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -230,7 +231,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                     // Screens under the top one stay mounted, so Back returns to
                     // them as they were left: scroll, week picked.
                     <section
-                      key={`${tab}/${i + 1}/${screenId(screen)}`}
+                      key={`${tab}/${i + 1}/${viewKey(screen.kind, screen.params)}`}
                       className="m-screen"
                       aria-label={title(screen)}
                       hidden={tab !== nav.tab || i !== all.length - 1}
@@ -242,7 +243,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                         </div>
                       )}
                       <WindowBoundary>
-                        <Body params={screen.params} />
+                        <TabParamContext value={retab}>
+                          <Body params={screen.params} />
+                        </TabParamContext>
                       </WindowBoundary>
                     </section>
                   );

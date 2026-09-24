@@ -1,8 +1,9 @@
 "use client";
 
-import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
+import { createContext, type KeyboardEvent, type ReactNode, useContext, useEffect, useId, useRef, useState } from "react";
 
 export interface Tab {
+  id: string;
   label: string;
   panel: () => ReactNode;
 }
@@ -10,18 +11,44 @@ export interface Tab {
 interface TabsProps {
   label: string;
   tabs: Tab[];
+  // The view's `tab` param, which a link can name.
+  selected?: string | number;
 }
+
+// Set by the window or page a view sits in, so a picked tab lands in the
+// view's params and the URL. Outside one, the strip keeps its own state.
+export const TabParamContext = createContext<((tab: string) => void) | null>(null);
 
 // An XP property-sheet tab strip, keyed the WAI-ARIA tabs way: arrows move and
 // select, Home/End jump, and only the selected tab is in the tab order.
-export function Tabs({ label, tabs }: TabsProps) {
-  const [selected, setSelected] = useState(0);
+export function Tabs({ label, tabs, selected: param }: TabsProps) {
+  const setParam = useContext(TabParamContext);
+  const [own, setOwn] = useState(param);
+  const current = setParam ? param : own;
+  const selected = Math.max(0, tabs.findIndex((t) => t.id === current));
   const id = useId();
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const strip = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState({ start: false, end: false });
 
+  // A phone's strip scrolls sideways, fading at an edge while there is more that way.
+  const measure = () => {
+    const el = strip.current;
+    if (!el) return;
+    setMore({ start: el.scrollLeft > 1, end: el.scrollLeft + el.clientWidth < el.scrollWidth - 1 });
+  };
+
+  useEffect(() => {
+    const el = strip.current;
+    const tab = refs.current[selected];
+    if (el && tab) el.scrollLeft += tab.getBoundingClientRect().left - el.getBoundingClientRect().left - (el.clientWidth - tab.offsetWidth) / 2;
+    measure();
+  }, [selected]);
+
+  const pick = (i: number) => (setParam ?? setOwn)(tabs[i].id);
   const select = (i: number) => {
     const next = (i + tabs.length) % tabs.length;
-    setSelected(next);
+    pick(next);
     refs.current[next]?.focus();
   };
   const onKeyDown = (e: KeyboardEvent) => {
@@ -33,10 +60,19 @@ export function Tabs({ label, tabs }: TabsProps) {
 
   return (
     <div className="xp-tabs">
-      <div role="tablist" aria-label={label} className="xp-tab-strip" onKeyDown={onKeyDown}>
+      <div
+        ref={strip}
+        role="tablist"
+        aria-label={label}
+        className="xp-tab-strip"
+        data-more-start={more.start || undefined}
+        data-more-end={more.end || undefined}
+        onKeyDown={onKeyDown}
+        onScroll={measure}
+      >
         {tabs.map((t, i) => (
           <button
-            key={t.label}
+            key={t.id}
             ref={(el) => {
               refs.current[i] = el;
             }}
@@ -47,7 +83,7 @@ export function Tabs({ label, tabs }: TabsProps) {
             aria-controls={`${id}-panel`}
             tabIndex={i === selected ? 0 : -1}
             className="xp-tab"
-            onClick={() => setSelected(i)}
+            onClick={() => pick(i)}
           >
             {t.label}
           </button>

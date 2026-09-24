@@ -394,13 +394,13 @@ describe("Ices", () => {
   });
 });
 
-// Every screen may carry one chip row to jump between its sections, and no tab strip.
-function expectStacked(label: string, sections: string[]) {
-  expect(top().queryByRole("tablist")).toBeNull();
-  expect(document.querySelectorAll(".m-screen:not([hidden]) nav")).toHaveLength(1);
-  const chips = within(top().getByRole("navigation", { name: label }));
-  expect(chips.getAllByRole("button").map((b) => b.textContent)).toEqual(sections);
-  expect(top().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(expect.arrayContaining(sections));
+// A screen's own sections are tabs, one showing at a time.
+function expectTabbed(label: string, sections: string[]) {
+  const strip = within(top().getByRole("tablist", { name: label }));
+  expect(strip.getAllByRole("tab").map((t) => t.textContent)).toEqual(sections);
+  expect(strip.getByRole("tab", { name: sections[0] }).getAttribute("aria-selected")).toBe("true");
+  expect(top().getAllByRole("tabpanel")).toHaveLength(1);
+  expect(document.querySelectorAll(".m-screen:not([hidden]) nav")).toHaveLength(0);
 }
 
 describe("Ice Rankings", () => {
@@ -418,21 +418,21 @@ describe("Ice Rankings", () => {
 });
 
 describe("screens that were tabbed on the desktop", () => {
-  it("stacks Ice Stats' sections under one chip row", async () => {
+  it("tabs Ice Stats' sections", async () => {
     renderShell();
     fireEvent.click(tab("Menu"));
     fireEvent.click(top().getByRole("button", { name: "Stats" }));
-    await top().findByRole("navigation", { name: "Ice Stats sections" });
-    expectStacked("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
+    await top().findByRole("tablist", { name: "Ice Stats sections" });
+    expectTabbed("Ice Stats sections", ["Overview", "Race", "Lineups", "Positions", "Hall of Shame"]);
   });
 
-  it("stacks a team profile, and drills from its lineup to a player and back", async () => {
+  it("tabs a team profile, and drills from its lineup to a player and back", async () => {
     window.history.replaceState(null, "", "/?open=team:6");
     renderShell();
     expect(tab("Menu").getAttribute("aria-current")).toBe("page");
-    await top().findByRole("navigation", { name: "Team 6 sections" });
+    await top().findByRole("tablist", { name: "Team 6 sections" });
     expect(title()).toBe("Team 6");
-    expectStacked("Team 6 sections", ["Results", "Ices", "Moves", "Head-to-head", "Lineup"]);
+    expectTabbed("Team 6 sections", ["Results", "Ices", "Moves", "Head-to-head", "Lineup"]);
     expect(within(top().getByRole("list", { name: "Weekly results" })).getAllByRole("listitem")).toHaveLength(2);
 
     fireEvent.click(within(top().getByRole("list", { name: "Weekly results" })).getByRole("button", { name: "91.46 - 134.46" }));
@@ -441,8 +441,9 @@ describe("screens that were tabbed on the desktop", () => {
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Team 6"));
 
+    fireEvent.click(top().getByRole("tab", { name: "Lineup" }));
     fireEvent.click(within(top().getByRole("list", { name: /^Starters/ })).getAllByRole("button")[0]);
-    await waitFor(() => expect(window.location.search).toMatch(/^\?open=standings,team:6,player:\w+$/));
+    await waitFor(() => expect(window.location.search).toMatch(/^\?open=standings,team:6:roster,player:\w+$/));
     fireEvent.click(back());
     await waitFor(() => expect(title()).toBe("Team 6"));
   });

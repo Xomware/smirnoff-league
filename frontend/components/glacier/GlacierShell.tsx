@@ -9,10 +9,11 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { NotificationBell } from "@/components/xp/NotificationBell";
+import { TabParamContext } from "@/components/xp/Tabs";
 import { track } from "@/lib/activity/tracker";
 import { parseOpen } from "@/lib/desktop/deep-link";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
-import { windowId } from "@/lib/desktop/windows";
+import { viewKey, windowId } from "@/lib/desktop/windows";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useProfile } from "@/lib/profile/use-profile";
 import { type PageView, pagesFor, pageView, SECTIONS, sectionOf } from "@/lib/sections";
@@ -85,6 +86,12 @@ export function GlacierShell() {
     heading.current?.focus({ preventScroll: true });
   };
   const drill = ({ kind, ...params }: DrillTarget) => go({ kind, params });
+  // A tab switch stays on the page, so it replaces the page's history entry.
+  const retab = (tab: string) => {
+    const to = { kind, params: { ...params, tab } };
+    setNav((nav) => ({ ...nav, view: to }));
+    window.history.replaceState(null, "", urlOf(to));
+  };
 
   const onNav = (e: MouseEvent, to: PageView) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -155,8 +162,10 @@ export function GlacierShell() {
                 <section className="glacier-panel" aria-label={title}>
                   <Icicles className="glacier-icicles" d={PANEL_ICICLES} />
                   <Crystal />
-                  <WindowBoundary key={id}>
-                    <Body params={params} />
+                  <WindowBoundary key={viewKey(kind, params)}>
+                    <TabParamContext value={retab}>
+                      <Body params={params} />
+                    </TabParamContext>
                   </WindowBoundary>
                 </section>
               </>

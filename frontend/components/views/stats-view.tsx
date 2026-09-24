@@ -3,6 +3,7 @@
 import { type ReactElement, useMemo } from "react";
 
 import { type Tab, Tabs } from "@/components/xp/Tabs";
+import type { WindowParams } from "@/lib/desktop/windows";
 import { iceAnalysis, pct, takeaways } from "@/lib/ices/analysis";
 import { iceStats } from "@/lib/ices/stats";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
@@ -19,9 +20,10 @@ import { StatsOverview } from "./stats-overview";
 const POSITION_ORDER = ["QB", "RB", "WR", "TE", "K", "DEF"];
 const REASONS = { zero: "Zero", empty: "Empty", lowest: "Lowest" } as const;
 
+export const STATS_TABS = ["overview", "race", "lineups", "positions", "hall-of-shame"];
+
 const rank = (pos: string) => (POSITION_ORDER.indexOf(pos) + 1 || POSITION_ORDER.length + 1);
 
-// The desktop shows these as tabs, the phone as stacked sections.
 export function useStatsSections(): { fallback: ReactElement } | { sections: Tab[] } {
   const { data, error: leagueError, teamFor } = useLeague();
   const currentWeek = data ? Math.max(1, data.nfl.week) : undefined;
@@ -155,16 +157,16 @@ export function useStatsSections(): { fallback: ReactElement } | { sections: Tab
 
   return {
     sections: [
-      { label: "Overview", panel: overview },
-      { label: "Race", panel: racePanel },
-      { label: "Lineups", panel: () => <StatsLineups analysis={analysis} notes={notes} teamName={teamName} playerName={playerName} /> },
-      { label: "Positions", panel: positionsPanel },
-      { label: "Hall of Shame", panel: () => <HallOfShame stats={stats} teamName={teamName} playerName={playerName} /> },
+      { id: "overview", label: "Overview", panel: overview },
+      { id: "race", label: "Race", panel: racePanel },
+      { id: "lineups", label: "Lineups", panel: () => <StatsLineups analysis={analysis} notes={notes} teamName={teamName} playerName={playerName} /> },
+      { id: "positions", label: "Positions", panel: positionsPanel },
+      { id: "hall-of-shame", label: "Hall of Shame", panel: () => <HallOfShame stats={stats} teamName={teamName} playerName={playerName} /> },
     ],
   };
 }
 
-export function StatsView() {
+export function StatsView({ params }: { params: WindowParams }) {
   const stats = useStatsSections();
-  return "fallback" in stats ? stats.fallback : <Tabs label="Ice Stats sections" tabs={stats.sections} />;
+  return "fallback" in stats ? stats.fallback : <Tabs label="Ice Stats sections" tabs={stats.sections} selected={params.tab} />;
 }

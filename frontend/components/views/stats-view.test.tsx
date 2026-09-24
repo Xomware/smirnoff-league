@@ -56,7 +56,7 @@ afterEach(() => {
 const renderStats = () =>
   render(
     <AuthGate>
-      <StatsView />
+      <StatsView params={{}} />
     </AuthGate>,
   );
 

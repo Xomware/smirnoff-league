@@ -319,10 +319,6 @@
   gap: 16px;
 }
 
-[data-theme="glacier"] .xp-tab-strip {
-  flex-wrap: wrap;
-}
-
 /* Profiles */
 
 [data-theme="glacier"] .profile-head {
@@ -451,10 +447,4 @@
   [data-theme="glacier"] .writeup-head > .min-w-0 {
     flex-basis: 100%;
   }
-}
-
-/* Every jump chip in view: a scrolled strip hid the last ones off the edge. */
-.m-app.glacier .m-jump {
-  flex-wrap: wrap;
-  overflow-x: visible;
 }

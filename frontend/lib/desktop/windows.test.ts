@@ -39,6 +39,13 @@ describe("desktopReducer", () => {
     expect(state.map((w) => w.id)).toEqual(["scores:1", "scores:2"]);
   });
 
+  it("focuses a team window on another tab rather than opening the team twice", () => {
+    let state = desktopReducer([], { type: "open", kind: "team", params: { rosterId: 6 }, size });
+    state = desktopReducer(state, { type: "retab", id: "team:6", tab: "ices" });
+    state = desktopReducer(state, { type: "open", kind: "team", params: { rosterId: 6 }, size });
+    expect(state.map((w) => [w.id, w.params])).toEqual([["team:6", { rosterId: 6, tab: "ices" }]]);
+  });
+
   it("closes a window", () => {
     const state = desktopReducer(openAll("scores", "standings"), { type: "close", id: "scores" });
     expect(state.map((w) => w.id)).toEqual(["standings"]);
@@ -95,6 +102,13 @@ describe("window history", () => {
   const standings = () => openAll("standings");
   const nav = (state: WindowState[], kind: "team" | "player" | "week", params: Record<string, number | string>) =>
     desktopReducer(state, { type: "navigate", id: "standings", kind, params });
+
+  it("switches a view's tab in place, without a history step, and Back returns to that tab", () => {
+    let state = desktopReducer(nav(standings(), "team", { rosterId: 6 }), { type: "retab", id: "standings", tab: "ices" });
+    expect(historyOf(state[0]).at).toBe(1);
+    state = desktopReducer(nav(state, "player", { playerId: "8121" }), { type: "back", id: "standings" });
+    expect(state[0]).toMatchObject({ kind: "team", params: { rosterId: 6, tab: "ices" } });
+  });
 
   it("navigates in place, pushing history and retitling the window", () => {
     const state = nav(nav(standings(), "team", { rosterId: 6 }), "week", { week: 3 });

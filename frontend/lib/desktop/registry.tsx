@@ -63,7 +63,7 @@ interface ParamsProps {
 }
 
 function TeamWindow({ params }: ParamsProps) {
-  return <TeamView rosterId={Number(params.rosterId)} />;
+  return <TeamView rosterId={Number(params.rosterId)} tab={params.tab} />;
 }
 
 function PlayerWindow({ params }: ParamsProps) {
