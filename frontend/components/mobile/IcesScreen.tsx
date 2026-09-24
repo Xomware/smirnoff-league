@@ -6,11 +6,11 @@ import { createPortal } from "react-dom";
 import { FilterBar, FilterEmpty } from "@/components/filters/FilterBar";
 import { ChugPlayer } from "@/components/videos/ChugPlayer";
 import { teamList } from "@/components/videos/UploadChug";
+import { BoardHead } from "@/components/views/board";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceLedger } from "@/components/windows/IcesWindow";
-import { IceBadge } from "@/components/xp/IceBadge";
 import { MediaPlayerIcon } from "@/components/xp/icons";
-import { TeamName } from "@/components/xp/TeamName";
+import { TeamName, TroubleTags } from "@/components/xp/TeamName";
 import type { Ledger } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
 import type { WindowParams } from "@/lib/desktop/windows";
@@ -18,6 +18,7 @@ import { defaultFilters, type FilterValues, plural, readFilters, useFilterParam,
 import { type IceStanding, iceStandings, weekIceStandings } from "@/lib/ices/standings";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useSeasonIces } from "@/lib/ices/use-season-ices";
+import { useTrouble } from "@/lib/ices/use-trouble";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { sortStandings } from "@/lib/league/standings";
 import { type Team, useLeague } from "@/lib/league/use-league";
@@ -133,6 +134,7 @@ export function IceStandingsScreen() {
   const ledger = useLedger();
   const week = useDefaultWeek();
   const [mode, setMode] = useState<"season" | "week">("season");
+  const trouble = useTrouble();
   const error = leagueError ?? icesError;
 
   const rows = useMemo(() => {
@@ -161,24 +163,30 @@ export function IceStandingsScreen() {
           Week {week}
         </button>
       </div>
-      <section aria-labelledby="m-ice-standings" className="m-section">
-        <h2 id="m-ice-standings" className="m-section-title">
-          Ice standings
-        </h2>
-        {mode === "week" && live && <p className="m-caption">Week {week} is live: empty slots count once every game has kicked off.</p>}
-        <ol aria-label="Ice standings" className="m-card m-rows">
+      {mode === "week" && live && <p className="m-caption">Week {week} is live: empty slots count once every game has kicked off.</p>}
+      <div className="m-card m-rows m-ice-board">
+        <BoardHead labels={["RK", "Team", "Ices"]} />
+        <ol aria-label="Ice standings">
           {rows.map((r) => (
-            <li key={r.rosterId} className={`m-row${r.rosterId === myRosterId ? " m-mine" : ""}`}>
-              <span className="m-rank">{r.rank}</span>
-              <DrillLink to={{ kind: "team", rosterId: r.rosterId }}>
-                <TeamName name={teamFor(r.rosterId).name} iced={r.total > 0} ices={0} isMine={r.rosterId === myRosterId} />
-              </DrillLink>
-              {r.total > 0 ? <IceBadge count={r.total} season={mode === "season"} /> : <span className="m-record">0</span>}
-              <span className="m-row-sub">{breakdown(r)}</span>
+            <li key={r.rosterId} className={`board-row${r.rosterId === myRosterId ? " m-mine" : ""}`}>
+              <span className="board-rank m-rank">{r.rank}</span>
+              <span className="board-who">
+                <DrillLink to={{ kind: "team", rosterId: r.rosterId }}>
+                  <TeamName name={teamFor(r.rosterId).name} iced={r.total > 0} ices={0} isMine={r.rosterId === myRosterId} badges={false} />
+                </DrillLink>
+                <span className="board-sub">
+                  <TroubleTags trouble={trouble.of(r.rosterId)} />
+                  <span>{breakdown(r)}</span>
+                </span>
+              </span>
+              <span className="board-num">
+                {r.total}
+                <span className="sr-only">{r.total === 1 ? " ice" : " ices"}</span>
+              </span>
             </li>
           ))}
         </ol>
-      </section>
+      </div>
     </div>
   );
 }

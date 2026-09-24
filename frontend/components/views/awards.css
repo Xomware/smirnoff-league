@@ -99,11 +99,6 @@
   }
 }
 
-[data-theme="glacier"] .awards > header p {
-  color: var(--g-muted);
-  font-size: 18px;
-}
-
 [data-theme="glacier"] .award-body {
   gap: 16px;
   padding: 12px 20px 20px;

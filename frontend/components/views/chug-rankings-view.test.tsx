@@ -16,7 +16,7 @@ import { refreshLedger } from "@/lib/ices/use-ledger";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { stubSleeper } from "@/lib/test/league-mock";
 import { ChugRankingsView } from "./chug-rankings-view";
-import { DrillContext } from "./drill-link";
+import { DrillContext, TitledPage } from "./drill-link";
 
 const timed = (iceId: string, week: number, rosterId: number, chugSeconds: number, name: string): LedgerIce => ({
   iceId,
@@ -183,6 +183,19 @@ describe("Ice Rankings", () => {
     expect(await card("League average")).toContain("9.8sover 6 chugs");
     expect(await card("Most improved")).toContain("-3.5sChugger D, 13.0s to 9.5s");
     expect(await card("Slowest average")).toContain("11.3sChugger D");
+  });
+
+  it("drops its own heading on a page that already shows the title and description", async () => {
+    render(
+      <ProfileProvider>
+        <TitledPage value>
+          <ChugRankingsView />
+        </TitledPage>
+      </ProfileProvider>,
+    );
+    await screen.findByRole("table", { name: "Chuggers ranked by personal best" });
+    expect(screen.queryByRole("heading", { name: "Ice Rankings" })).toBeNull();
+    expect(screen.queryByText("Every ice chug time on record, ranked by personal best.")).toBeNull();
   });
 
   it("says so when nobody has a time yet", async () => {

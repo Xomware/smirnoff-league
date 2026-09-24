@@ -17,7 +17,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { Ticker } from "@/components/ticker/Ticker";
 import { ChugReelPopup } from "@/components/videos/ChugReelPopup";
-import { DrillContext, type DrillTarget, NavigateContext, ViewParamsContext } from "@/components/views/drill-link";
+import { DrillContext, type DrillTarget, NavigateContext, TitledPage, ViewParamsContext } from "@/components/views/drill-link";
 import { BackArrowIcon, MenuIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { track } from "@/lib/activity/tracker";
@@ -245,7 +245,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                       {description && <p className="m-lede">{description}</p>}
                       <WindowBoundary>
                         <ViewParamsContext value={patch}>
-                          <Body params={screen.params} />
+                          <TitledPage value={Boolean(description)}>
+                            <Body params={screen.params} />
+                          </TitledPage>
                         </ViewParamsContext>
                       </WindowBoundary>
                     </section>
