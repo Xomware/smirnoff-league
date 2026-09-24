@@ -20,9 +20,9 @@ import {
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
+import { BoardHead } from "./board";
 import { DrillLink } from "./drill-link";
 
-import "./board.css";
 import "./chug-rankings.css";
 
 const COLUMNS: { key: SortKey; label: string; className?: string }[] = [
@@ -57,15 +57,6 @@ function Bar({ width, top }: { width: number; top: boolean }) {
   return <span aria-hidden="true" className={top ? "board-bar board-bar-top" : "board-bar"} style={{ "--bar": `${width}%` } as CSSProperties} />;
 }
 
-function BoardHead({ labels }: { labels: string[] }) {
-  return (
-    <div className="board-head" aria-hidden="true">
-      {labels.map((l) => (
-        <span key={l}>{l}</span>
-      ))}
-    </div>
-  );
-}
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (

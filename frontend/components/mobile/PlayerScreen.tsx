@@ -1,5 +1,6 @@
 "use client";
 
+import { BoardHead } from "@/components/views/board";
 import { DrillLink } from "@/components/views/drill-link";
 import { useSeason } from "@/components/views/week-ices";
 import { TeamName } from "@/components/xp/TeamName";
@@ -36,21 +37,38 @@ export function PlayerScreen({ params }: { params: WindowParams }) {
         {log.length === 0 ? (
           <p className="m-empty">Not on a league roster in a finished week.</p>
         ) : (
-          <ul aria-label="Week by week" className="m-card m-rows">
-            {log.map((w) => (
-              <li key={w.week} className={`m-row${w.ice ? " ice" : ""}`}>
-                <DrillLink to={{ kind: "week", week: w.week }}>Week {w.week}</DrillLink>
-                <span className="m-points">{w.points.toFixed(2)}</span>
-                <span className="m-row-sub m-flush">
-                  <DrillLink to={{ kind: "team", rosterId: w.rosterId }}>
-                    <TeamName name={teamFor(w.rosterId).name} iced={false} ices={0} />
-                  </DrillLink>
-                  {w.started ? "Starter" : "Bench"}
-                  {w.ice && <b className="m-minus">Caused an ice</b>}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <div className="m-card m-rows m-player-weeks">
+            <BoardHead labels={["WK", "Team", "Pts"]} />
+            <ul aria-label="Week by week">
+              {log.map((w) => (
+                <li key={w.week} className={`board-row${w.ice ? " ice" : ""}`}>
+                  <span className="board-rank">
+                    <DrillLink to={{ kind: "week", week: w.week }}>
+                      <span aria-hidden="true">W{w.week}</span>
+                      <span className="sr-only">Week {w.week}</span>
+                    </DrillLink>
+                  </span>
+                  <span className="board-who">
+                    <span className="board-name">
+                      <DrillLink to={{ kind: "team", rosterId: w.rosterId }}>
+                        <TeamName name={teamFor(w.rosterId).name} iced={false} ices={0} />
+                      </DrillLink>
+                    </span>
+                    <span className="board-sub">
+                      {w.started ? "Starter" : "Bench"}
+                      {w.ice && (
+                        <>
+                          {" · "}
+                          <b className="m-minus">Caused an ice</b>
+                        </>
+                      )}
+                    </span>
+                  </span>
+                  <span className="board-num">{w.points.toFixed(2)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </div>

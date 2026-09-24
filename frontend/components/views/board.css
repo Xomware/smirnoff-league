@@ -25,7 +25,15 @@
   text-transform: uppercase;
 }
 
-.board-head > :nth-child(n + 3) {
+.board-rank {
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* A row with nothing to count says so across the number columns. */
+.board-none {
+  grid-column: 2 / -1;
   text-align: right;
 }
 

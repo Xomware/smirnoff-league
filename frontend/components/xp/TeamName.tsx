@@ -12,6 +12,8 @@ interface TeamNameProps {
   avatarUrl?: string | null;
   isMine?: boolean;
   season?: boolean;
+  // A phone board shows the badges on its own sub line, where they have room.
+  badges?: boolean;
 }
 
 const TROUBLE_LABEL: Record<Trouble, string> = { late: "Late", owe: "Owes", lowest: "Lowest" };
@@ -25,7 +27,7 @@ export function TroubleTags({ trouble }: { trouble: Trouble[] }) {
   ));
 }
 
-export function TeamName({ name, iced, ices, avatarUrl, isMine = false, season = false }: TeamNameProps) {
+export function TeamName({ name, iced, ices, avatarUrl, isMine = false, season = false, badges = true }: TeamNameProps) {
   const trouble = useTrouble().byName(name);
   const ice = iced ? " ice" : "";
   return (
@@ -39,8 +41,12 @@ export function TeamName({ name, iced, ices, avatarUrl, isMine = false, season =
       </span>
       <span className={`xp-team-name${ice}`}>{name}</span>
       {isMine && <StarIcon className="shrink-0" role="img" aria-hidden={false} aria-label="Your team" />}
-      <IceBadge count={ices} season={season} />
-      <TroubleTags trouble={trouble} />
+      {badges && (
+        <>
+          <IceBadge count={ices} season={season} />
+          <TroubleTags trouble={trouble} />
+        </>
+      )}
     </span>
   );
 }
