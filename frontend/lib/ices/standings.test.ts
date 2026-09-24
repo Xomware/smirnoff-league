@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { Game } from "@/lib/espn";
 import { golden } from "@/lib/test/league-mock";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { DEFAULT_SORT, iceStandings, seasonGrid, sortFor, sortRows, toggleSort, weekIceStandings } from "./standings";
@@ -8,7 +9,8 @@ import { seasonTally } from "./tally";
 // Mirrors the mock league: roster N scored 200 - N points-for.
 const pf = Object.fromEntries(golden.weeks[0].matchups.map((m) => [m.roster_id, 200 - m.roster_id]));
 // Sleeper reports week 3 with no games played yet, as in the mock league.
-const tally = seasonTally([...golden.weeks, { week: 3, matchups: [] }], 3);
+const tally = seasonTally([...golden.weeks, { week: 3, matchups: [] }], 3, null);
+const KICKED_OFF: Game = { id: "g", kickoff: "", state: "in", status: "", period: 1, clock: "", completed: false, teams: [] };
 const rows = iceStandings(tally, golden.weeks, pf, null);
 const nameOf = (rosterId: number) => `Team ${String(rosterId).padStart(2, "0")}`;
 
@@ -138,11 +140,11 @@ describe("seasonGrid", () => {
     expect(grid.totals).toEqual([5, 3, 0]);
   });
 
-  it("counts only locked (empty-slot) ices in the live column", () => {
+  it("counts only locked (empty-slot) ices in the live column, once every game has kicked off", () => {
     const w1 = golden.weeks[0].matchups;
     // Week 3 replays W1's scores, zeros and all, with roster 3's QB slot empty.
     const live = w1.map((m) => (m.roster_id === 3 ? { ...m, starters: ["0", ...m.starters!.slice(1)] } : m));
-    const grid = seasonGrid([6, 3], seasonTally([...golden.weeks, { week: 3, matchups: live }], 3));
+    const grid = seasonGrid([6, 3], seasonTally([...golden.weeks, { week: 3, matchups: live }], 3, [KICKED_OFF]));
 
     expect(grid.rows).toEqual([
       { rosterId: 6, counts: [2, 0, 0] },

@@ -145,7 +145,7 @@ export function IcesOverview() {
             {final ? (
               <p>Week {currentWeek} is final. Its ices are on the ledger.</p>
             ) : live.length === 0 ? (
-              <p>No empty slots this week.</p>
+              <p>No ices locked yet. Empty slots count once every game has kicked off.</p>
             ) : (
               <WeekIces groups={byRoster(live)} players={data.players} teamFor={teamFor} />
             )}

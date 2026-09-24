@@ -63,7 +63,7 @@ export async function loadOverview(): Promise<Overview> {
   };
 
   const standings = sortStandings(r);
-  const tally = seasonTally(rows, week);
+  const tally = seasonTally(rows, week, games);
   const pf = Object.fromEntries(standings.map((s) => [s.rosterId, s.pf]));
   const ices = iceStandings(tally, rows.filter((w) => w.week < week), pf, null);
   const top = ices[0];

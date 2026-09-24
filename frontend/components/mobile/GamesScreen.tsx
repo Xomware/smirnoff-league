@@ -22,7 +22,7 @@ export function GamesScreen() {
     ? "Final scores."
     : liveGames > 0
       ? `${liveGames} ${liveGames === 1 ? "game" : "games"} live. Ice Watch checks every ${POLL_MS / 1000} seconds.`
-      : "This week. Only empty slots count as ices until it ends.";
+      : "This week. Empty slots count once every game has kicked off.";
 
   return (
     <div className="m-page">

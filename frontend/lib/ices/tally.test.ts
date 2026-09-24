@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import type { Game } from "@/lib/espn";
 import { golden } from "@/lib/test/league-mock";
 import { seasonTally } from "./tally";
 
+const game = (state: Game["state"]): Game => ({ id: state, kickoff: "", state, status: "", period: 1, clock: "", completed: state === "post", teams: [] });
+const kickedOff = [game("post"), game("in")];
 const inProgress = { week: 3, matchups: golden.weeks[0].matchups };
-const tally = seasonTally([...golden.weeks, inProgress], 3);
+const tally = seasonTally([...golden.weeks, inProgress], 3, kickedOff);
 const owedBy = (rosterId: number) => tally.owed.find((t) => t.rosterId === rosterId)!;
 
 describe("seasonTally", () => {
@@ -26,7 +29,7 @@ describe("seasonTally", () => {
     expect(tally.live?.week).toBe(3);
   });
 
-  it("only locks in empty slots while the week is live", () => {
+  it("only locks in empty slots while the week is live, once every game has kicked off", () => {
     // W1 replayed as live: its zeros could be players yet to kick off, and the
     // lowest team can still change, so neither counts until the week ends.
     expect(tally.live?.ices).toEqual([]);
@@ -34,8 +37,11 @@ describe("seasonTally", () => {
     const withEmpty = golden.weeks[0].matchups.map((m) =>
       m.roster_id === 1 ? { ...m, starters: ["0", ...m.starters!.slice(1)] } : m,
     );
-    const live = seasonTally([...golden.weeks, { week: 3, matchups: withEmpty }], 3).live;
-    expect(live?.ices).toEqual([expect.objectContaining({ rosterId: 1, reason: "empty", slot: "QB" })]);
+    const live = (games: Game[] | null) => seasonTally([...golden.weeks, { week: 3, matchups: withEmpty }], 3, games).live?.ices;
+    expect(live(kickedOff)).toEqual([expect.objectContaining({ rosterId: 1, reason: "empty", slot: "QB" })]);
+    // The manager can still fill it from a game that hasn't started.
+    expect(live([game("post"), game("pre")])).toEqual([]);
+    expect(live(null)).toEqual([]);
   });
 
   it("breaks totals down by reason", () => {
@@ -55,6 +61,6 @@ describe("seasonTally", () => {
       points: 0,
       starters_points: m.starters_points.map(() => 0),
     }));
-    expect(seasonTally([...golden.weeks, { week: 3, matchups: unplayed }], 3).live?.ices).toEqual([]);
+    expect(seasonTally([...golden.weeks, { week: 3, matchups: unplayed }], 3, kickedOff).live?.ices).toEqual([]);
   });
 });

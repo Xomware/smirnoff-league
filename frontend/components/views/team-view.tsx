@@ -85,7 +85,7 @@ export function useTeamProfile(rosterId: number) {
   const mine = lineup?.matchups.find((m) => m.roster_id === rosterId);
   const icedSlots = new Set(
     lineup
-      ? (weekSummary(lineup.week, lineup.matchups, lineup.week === currentWeek)
+      ? (weekSummary(lineup.week, lineup.matchups, lineup.week === currentWeek ? (tally.live?.ices ?? []) : null)
           .icesByRoster.find(([id]) => id === rosterId)?.[1]
           .map((i) => i.slotIndex) ?? [])
       : [],

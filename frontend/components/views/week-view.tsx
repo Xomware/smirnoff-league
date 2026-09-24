@@ -11,14 +11,14 @@ interface WeekViewProps {
 }
 
 export function WeekView({ week }: WeekViewProps) {
-  const { data, teamFor, currentWeek, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
+  const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;
-  if (!data || !weeks || !live) return <p role="status">Loading week {week}...</p>;
+  if (!data || !tally || !weeks || !live) return <p role="status">Loading week {week}...</p>;
 
   const isLive = week === currentWeek;
   const matchups = isLive ? live : (weeks.find((w) => w.week === week)?.matchups ?? []);
-  const { pairs, icesByRoster, lowest } = weekSummary(week, matchups, isLive);
+  const { pairs, icesByRoster, lowest } = weekSummary(week, matchups, isLive ? (tally.live?.ices ?? []) : null);
   if (pairs.length === 0) return <p className="xp-note">No matchups for week {week} yet.</p>;
 
   const icesOf = (rosterId: number) => icesByRoster.find(([id]) => id === rosterId)?.[1].length ?? 0;
@@ -58,7 +58,7 @@ export function WeekView({ week }: WeekViewProps) {
 
       <section aria-label="Ices" className="week-ices grid gap-3">
         <h3 className="font-bold">Ices</h3>
-        {isLive && <p className="xp-note">Only empty slots count until the week ends.</p>}
+        {isLive && <p className="xp-note">Empty slots count once every game has kicked off.</p>}
         {icesByRoster.length === 0 ? (
           <p>No ices this week.</p>
         ) : (

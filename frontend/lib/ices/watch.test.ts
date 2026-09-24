@@ -20,6 +20,7 @@ function game(teams: string[], patch: Partial<Game> = {}): Game {
   };
 }
 
+const pre = (teams: string[]) => game(teams, { state: "pre", status: "STATUS_SCHEDULED", period: 0 });
 const final = (teams: string[]) => game(teams, { state: "post", status: "STATUS_FINAL", period: 4, clock: "0:00", completed: true });
 
 const player = (team: string | null, injury_status: string | null = null): Player => ({
@@ -41,18 +42,37 @@ function stateOf(points: number, games: Game[], p: Player, playerId = "p"): stri
 }
 
 describe("watchStates", () => {
-  it("locks an empty slot", () => {
+  it("locks an empty slot once every game has kicked off", () => {
     expect(stateOf(0, [game(["BUF", "MIA"])], player("BUF"), "0")).toBe("LOCKED");
   });
 
-  it("locks a player whose team has no game this week", () => {
+  it("leaves an empty slot open while any game has yet to kick off", () => {
+    expect(stateOf(0, [pre(["BUF", "MIA"])], player("BUF"), "0")).toBe("OPEN");
+    expect(stateOf(0, [final(["BUF", "MIA"]), pre(["KC", "DEN"])], player("BUF"), "0")).toBe("OPEN");
+  });
+
+  it("never locks an empty slot without a scoreboard", () => {
+    expect(stateOf(0, [], player("BUF"), "0")).toBe("OPEN");
+  });
+
+  it("locks a player on bye once every game has kicked off", () => {
     expect(stateOf(0, [game(["BUF", "MIA"])], player("KC"))).toBe("LOCKED");
   });
 
-  it.each(["Out", "IR", "PUP", "Sus"])("locks a starter listed %s before kickoff", (status) => {
-    expect(stateOf(0, [game(["BUF", "MIA"], { state: "pre", status: "STATUS_SCHEDULED", period: 0 })], player("BUF", status))).toBe(
-      "LOCKED",
-    );
+  it("leaves a player on bye open while another game has yet to kick off", () => {
+    expect(stateOf(0, [final(["BUF", "MIA"]), pre(["SEA", "LAR"])], player("KC"))).toBe("OPEN");
+  });
+
+  it.each(["Out", "IR", "PUP", "Sus"])("leaves a starter listed %s open before his kickoff", (status) => {
+    expect(stateOf(0, [pre(["BUF", "MIA"])], player("BUF", status))).toBe("OPEN");
+  });
+
+  it("locks in a sidelined starter once his own game kicks off, even with other games pending", () => {
+    expect(stateOf(0, [game(["BUF", "MIA"], { clock: "5:00" }), pre(["SEA", "LAR"])], player("BUF", "Out"))).toBe("SAFE");
+  });
+
+  it("ices a sidelined starter left in once his game is over", () => {
+    expect(stateOf(0, [final(["BUF", "MIA"]), pre(["SEA", "LAR"])], player("BUF", "Out"))).toBe("FINAL_ICE");
   });
 
   it("ignores injury status once the game has kicked off", () => {
@@ -89,7 +109,7 @@ describe("watchStates", () => {
     expect(stateOf(0, [final(["BUF", "MIA"])], player("BUF"), "BUF")).toBe("FINAL_ICE");
   });
 
-  it("counts locked, watch and final ices per team", () => {
+  it("counts locked, open, watch and final ices per team", () => {
     const row: MatchupRow = {
       roster_id: 4,
       matchup_id: 1,
@@ -100,7 +120,10 @@ describe("watchStates", () => {
     const players = { a: player("BUF"), b: player("SEA"), c: player("SEA") };
     const teams = watchStates(3, [row], [final(["BUF", "MIA"]), game(["SEA", "LAR"], { period: 3 })], players);
     // z* have no team, so they count as on bye.
-    expect(teams[0]).toMatchObject({ rosterId: 4, finalIce: 1, watch: 1, locked: 1 + 6 });
+    expect(teams[0]).toMatchObject({ rosterId: 4, finalIce: 1, watch: 1, locked: 1 + 6, open: 0 });
+
+    const early = watchStates(3, [row], [final(["BUF", "MIA"]), game(["SEA", "LAR"], { period: 3 }), pre(["KC", "DEN"])], players);
+    expect(early[0]).toMatchObject({ finalIce: 1, watch: 1, locked: 0, open: 1 + 6 });
   });
 
   it("skips rosters Sleeper has no lineup for", () => {

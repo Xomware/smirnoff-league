@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { DrillLink } from "@/components/views/drill-link";
 import { OpenGame } from "@/components/views/game-view";
@@ -12,6 +12,8 @@ import {
   SLOTS,
   weekIces,
 } from "@/lib/ices/compute";
+import type { Game } from "@/lib/espn";
+import { scoreboard } from "@/lib/league/cache";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { type Player, type Team, useLeague } from "@/lib/league/use-league";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
@@ -132,6 +134,7 @@ export function ScoresWindow() {
   const picker = useId();
   const { data, matchups, error, teamFor } = useLeague(week);
   const current = data ? Math.max(1, data.nfl.week) : undefined;
+  const [board, setBoard] = useState<{ week: number; games: Game[] | null }>();
   const initial = useDefaultWeek();
   if (!picked && initial !== undefined && week !== initial) setWeek(initial);
   const pick = (w: number) => {
@@ -139,12 +142,26 @@ export function ScoresWindow() {
     setWeek(w);
   };
 
+  // Re-read with each matchups poll; the cache holds the scoreboard for five minutes.
+  useEffect(() => {
+    if (week === undefined || week !== current) return;
+    let live = true;
+    scoreboard(week)
+      .then((games) => live && setBoard({ week, games }))
+      // ESPN down: nothing locks early.
+      .catch(() => live && setBoard({ week, games: null }));
+    return () => {
+      live = false;
+    };
+  }, [week, current, matchups]);
+  const games = board && board.week === week ? board.games : null;
+
   const ices = useMemo<IceIndex>(() => {
     const index: IceIndex = { byRoster: new Map(), slots: new Set() };
     if (!matchups || week === undefined) return index;
     const ices =
       week === current
-        ? lockedIces(week, matchups, SLOTS)
+        ? lockedIces(week, matchups, SLOTS, games)
         : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
     for (const ice of ices) {
       index.byRoster.set(
@@ -155,7 +172,7 @@ export function ScoresWindow() {
         index.slots.add(`${ice.rosterId}:${ice.slotIndex}`);
     }
     return index;
-  }, [matchups, week, current]);
+  }, [matchups, week, current, games]);
 
   const pairs = useMemo(() => {
     const byId = new Map<number, SleeperMatchup[]>();

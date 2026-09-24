@@ -177,7 +177,7 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
   );
   const provisional = (week: number, live: boolean) => {
     const ices = (live ? tally.live : tally.weeks.find((w) => w.week === week))?.ices ?? [];
-    if (ices.length === 0) return <p>{live ? "No empty slots this week." : "No ices this week."}</p>;
+    if (ices.length === 0) return <p>{live ? "No ices locked yet." : "No ices this week."}</p>;
     return <WeekIces groups={byRoster(ices)} players={data.players} teamFor={teamFor} />;
   };
 
@@ -200,7 +200,7 @@ export function IceLedger({ phone = false }: IceLedgerProps) {
           ledgerWeek(currentWeek)
         ) : (
           <>
-            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Only empty slots count now.</p>
+            <p className="xp-note">Zeros and the lowest score lock in when the week ends. Empty slots count once every game has kicked off.</p>
             {provisional(currentWeek, true)}
           </>
         )}

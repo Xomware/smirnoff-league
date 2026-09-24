@@ -1,5 +1,6 @@
 // The ice rule, per "Ice computation spec" in docs/features/smirnoff-league/PLAN.md.
 // backend ices.py implements the same function; both must pass fixtures/ices-golden.json.
+import type { Game } from "@/lib/espn";
 import type { SleeperMatchup } from "@/lib/sleeper/types";
 
 export const SLOTS = ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "FLEX", "K", "DEF"] as const;
@@ -79,8 +80,15 @@ export function weekIces(
   return ices.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
+// Sleeper lets a manager start anyone whose game hasn't kicked off, so an empty
+// slot can be filled until the week's last kickoff. Without a scoreboard we
+// can't know when that is, so nothing locks early.
+export const lastKickoffPassed = (games: Game[] | null) => !!games?.length && games.every((g) => g.state !== "pre");
+
 // While a week is live, a 0.0 may be a player who hasn't kicked off and the
-// lowest team can still change. Only an empty slot is certain before the week ends.
-export function lockedIces(week: number, matchups: MatchupRow[], slots: readonly string[]): Ice[] {
+// lowest team can still change. Only an empty slot is certain, and only once
+// every game has kicked off.
+export function lockedIces(week: number, matchups: MatchupRow[], slots: readonly string[], games: Game[] | null): Ice[] {
+  if (!lastKickoffPassed(games)) return [];
   return weekIces(week, matchups, slots, defaultWeekSettings(week)).filter((i) => i.reason === "empty");
 }

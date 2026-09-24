@@ -2,8 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import type { Game } from "@/lib/espn";
 import {
   defaultWeekSettings,
+  lockedIces,
   weekIces,
   type Ice,
   type MatchupRow,
@@ -232,5 +234,23 @@ describe("season tally from real weeks", () => {
     }
 
     expect(tally).toEqual({ 2: 2, 3: 1, 6: 4, 8: 2, 12: 3, 13: 2 });
+  });
+});
+
+describe("lockedIces", () => {
+  const game = (state: Game["state"]): Game => ({ id: state, kickoff: "", state, status: "", period: 1, clock: "", completed: state === "post", teams: [] });
+  const rows = [row(1, 0, { starters: ["0", ...SLOTS.slice(1).map((_, i) => `p1-${i}`)], starters_points: SLOTS.map(() => 0) }), row(2, 100)];
+
+  it("locks the live week's empty slots once every game has kicked off, never its zeros or lowest", () => {
+    expect(lockedIces(3, rows, SLOTS, [game("post"), game("in")]).map((i) => i.id)).toEqual(["W03#R01#S0"]);
+  });
+
+  it("locks nothing while a game is left that could fill the slot", () => {
+    expect(lockedIces(3, rows, SLOTS, [game("post"), game("pre")])).toEqual([]);
+  });
+
+  it("locks nothing without a scoreboard", () => {
+    expect(lockedIces(3, rows, SLOTS, null)).toEqual([]);
+    expect(lockedIces(3, rows, SLOTS, [])).toEqual([]);
   });
 });

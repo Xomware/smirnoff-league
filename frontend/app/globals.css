@@ -804,6 +804,13 @@
     background: var(--xp-face);
   }
 
+  /* Still fixable in Sleeper: a warning, not an ice. */
+  .xp-watch-tag[data-state="OPEN"] {
+    border-color: var(--xp-wood);
+    color: var(--xp-text);
+    background: color-mix(in srgb, var(--xp-gold) 40%, var(--xp-cream));
+  }
+
   .xp-team-name.ice {
     padding: 0 0.375rem;
     border-radius: 3px;

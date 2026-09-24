@@ -27,7 +27,7 @@ export interface Side {
   rosterId: number;
   points: number;
   ices: number;
-  // What weekIces counts: in the live week, only the locked empty slots.
+  // What weekIces counts: in the live week, only empty slots, once every game has kicked off.
   iceList: Ice[];
   // These three are null when Sleeper has no lineup for the team.
   starters: Starter[] | null;
@@ -51,7 +51,7 @@ export function useWeekGames(week: number | undefined) {
 
   const games = useMemo((): Game[] | null => {
     if (!data || !matchups || week === undefined) return null;
-    const ices = live ? lockedIces(week, matchups, SLOTS) : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
+    const ices = live ? lockedIces(week, matchups, SLOTS, watch.games) : weekIces(week, matchups, SLOTS, defaultWeekSettings(week));
     const watched = live && watch.matchups && watch.games ? watchStates(week, watch.matchups, watch.games, data.players) : [];
     const positionOf = withDef((id) => data.players[id]?.position);
     const byId = new Map<number, Side[]>();

@@ -771,7 +771,7 @@
   background: color-mix(in srgb, var(--smirnoff-red) 10%, var(--xp-cream));
 }
 
-.m-chip[data-state="WATCH"] {
+.m-chip:is([data-state="WATCH"], [data-state="OPEN"]) {
   border-color: var(--xp-wood);
   color: var(--xp-text);
   background: color-mix(in srgb, var(--xp-gold) 40%, var(--xp-cream));
