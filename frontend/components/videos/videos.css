@@ -200,4 +200,41 @@
   .chug-toolbar .xp-button {
     margin-left: 0;
   }
+
+  /* The player sheet fills what Safari leaves visible. Its title and Close stay
+     pinned while the video, reactions and comments scroll under them. */
+  .xp-backdrop:has(> .chug-player) {
+    top: var(--vv-top, 0);
+    bottom: auto;
+    height: var(--vv-height, 100dvh);
+  }
+
+  .xp-backdrop > .chug-player {
+    max-height: calc(100% - env(safe-area-inset-top) - 0.5rem);
+    overscroll-behavior: contain;
+    scroll-padding-block: 4rem 1rem;
+  }
+
+  .chug-player > .xp-dialog-title {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-block: 0.25rem;
+  }
+
+  .chug-player > .xp-dialog-title > .chug-player-x {
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-right: -0.5rem;
+  }
+
+  .chug-player video {
+    max-height: 60svh;
+  }
+
+  [data-theme="glacier"] .chug-player > .xp-dialog-title {
+    padding: 8px 12px 8px 24px;
+    background: var(--g-modal);
+  }
 }
