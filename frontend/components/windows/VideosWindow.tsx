@@ -4,6 +4,7 @@ import { type ReactNode, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { canUpload, teamList, UploadChug, UploadChugButton } from "@/components/videos/UploadChug";
+import { VideoSocial } from "@/components/videos/VideoSocial";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceCause } from "@/components/views/week-ices";
 import { TeamName } from "@/components/xp/TeamName";
@@ -151,6 +152,7 @@ export function VideosWindow() {
               <p className="chug-meta">
                 {video.uploaderName ? `Posted by ${video.uploaderName}` : "Posted"} &middot; {shortDate(video.createdAt)}
               </p>
+              <VideoSocial videoId={video.mediaId} />
             </li>
           ))}
         </ul>

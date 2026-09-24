@@ -3,15 +3,17 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { useAlerts } from "@/lib/alerts/alerts";
+import { recentComments } from "@/lib/api/social";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { leagueTransactions } from "@/lib/league/cache";
 import { useLeague } from "@/lib/league/use-league";
 import { useProfile } from "@/lib/profile/use-profile";
+import { sharedResource } from "@/lib/shared-resource";
 import { useTheme } from "@/lib/theme/theme";
 import type { SleeperTransaction } from "@/lib/sleeper/types";
 import { useVideos } from "@/lib/videos/use-videos";
 import { useWriteups } from "@/lib/writeups/use-writeups";
-import { deriveNotifications, type Notification, unreadCount } from "./derive";
+import { deriveNotifications, type Notification, sentence, unreadCount } from "./derive";
 
 interface NotificationsState {
   items: Notification[];
@@ -32,6 +34,10 @@ const NotificationsContext = createContext<NotificationsState>({
   seenAt: null,
   markAllSeen: async () => {},
 });
+
+// Comments land any time, unlike the other sources, so an open tab polls for them.
+const COMMENTS_POLL_MS = 5 * 60_000;
+const comments = sharedResource(() => recentComments().then((c) => ({ status: "ok" as const, comments: c })), COMMENTS_POLL_MS);
 
 const NONE: SleeperTransaction[] = [];
 const NONE_YET: Notification[] = [];
@@ -55,6 +61,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const ledger = useLedger();
   const writeups = useWriteups().state;
   const videos = useVideos().state;
+  const recent = comments.use();
   const { notify } = useAlerts();
   const [txs, setTxs] = useState<SleeperTransaction[] | null>(null);
   const [txError, setTxError] = useState(false);
@@ -65,7 +72,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), TICK_MS);
-    return () => clearInterval(id);
+    const poll = setInterval(comments.refresh, COMMENTS_POLL_MS);
+    return () => {
+      clearInterval(id);
+      clearInterval(poll);
+    };
   }, []);
 
   useEffect(() => {
@@ -82,7 +93,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [week]);
 
   const transactions = txs ?? (leagueError || txError ? NONE : null);
-  const sources = [ledger, writeups, videos];
+  const sources = [ledger, writeups, videos, recent];
   const ready = myRosterId !== null && transactions !== null && sources.every((s) => s.status !== "loading");
   const partial = !!leagueError || txError || sources.some((s) => s.status === "error");
 
@@ -93,11 +104,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       ledger: ledger.status === "ok" ? ledger.ledger : null,
       writeups: writeups.status === "ok" ? writeups.writeups : [],
       videos: videos.status === "ok" ? videos.videos : [],
+      comments: recent.status === "ok" ? recent.comments : [],
       transactions,
       teamName: (r) => teamFor(r).name,
       now,
     });
-  }, [ready, myRosterId, ledger, writeups, videos, transactions, teamFor, now]);
+  }, [ready, myRosterId, ledger, writeups, videos, recent, transactions, teamFor, now]);
 
   // Everything before signup is history, not news, for someone who has never opened the list.
   const seenAt = me?.profile?.notificationsSeenAt ?? me?.profile?.createdAt ?? null;
@@ -110,7 +122,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     if (theme === "glacier" || !firstBalloonThisSession()) return;
     notify({
       title: unread === 1 ? "1 new notification" : `${unread} new notifications`,
-      body: `${items[0].title}. ${items[0].body}.`,
+      body: `${items[0].title}. ${sentence(items[0].body)}`,
       icon: "info",
     });
   }, [ready, unread, items, notify, theme]);

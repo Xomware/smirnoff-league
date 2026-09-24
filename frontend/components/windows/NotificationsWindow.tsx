@@ -2,6 +2,7 @@
 
 import { type ComponentType, type SVGProps, useEffect, useRef, useState } from "react";
 
+import { CommentIcon } from "@/components/videos/reaction-icons";
 import { DrillLink } from "@/components/views/drill-link";
 import { CamcorderIcon, IceBottleIcon, NewspaperIcon, StopwatchIcon, TradeIcon, WarningIcon } from "@/components/xp/icons";
 import { timeAgo } from "@/lib/news/feed";
@@ -15,6 +16,7 @@ const ICONS: Record<Notification["kind"], ComponentType<SVGProps<SVGSVGElement>>
   late: WarningIcon,
   edition: NewspaperIcon,
   video: CamcorderIcon,
+  comment: CommentIcon,
   trade: TradeIcon,
 };
 

@@ -1,12 +1,13 @@
 import type { DrillTarget } from "@/components/views/drill-link";
 import type { Ledger, LedgerIce } from "@/lib/api/ledger";
+import type { RecentComment } from "@/lib/api/social";
 import type { Video } from "@/lib/api/videos";
 import type { Writeup } from "@/lib/api/writeups";
 import type { SleeperTransaction } from "@/lib/sleeper/types";
 
 export interface Notification {
   id: string;
-  kind: "iced" | "due" | "late" | "edition" | "video" | "trade";
+  kind: "iced" | "due" | "late" | "edition" | "video" | "comment" | "trade";
   at: number;
   title: string;
   body: string;
@@ -18,6 +19,8 @@ export interface NotificationSources {
   ledger: Ledger | null;
   writeups: Writeup[];
   videos: Video[];
+  /** Others' comments on my chugs. */
+  comments: RecentComment[];
   transactions: SleeperTransaction[];
   teamName: (rosterId: number) => string;
   now: number;
@@ -132,6 +135,10 @@ export function deriveNotifications(s: NotificationSources): Notification[] {
     const who = v.rosterIds.includes(s.myRosterId) ? "You" : (v.uploaderName ?? s.teamName(v.rosterIds[0]));
     return { id: `video:${v.mediaId}`, kind: "video", at: Date.parse(v.createdAt), title: "New chug video", body: `${who} chugged for Week ${v.week}`, target: { kind: "videos" } };
   });
+  const comments = s.comments.map((c): Notification => {
+    const who = c.author.displayName ?? (c.author.rosterId === null ? "Someone" : s.teamName(c.author.rosterId));
+    return { id: `comment:${c.id}`, kind: "comment", at: Date.parse(c.createdAt), title: `New comment on your Week ${c.week} chug`, body: `${who}: "${c.text}"`, target: { kind: "videos" } };
+  });
   const trades = s.transactions
     .filter((t) => t.type === "trade" && t.status === "complete" && t.roster_ids.includes(s.myRosterId))
     .map((t): Notification => {
@@ -139,10 +146,13 @@ export function deriveNotifications(s: NotificationSources): Notification[] {
       return { id: `trade:${t.transaction_id}`, kind: "trade", at: t.status_updated, title: "Trade completed", body: `You traded with ${others.join(" and ")}`, target: { kind: "news" } };
     });
 
-  return [...iceItems(s), ...editions, ...videos, ...trades]
+  return [...iceItems(s), ...editions, ...videos, ...comments, ...trades]
     .filter((n) => n.at <= s.now)
     .sort((a, b) => b.at - a.at || a.id.localeCompare(b.id));
 }
+
+/** Ends a notification body with a period unless it already ends in punctuation, as a quoted comment may. */
+export const sentence = (text: string) => (/[.!?"]$/.test(text) ? text : `${text}.`);
 
 export function unreadCount(items: Notification[], seenAt: string | null | undefined): number {
   const seen = seenAt ? Date.parse(seenAt) : -Infinity;

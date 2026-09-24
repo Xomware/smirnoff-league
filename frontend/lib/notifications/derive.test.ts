@@ -4,7 +4,7 @@ import type { Ledger, LedgerIce } from "@/lib/api/ledger";
 import type { Video } from "@/lib/api/videos";
 import type { Writeup } from "@/lib/api/writeups";
 import type { SleeperTransaction } from "@/lib/sleeper/types";
-import { deriveNotifications, type NotificationSources, unreadCount } from "./derive";
+import { deriveNotifications, type NotificationSources, sentence, unreadCount } from "./derive";
 
 const ME = 4;
 const ms = (iso: string) => Date.parse(iso);
@@ -72,6 +72,7 @@ const sources = (over: Partial<NotificationSources> = {}): NotificationSources =
   ledger: LEDGER,
   writeups: [WRITEUP],
   videos: [video({}), video({ mediaId: "v2", rosterIds: [9, ME], createdAt: "2026-09-23T03:00:00+00:00" })],
+  comments: [],
   transactions: [
     trade({}),
     trade({ transaction_id: "t2", roster_ids: [2, 7] }),
@@ -104,6 +105,16 @@ describe("deriveNotifications", () => {
     expect(item.body).toBe("Team 9 chugged for Week 2");
   });
 
+  it("turns others' comments on my chugs into items that open the videos", () => {
+    const comment = { videoId: "v1", week: 2, id: "c1", author: { rosterId: 7, displayName: "Seven" }, text: "cold one", createdAt: "2026-09-29T12:00:00+00:00" };
+    const nameless = { ...comment, id: "c2", author: { rosterId: 7, displayName: null }, createdAt: "2026-09-29T11:00:00+00:00" };
+    const none = { ledger: null, writeups: [], videos: [], transactions: [] };
+    expect(deriveNotifications(sources({ ...none, comments: [comment, nameless] }))).toEqual([
+      { id: "comment:c1", kind: "comment", at: ms("2026-09-29T12:00:00Z"), title: "New comment on your Week 2 chug", body: 'Seven: "cold one"', target: { kind: "videos" } },
+      { id: "comment:c2", kind: "comment", at: ms("2026-09-29T11:00:00Z"), title: "New comment on your Week 2 chug", body: 'Team 7: "cold one"', target: { kind: "videos" } },
+    ]);
+  });
+
   it("stamps the nth late ice n-1 wall-clock weeks after the deadline", () => {
     const late = ice({ iceId: "W02#4#1#LATE2", week: 2, reason: "late", parentIceId: "W02#4#1" });
     const only = { ledger: { ...LEDGER, ices: [late] }, writeups: [], videos: [], transactions: [] };
@@ -116,6 +127,14 @@ describe("deriveNotifications", () => {
     const s = sources();
     const shuffled = { ...s, videos: [...s.videos].reverse(), transactions: [...s.transactions].reverse() };
     expect(deriveNotifications(shuffled)).toEqual(deriveNotifications(s));
+  });
+});
+
+describe("sentence", () => {
+  it("adds a period only where the body lacks closing punctuation", () => {
+    expect(sentence("Week 2: lowest score")).toBe("Week 2: lowest score.");
+    expect(sentence('Seven: "cold one"')).toBe('Seven: "cold one"');
+    expect(sentence("Done!")).toBe("Done!");
   });
 });
 
