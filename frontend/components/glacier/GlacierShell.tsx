@@ -18,7 +18,7 @@ import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
 import { viewKey, windowId } from "@/lib/desktop/windows";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useProfile } from "@/lib/profile/use-profile";
-import { type PageView, pagesFor, pageView, SECTIONS, sectionOf } from "@/lib/sections";
+import { descriptionOf, type PageView, pagesFor, pageView, SECTIONS, sectionOf } from "@/lib/sections";
 import { Effects } from "./Effects";
 import { Crystal, FONTS, HEADER_ICICLES, Icicles, PANEL_ICICLES } from "./Frost";
 import { GlacierHome } from "./GlacierHome";
@@ -67,6 +67,7 @@ export function GlacierShell() {
   const title = isPage(kind) ? PAGES[kind].title : windowTitle({ kind, params });
   const Body = isPage(kind) ? PAGES[kind].component : REGISTRY[kind].component;
   const subPages = pagesFor(section, isAdmin);
+  const description = descriptionOf(kind);
 
   useEffect(() => {
     const onPop = () =>
@@ -165,6 +166,7 @@ export function GlacierShell() {
                 <h1 ref={heading} tabIndex={-1} className="glacier-title">
                   {title}
                 </h1>
+                {description && <p className="glacier-lede">{description}</p>}
                 <section className="glacier-panel" aria-label={title}>
                   <Icicles className="glacier-icicles" d={PANEL_ICICLES} />
                   <Crystal />

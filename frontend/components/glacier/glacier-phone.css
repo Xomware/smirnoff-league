@@ -108,24 +108,13 @@
   padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
 
-/* Sub-tabs, as the desktop sub-nav's chips, clear of the bar's icicles. */
+/* Sub-tabs, as the desktop sub-nav's chips. */
 .m-app.glacier .m-subtabs {
   gap: 6px;
-  padding: 20px var(--m-pad) 10px;
-  background: none;
-  box-shadow: none;
-}
-
-.m-app.glacier .m-bar[data-scrolled] + .m-subtabs {
-  padding-top: 10px;
-}
-
-.m-app.glacier .m-subtabs + .m-screens .m-screen {
-  padding-top: 8px;
 }
 
 .m-app.glacier .m-subtab {
-  padding: 0 16px;
+  padding: 0 8px;
   border: 1px solid transparent;
   border-radius: 999px;
   color: var(--g-text);
@@ -154,6 +143,11 @@
 
 .m-app.glacier .m-subtabs :focus-visible {
   outline-offset: 2px;
+}
+
+.m-app.glacier .m-lede {
+  color: var(--g-label);
+  font: 500 15px/1.4 var(--g-body);
 }
 
 /* Home: GlacierHome, made short: one quick-hitter card, then short lists. */

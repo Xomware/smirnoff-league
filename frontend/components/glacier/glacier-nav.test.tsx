@@ -143,9 +143,11 @@ describe("phone Menu reachability", () => {
       openMenu();
       fireEvent.click(within(menu().getByRole("navigation", { name: "Main" })).getByRole("button", { name }));
       reached.add(shownKind());
-      const tabs = screen.queryByRole("navigation", { name: `${name} pages` });
-      for (const tab of tabs ? within(tabs).getAllByRole("button") : []) {
-        fireEvent.click(tab);
+      // Each pick remounts the page and the sub-tabs in it, so find each tab afresh.
+      const tabs = () => screen.queryByRole("navigation", { name: `${name} pages` });
+      const names = tabs() ? within(tabs()!).getAllByRole("button").map((b) => b.textContent!) : [];
+      for (const tab of names) {
+        fireEvent.click(within(tabs()!).getByRole("button", { name: tab }));
         reached.add(shownKind());
       }
     }

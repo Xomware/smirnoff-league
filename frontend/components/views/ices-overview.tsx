@@ -32,16 +32,18 @@ const NARROW = "(max-width: 639.98px)";
 
 interface BlockProps {
   title: string;
+  count?: string;
   all?: DrillTarget;
   className?: string;
   children: ReactNode;
 }
 
-function Block({ title, all, className = "", children }: BlockProps) {
+function Block({ title, count, all, className = "", children }: BlockProps) {
   return (
     <section className={`xp-group ov-block ${className}`} aria-label={title}>
       <div className="xp-group-title ov-head">
         <h3>{title}</h3>
+        {count && <span className="ov-count">{count}</span>}
         {all && (
           <span className="ov-all">
             <DrillLink to={all}>
@@ -91,6 +93,8 @@ export function IcesOverview() {
   const clipTime = (v: Video) => ledger?.ices.find((i) => v.iceIds.includes(i.iceId) && i.chugSeconds)?.chugSeconds;
   const heatLine = (recent: number[]) => `Iced in ${recent.filter((n) => n > 0).length} of the last ${plural(recent.length, "week")}`;
 
+  const owing = new Set(ledger?.ices.filter((i) => i.status === "owed").map((i) => i.rosterId)).size;
+
   const latest = clips[0];
   const latestTime = latest && clipTime(latest);
   const tiles = [
@@ -118,7 +122,7 @@ export function IcesOverview() {
           </p>
         )}
 
-        <Block title="Who owes now" all={{ kind: "ices" }} className="who-owes">
+        <Block title="Who owes now" count={ledger ? plural(owing, "team") : undefined} all={{ kind: "ices" }} className="who-owes">
           {ledger ? (
             <WhoOwes
               ledger={ledger}
@@ -155,7 +159,9 @@ export function IcesOverview() {
                 <li key={t.label} className="ledger-stat">
                   <DrillLink to={t.to}>
                     <span className="ledger-stat-label">{t.label}</span>
-                    <span className="ledger-stat-sub">{t.value}</span>
+                    <span className="ledger-stat-sub" title={t.value}>
+                      {t.value}
+                    </span>
                   </DrillLink>
                 </li>
               ))}
@@ -163,7 +169,7 @@ export function IcesOverview() {
           </section>
         ) : (
           <>
-            <Block title="Recent chugs" all={{ kind: "videos" }}>
+            <Block title="Recent chugs" count={videos.status === "ok" ? `${clips.length} on tape` : undefined} all={{ kind: "videos" }}>
               {videos.status === "loading" ? (
                 <p role="status">Rewinding the chug tapes...</p>
               ) : videos.status === "error" ? (

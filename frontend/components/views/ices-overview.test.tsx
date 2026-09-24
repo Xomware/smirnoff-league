@@ -115,6 +115,13 @@ describe("Ices overview", () => {
     expect(heat.length).toBeLessThanOrEqual(3);
   });
 
+  it("counts what the long blocks hold in their headers", async () => {
+    renderOverview();
+    await screen.findByRole("list", { name: "Recent chugs" });
+    expect(block("Who owes now").getByText("2 teams").closest(".ov-head")).toBeTruthy();
+    expect(block("Recent chugs").getByText("4 on tape").closest(".ov-head")).toBeTruthy();
+  });
+
   it("counts the stat strip from the ledger", async () => {
     renderOverview();
     const strip = within(await screen.findByRole("region", { name: "Season at a glance" }));

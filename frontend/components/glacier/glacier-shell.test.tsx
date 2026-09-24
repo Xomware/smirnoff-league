@@ -92,6 +92,17 @@ describe("GlacierShell", () => {
     expect(sub.getByRole("link", { name: "Rankings" }).getAttribute("aria-current")).toBe("page");
   });
 
+  it("says what a page holds under its title", async () => {
+    window.history.replaceState(null, "", "/?open=ices");
+    renderShell();
+    const title = screen.getByRole("heading", { level: 1 });
+    expect(title.nextElementSibling?.textContent).toBe("Every ice, week by week. Tap a week to open it.");
+
+    fireEvent.click(nav().getByRole("link", { name: "League" }));
+    await waitFor(() => expect(heading()).toBe("League Standings"));
+    expect(screen.getByRole("heading", { level: 1 }).nextElementSibling?.textContent).toBe("Records and points for, with the playoff line drawn in.");
+  });
+
   it("opens the palette on Cmd+K and goes where the pick points", async () => {
     renderShell();
     fireEvent.keyDown(document.body, { key: "k", metaKey: true });
