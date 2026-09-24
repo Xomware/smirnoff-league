@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { getMe, type Profile, updateMe } from "@/lib/api/users";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { PHONE } from "@/lib/use-media-query";
-import { THEME_KEY, ThemeProvider } from "./theme";
+import { THEME_KEY, THEME_SCRIPT, ThemeProvider } from "./theme";
 
 const profile = (theme?: Profile["theme"]): Profile => ({
   name: "Me",
@@ -114,6 +114,34 @@ describe("theme, signed out", () => {
     renderSignedOut();
     fireEvent.click(screen.getByRole("button", { name: "Glacier" }));
     expect(pressed("Glacier")).toBe("true");
+  });
+});
+
+describe("browser chrome", () => {
+  const themeColor = () => document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.content;
+  const pageColor = () => document.documentElement.style.backgroundColor;
+
+  // Safari tints its toolbars and the overscroll area from these, not from the app's boxes.
+  it("follows a switch, on the page and in the theme-color meta", () => {
+    media({ phone: true });
+    localStorage.setItem(THEME_KEY, "glacier");
+    renderSignedOut();
+    expect(themeColor()).toBe("#0f2b45");
+    expect(pageColor()).toBe("rgb(15, 43, 69)");
+
+    fireEvent.click(screen.getByRole("button", { name: "Classic XP" }));
+    expect(themeColor()).toBe("#f3f0e1");
+    expect(pageColor()).toBe("rgb(243, 240, 225)");
+    expect(document.querySelectorAll('meta[name="theme-color"]')).toHaveLength(1);
+  });
+
+  it("is set by the pre-hydration script before React runs", () => {
+    media({ phone: true });
+    localStorage.setItem(THEME_KEY, "xp");
+    document.querySelector('meta[name="theme-color"]')?.remove();
+    new Function(THEME_SCRIPT)();
+    expect(htmlTheme()).toBe("xp");
+    expect(themeColor()).toBe("#f3f0e1");
   });
 });
 

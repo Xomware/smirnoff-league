@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type ComponentType, type MouseEvent, type UIEvent, useEffect, useId, useRef, useState } from "react";
+import { type ComponentType, type MouseEvent, useEffect, useId, useRef, useState } from "react";
 
 import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
@@ -27,7 +27,9 @@ import { viewKey, type WindowParams } from "@/lib/desktop/windows";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
 import { pageTab, rootOf, type Screen, type ScreenKind, screenId, sectionFor, stackOf, type Tab, TABS } from "@/lib/phone/nav";
+import { usePageScroll } from "@/lib/phone/use-page-scroll";
 import { usePhoneNav } from "@/lib/phone/use-phone-nav";
+import { useScrollLock } from "@/lib/phone/use-scroll-lock";
 import { useProfile } from "@/lib/profile/use-profile";
 import { descriptionOf, type PageKind, pagesFor, pageView, SECTIONS } from "@/lib/sections";
 import { GameScreen } from "./GameScreen";
@@ -121,12 +123,13 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const shown = useRef(topKey);
   const [searching, setSearching] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const screens = useRef<HTMLElement>(null);
   const drawerId = useId();
   const section = sectionFor(nav.tab);
   const subPages = section ? pagesFor(section, isAdmin) : [];
   const picked = useRef(false);
+  const scrolled = usePageScroll(topKey, nav.tab, stack.length);
+  useScrollLock();
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
   // A picked sub-tab went with its old screen, so its twin on the new one takes focus.
@@ -137,14 +140,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     const tab = picked.current && page?.querySelector<HTMLElement>('.m-subtab[aria-current="page"]');
     picked.current = false;
     (tab || heading.current)?.focus({ preventScroll: true });
-    setScrolled((page?.scrollTop ?? 0) > 24);
   }, [topKey]);
-
-  // Scroll doesn't bubble, so this listens in the capture phase; a carousel's sideways scroll isn't the page's.
-  const onScroll = (e: UIEvent<HTMLElement>) => {
-    const el = e.target as HTMLElement;
-    if (el.classList.contains("m-screen")) setScrolled(el.scrollTop > 24);
-  };
 
   // A link to a page opens it in its section. Under a team, player or game
   // it stacks instead, so the header's Back still retraces the drill-down.
@@ -179,43 +175,47 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   return (
     <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
       {glacier && <link rel="stylesheet" href={FONTS} precedence="default" />}
-      <header className="m-bar" data-scrolled={(glacier && scrolled) || undefined}>
-        {glacier && <Icicles className="m-bar-icicles" d={HEADER_ICICLES} />}
-        {stack.length > 1 ? (
-          <button type="button" className="m-back" aria-label="Back" onClick={back}>
-            {glacier ? <LineIcon d={LINE_ICONS.back} size={26} /> : <BackArrowIcon width={30} height={30} />}
+      <div className="m-top">
+        <header className="m-bar" data-scrolled={(glacier && scrolled) || undefined}>
+          {glacier && <Icicles className="m-bar-icicles" d={HEADER_ICICLES} />}
+          {stack.length > 1 ? (
+            <button type="button" className="m-back" aria-label="Back" onClick={back}>
+              {glacier ? <LineIcon d={LINE_ICONS.back} size={26} /> : <BackArrowIcon width={30} height={30} />}
+            </button>
+          ) : (
+            glacier && <Image src="/brand/crest.png" alt="" width={32} height={38} className="m-crest" />
+          )}
+          <h1 ref={heading} tabIndex={-1} className="m-title">
+            {section && subPages.length > 1 && stack.length === 1 ? section.label : title(top)}
+          </h1>
+          {glacier && <GlacierTrouble />}
+          <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
+            {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
           </button>
-        ) : (
-          glacier && <Image src="/brand/crest.png" alt="" width={32} height={38} className="m-crest" />
-        )}
-        <h1 ref={heading} tabIndex={-1} className="m-title">
-          {section && subPages.length > 1 && stack.length === 1 ? section.label : title(top)}
-        </h1>
-        {glacier && <GlacierTrouble />}
-        <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
-          {glacier ? <LineIcon d={LINE_ICONS.search} /> : <SearchIcon width={24} height={24} />}
-        </button>
-        <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
-        <button
-          type="button"
-          className="m-burger"
-          aria-label="Menu"
-          aria-haspopup="dialog"
-          aria-expanded={menuOpen}
-          aria-controls={drawerId}
-          onClick={openMenu}
-        >
-          {glacier ? <LineIcon d={LINE_ICONS.menu} /> : <MenuIcon width={24} height={24} />}
-        </button>
-      </header>
+          <NotificationBell onOpen={() => top.kind !== "notifications" && push({ kind: "notifications", params: {} })} />
+          <button
+            type="button"
+            className="m-burger"
+            aria-label="Menu"
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            aria-controls={drawerId}
+            onClick={openMenu}
+          >
+            {glacier ? <LineIcon d={LINE_ICONS.menu} /> : <MenuIcon width={24} height={24} />}
+          </button>
+        </header>
+        <DrillContext.Provider value={drill}>
+          <Ticker xp={!glacier} />
+        </DrillContext.Provider>
+      </div>
       <DrillContext.Provider value={drill}>
-        <Ticker xp={!glacier} />
         <ChugReelPopup />
       </DrillContext.Provider>
       <PushContext value={go}>
         <DrillContext.Provider value={drill}>
           <NavigateContext value={drill}>
-            <main ref={screens} className="m-screens" onScrollCapture={glacier ? onScroll : undefined}>
+            <main ref={screens} className="m-screens">
               {TABS.flatMap((tab) => {
                 const tabSection = sectionFor(tab);
                 const pages = tabSection ? pagesFor(tabSection, isAdmin) : [];
@@ -224,7 +224,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
                   const description = screen.kind !== "home" && descriptionOf(screen.kind);
                   return (
                     // Screens under the top one stay mounted, so Back returns to
-                    // them as they were left: scroll, week picked.
+                    // them as they were left, week picked and all.
                     <section
                       key={`${tab}/${i + 1}/${viewKey(screen.kind, screen.params)}`}
                       className="m-screen"

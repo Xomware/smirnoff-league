@@ -7,9 +7,8 @@
   --m-muted: var(--g-muted);
   --m-line: var(--g-line);
 
-  /* .glacier is position: relative for the desktop page; the phone app stays pinned. */
-  position: fixed;
-  height: 100dvh;
+  /* .glacier is one screen tall for the desktop page; the phone page grows. */
+  height: auto;
   line-height: 1.45;
 }
 
@@ -347,7 +346,7 @@
 
 /* The Menu drawer, sliding in from the right over the page. */
 .gp-drawer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 10;
 }

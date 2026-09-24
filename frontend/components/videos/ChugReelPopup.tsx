@@ -9,6 +9,7 @@ import { BackArrowIcon, CloseGlyph, ForwardArrowIcon, MediaPlayerIcon } from "@/
 import type { Video } from "@/lib/api/videos";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useLeague } from "@/lib/league/use-league";
+import { modalOpen } from "@/lib/phone/use-scroll-lock";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { useVideos } from "@/lib/videos/use-videos";
@@ -22,9 +23,7 @@ import "./chug-reel-popup.css";
 export const REEL_POPUP_MS = 4000;
 // Long enough for the sign-in ICE.EXE box, which waits on the season's ices, to open first.
 export const QUIET_MS = 1500;
-// The Glacier phone menu stays mounted while closed, inert, so only a live modal counts.
-const busy = () =>
-  !!document.querySelector(".theme-transition") || [...document.querySelectorAll('[aria-modal="true"]')].some((m) => !m.closest("[inert]"));
+const busy = () => !!document.querySelector(".theme-transition") || modalOpen();
 const SWIPE_PX = 40;
 // Cards this far from the current one hold a <video> for their poster frame; the rest wait.
 const POSTER_REACH = 2;

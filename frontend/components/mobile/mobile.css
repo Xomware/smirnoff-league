@@ -91,13 +91,27 @@
   --m-line: color-mix(in srgb, var(--xp-face-shadow) 55%, var(--xp-cream));
   --m-pad: max(1rem, env(safe-area-inset-left), env(safe-area-inset-right));
 
-  position: fixed;
-  inset: 0;
+  /* The document scrolls, not a pinned app box: Safari only collapses its bars
+     and tints them from the page when the page itself scrolls (#225). */
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  min-height: 100dvh;
   font-size: 1rem;
   line-height: 1.45;
+  background: var(--m-bg);
+}
+
+body:has(.m-app) {
+  background: none;
+}
+
+/* The ticker is see-through, so the band carries the app's background over the page scrolling under it. */
+.m-top {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   background: var(--m-bg);
 }
 
@@ -164,23 +178,11 @@
 }
 
 .m-screens {
-  position: relative;
   flex: 1;
-  min-height: 0;
 }
 
 .m-screen {
-  position: absolute;
-  inset: 0;
-  overflow: hidden auto;
-  overscroll-behavior: contain;
   padding: 1rem var(--m-pad) 1.5rem;
-}
-
-/* Hidden screens keep their box so their scroll position survives Back. */
-.m-screen[hidden] {
-  display: block;
-  visibility: hidden;
 }
 
 /* A section's pages, as a grid of XP buttons at the top of the page. It

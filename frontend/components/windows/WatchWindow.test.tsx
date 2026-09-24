@@ -91,6 +91,23 @@ describe("Ice Watch on a live Sunday", () => {
   });
 });
 
+describe("Ice Watch, teams at risk first", () => {
+  it("lists only teams with a starter at risk, then one closed line for everyone safe", async () => {
+    render(
+      <AlertsProvider>
+        <WatchWindow />
+      </AlertsProvider>,
+    );
+
+    await screen.findByRole("list", { name: "Team 1 starters on watch" });
+    const rest = screen.getByText("Everyone else: all starters safe · 1 team").closest("details")!;
+    expect(rest.open).toBe(false);
+    expect(within(rest).getByRole("region", { name: "Team 2 ice watch", hidden: true })).toBeTruthy();
+    expect(screen.queryByText("All starters safe.")).toBeNull();
+    expect(screen.getByRole("region", { name: "Team 1 ice watch" }).closest("details")).toBeNull();
+  });
+});
+
 describe("Ice Watch before the last kickoff", () => {
   it("tags the bye starter FIX LINEUP and leaves him out of the team's ices", async () => {
     events = [...sunday, monnf];
@@ -131,7 +148,8 @@ describe("Ice Watch drill-in", () => {
       </AlertsProvider>,
     );
 
-    const team = await screen.findByRole("region", { name: "Team 2 ice watch" });
+    fireEvent.click(await screen.findByText("Everyone else: all starters safe · 1 team"));
+    const team = screen.getByRole("region", { name: "Team 2 ice watch" });
     fireEvent.click(within(team).getByRole("button", { name: "Open game" }));
     expect(onOpen).toHaveBeenCalledWith({ kind: "game", week: 3, matchup: 1 });
   });

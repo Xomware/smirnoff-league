@@ -1,6 +1,5 @@
 /* The snow sits at -1 inside each Glacier root, which needs its own stacking
-   context for that to land above the root's background and below its content.
-   The phone app is position: fixed, which already makes one. */
+   context for that to land above the root's background and below its content. */
 .glacier,
 .gl {
   z-index: 0;

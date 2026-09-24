@@ -5,12 +5,13 @@
   gap: 0.5rem;
 }
 
+/* In an XP window the inbox scrolls under the masthead; on a page it grows with the page. */
 @media not ((max-width: 767.98px) or ((max-height: 500px) and (pointer: coarse))) {
-  .news {
+  .xp-window-body .news {
     height: 100%;
   }
 
-  .news-inbox {
+  .xp-window-body .news-inbox {
     flex: 1;
     min-height: 0;
     overflow: auto;
