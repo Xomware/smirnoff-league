@@ -1,3 +1,4 @@
+import { isTickerHidden } from "@/lib/ticker/prefs";
 import type { WindowKind } from "./registry";
 
 export type WindowParams = Record<string, string | number>;
@@ -32,8 +33,11 @@ export type WindowAction =
   | { type: "back" | "forward"; id: string }
   | { type: "restore"; windows: WindowState[] };
 
-// Matches --taskbar-height; windows live in the viewport above it.
-export const TASKBAR_HEIGHT = 44;
+// Matches --taskbar-height and --tk-dock; windows live in the viewport above
+// the taskbar and the ticker docked on it.
+const TASKBAR_HEIGHT = 44;
+const TICKER_HEIGHT = 32;
+export const bottomChrome = () => TASKBAR_HEIGHT + (isTickerHidden() ? 0 : TICKER_HEIGHT);
 // Tall enough for the week's ices and who owes, without scrolling.
 export const HOME_H = 420;
 // Desktop icons take the left edge, so new windows open clear of them.
@@ -132,7 +136,7 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
 // Standings sat, and the draft recap minimized to the taskbar.
 export function defaultLayout(vw: number, vh: number): WindowState[] {
   const gap = 16;
-  const height = vh - TASKBAR_HEIGHT;
+  const height = vh - bottomChrome();
   const mainW = Math.max(320, Math.min(680, Math.round((vw - ICON_COLUMN) * 0.52)));
   const sideX = ICON_COLUMN + mainW + gap * 2;
   const sideW = Math.max(280, Math.min(640, vw - sideX - gap));

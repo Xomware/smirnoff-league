@@ -3,6 +3,8 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 
 import { DueWarning } from "@/components/home/DueWarning";
+import { Ticker } from "@/components/ticker/Ticker";
+import { DrillContext } from "@/components/views/drill-link";
 import { useAuth } from "@/lib/auth/use-auth";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
@@ -14,6 +16,7 @@ import { useTheme } from "@/lib/theme/theme";
 import { RobotHeadIcon } from "./icons";
 import { NotificationBell } from "./NotificationBell";
 import { SpeakerToggle } from "./SpeakerToggle";
+import { TickerToggle } from "./TickerToggle";
 import { StartMenu } from "./StartMenu";
 
 function subscribeToClock(onTick: () => void) {
@@ -82,6 +85,9 @@ export function Taskbar() {
           onSignOut={() => void signOut()}
         />
       )}
+      <DrillContext.Provider value={({ kind, ...params }) => openWindow(kind, params)}>
+        <Ticker dock />
+      </DrillContext.Provider>
       <div className="xp-taskbar">
         <button
           ref={start}
@@ -125,6 +131,7 @@ export function Taskbar() {
             }}
           />
           <SpeakerToggle />
+          <TickerToggle />
           <button
             type="button"
             className="xp-tray-button"

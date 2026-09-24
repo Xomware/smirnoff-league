@@ -7,6 +7,7 @@ import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
+import { Ticker } from "@/components/ticker/Ticker";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { NotificationBell } from "@/components/xp/NotificationBell";
 import { TabParamContext } from "@/components/xp/Tabs";
@@ -135,6 +136,9 @@ export function GlacierShell() {
         <NotificationBell onOpen={() => go({ kind: "notifications", params: {} })} />
         <ProfileMenu urlOf={urlOf} onNav={onNav} />
       </header>
+      <DrillContext.Provider value={drill}>
+        <Ticker />
+      </DrillContext.Provider>
       {subPages.length > 1 && (
         <nav aria-label={`${section.label} pages`} className="glacier-subnav">
           {subPages.map((p) => {
