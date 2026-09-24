@@ -36,6 +36,7 @@ const PAGES: Record<Exclude<WindowKind, "team" | "player" | "week" | "game" | "m
   scores: { label: "Scores", keywords: ["matchups", "games", "scoreboard"] },
   standings: { label: "League Standings", keywords: ["records", "playoff race", "table"] },
   brackets: { label: "Brackets", keywords: ["playoffs", "toilet bowl"] },
+  awards: { label: "Weekly Awards", keywords: ["trophies", "top score", "blowout", "ice king"] },
   news: { label: "League News", keywords: ["transactions", "trades", "moves", "feed"] },
   writeup: { label: "News Drop", keywords: ["latest edition", "newspaper", "writeup"] },
   recap: { label: "Draft Recap", keywords: ["draft", "media player"] },

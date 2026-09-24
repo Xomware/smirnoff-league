@@ -88,14 +88,14 @@ describe("phone section sub-tabs", () => {
   it("shows only the ledger on Ices, then only the standings once that tab is picked", async () => {
     renderPhone();
     drawerSection("Ices");
-    expect(await top().findByRole("list", { name: "Who still owes" })).toBeTruthy();
+    expect(await top().findByRole("list", { name: "Who owes now" })).toBeTruthy();
     expect(top().queryByRole("list", { name: "Ice standings" })).toBeNull();
     expect(top().queryByRole("list", { name: "Chug videos" })).toBeNull();
     expect(window.location.search).toBe("?open=ices");
 
     fireEvent.click(subtabs("Ices").getByRole("button", { name: "Ice standings" }));
     expect(await top().findByRole("list", { name: "Ice standings" })).toBeTruthy();
-    expect(top().queryByRole("list", { name: "Who still owes" })).toBeNull();
+    expect(top().queryByRole("list", { name: "Who owes now" })).toBeNull();
     expect(window.location.search).toBe("?open=ice-standings");
     expect(title()).toBe("Ices");
 
@@ -195,7 +195,7 @@ describe("XP phone", () => {
 
     fireEvent.click(tabs.getByRole("button", { name: "Ices" }));
     expect(current("Ices")).toEqual(["Ledger"]);
-    expect(await top().findByRole("list", { name: "Who still owes" })).toBeTruthy();
+    expect(await top().findByRole("list", { name: "Who owes now" })).toBeTruthy();
     expect(top().queryByRole("list", { name: "Ice standings" })).toBeNull();
 
     fireEvent.click(subtabs("Ices").getByRole("button", { name: "Rankings" }));

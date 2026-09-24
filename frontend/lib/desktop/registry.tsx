@@ -1,6 +1,7 @@
 import { type ComponentType, type SVGProps, useSyncExternalStore } from "react";
 
 import { ControlPanelWindow } from "@/components/admin/ControlPanel";
+import { AwardsView } from "@/components/views/awards-view";
 import { ChugRankingsView } from "@/components/views/chug-rankings-view";
 import { GameView } from "@/components/views/game-view";
 import { IceStandingsView } from "@/components/views/ice-standings-view";
@@ -40,6 +41,7 @@ import {
   StandingsIcon,
   StarIcon,
   StopwatchIcon,
+  TrophyIcon,
 } from "@/components/xp/icons";
 import { loadedMatchups, loadedVersion, subscribeLoaded } from "@/lib/league/cache";
 import { useLeague } from "@/lib/league/use-league";
@@ -91,6 +93,12 @@ const SPECS = {
   news: { title: "League News", Icon: NewsFeedIcon, component: NewsWindow, defaultSize: { w: 600, h: 600 } },
   scores: { title: "Scores", Icon: ScoresIcon, component: ScoresWindow, defaultSize: { w: 560, h: 560 } },
   standings: { title: "League Standings", Icon: StandingsIcon, component: StandingsWindow, defaultSize: { w: 520, h: 520 } },
+  awards: {
+    title: (p) => (p.week ? `Week ${p.week} Awards` : "Weekly Awards"),
+    Icon: TrophyIcon,
+    component: AwardsView,
+    defaultSize: { w: 760, h: 680 },
+  },
   brackets: { title: "Brackets", Icon: BracketIcon, component: BracketsWindow, defaultSize: { w: 760, h: 560 } },
   ices: { title: "Ice Ledger", Icon: IceBottleIcon, component: IcesWindow, defaultSize: { w: 520, h: 560 } },
   watch: { title: "Ice Watch", Icon: StopwatchIcon, component: WatchWindow, defaultSize: { w: 560, h: 600 } },

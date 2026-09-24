@@ -361,7 +361,7 @@ describe("scenario at 393px", () => {
 
     fireEvent.click(tab("Ices"));
     expect(title()).toBe("Ices");
-    const owes = within(await top().findByRole("list", { name: "Who still owes" }));
+    const owes = within(await top().findByRole("list", { name: "Who owes now" }));
     fireEvent.click(owes.getByRole("button", { name: "Upload chug" }));
 
     expect(ticked(screen.getByRole("dialog", { name: "Upload chug" }))).toEqual(MY_OWED);
@@ -384,10 +384,10 @@ describe("Ices", () => {
     expect(top().queryByRole("tablist")).toBeNull();
   });
 
-  it("lists who still owes, most first, with only my own row offering an upload", async () => {
+  it("lists who owes now, most first, with only my own row offering an upload", async () => {
     renderShell();
     fireEvent.click(tab("Ices"));
-    const rows = within(await top().findByRole("list", { name: "Who still owes" })).getAllByRole("listitem");
+    const rows = [...(await top().findByRole("list", { name: "Who owes now" })).children] as HTMLElement[];
     expect(rows.map((r) => r.textContent?.match(/Team \d+/)?.[0])).toEqual(["Team 13", "Team 12"]);
     expect(within(rows[0]).getByRole("button", { name: "Upload chug" })).toBeTruthy();
     expect(within(rows[1]).queryByRole("button", { name: "Upload chug" })).toBeNull();

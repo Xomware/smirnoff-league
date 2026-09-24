@@ -1123,3 +1123,16 @@
     width: min(100%, 32rem);
   }
 }
+
+.m-awards .awards-brief-list {
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--m-line);
+  border-radius: 0.875rem;
+  background: var(--xp-cream);
+}
+
+.m-awards-more {
+  justify-self: start;
+  min-height: 44px;
+}

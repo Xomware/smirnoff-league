@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { DrillContext } from "@/components/views/drill-link";
 import { useProfile } from "@/lib/profile/use-profile";
 import { isMuted, play, setMuted, subscribeMuted } from "@/lib/sound/sound";
+import { setTickerHidden, useTickerHidden } from "@/lib/ticker/prefs";
 
 import "@/components/onboarding/onboarding.css";
 import "./settings.css";
@@ -32,6 +33,7 @@ export function Settings() {
   const { me, error, refresh } = useProfile();
   const muted = useSyncExternalStore(subscribeMuted, isMuted, serverMuted);
   const open = useContext(DrillContext);
+  const tickerHidden = useTickerHidden();
 
   // Email alerts save as they are clicked, so the profile is stale once we leave.
   useEffect(() => () => void refresh(), [refresh]);
@@ -58,6 +60,12 @@ export function Settings() {
             }}
           />
           Play sounds
+        </label>
+      </SettingsGroup>
+      <SettingsGroup title="Ticker">
+        <label className="settings-check">
+          <input type="checkbox" checked={!tickerHidden} onChange={() => setTickerHidden(!tickerHidden)} />
+          Show the league ticker
         </label>
       </SettingsGroup>
       {me.isAdmin && (

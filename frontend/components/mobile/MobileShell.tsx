@@ -16,6 +16,7 @@ import { CommandPalette } from "@/components/palette/CommandPalette";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Settings } from "@/components/settings/Settings";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Ticker } from "@/components/ticker/Ticker";
 import { DrillContext, type DrillTarget, NavigateContext } from "@/components/views/drill-link";
 import { BackArrowIcon, HomeIcon, IceBottleIcon, MenuIcon, ScoresIcon, SearchIcon } from "@/components/xp/icons";
 import { NotificationBell } from "@/components/xp/NotificationBell";
@@ -212,6 +213,9 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           </button>
         )}
       </header>
+      <DrillContext.Provider value={drill}>
+        <Ticker xp={!glacier} />
+      </DrillContext.Provider>
       {section && subPages.length > 1 && (
         <SubTabs
           label={`${section.label} pages`}

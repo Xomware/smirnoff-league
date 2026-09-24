@@ -1,0 +1,175 @@
+/* Sized by its own width, so a narrow window and the phone both get one column. */
+.awards {
+  container-type: inline-size;
+  display: grid;
+  gap: 1rem;
+}
+
+.awards-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.award-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.625rem;
+}
+
+.award-text {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.award-stat {
+  color: var(--ice-deep);
+  font: bold 1.375rem/1.1 var(--xp-title-font);
+  font-variant-numeric: tabular-nums;
+}
+
+.award-winner {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.award-line {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.award-none {
+  align-self: center;
+  font-style: italic;
+}
+
+.awards-hardware {
+  margin-bottom: 0.5rem;
+}
+
+.awards-leaders {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.awards-leaders li {
+  display: grid;
+  grid-template-columns: auto 8.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.awards-leader-name {
+  font-weight: bold;
+}
+
+.awards-leader-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+}
+
+@container (min-width: 36rem) {
+  .awards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 60rem) {
+  .awards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 26rem) {
+  .awards-leaders li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .awards-leader-who {
+    grid-row: 2;
+    grid-column: 2 / -1;
+  }
+
+  .awards-leader-count {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
+
+[data-theme="glacier"] .awards > header p {
+  color: var(--g-muted);
+  font-size: 18px;
+}
+
+[data-theme="glacier"] .award-body {
+  gap: 16px;
+  padding: 12px 20px 20px;
+}
+
+[data-theme="glacier"] .award-stat {
+  color: var(--g-text-strong);
+  font: 32px/1.1 var(--g-display);
+}
+
+[data-theme="glacier"] .award-line {
+  color: var(--g-muted);
+  font-size: 15px;
+}
+
+[data-theme="glacier"] .awards-leaders li {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--g-line);
+}
+
+[data-theme="glacier"] .awards-leader-count {
+  color: var(--g-link);
+}
+
+/* The Home card, in both themes. */
+
+.awards-brief-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.awards-brief-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 0.5rem;
+}
+
+.awards-brief-label {
+  font-weight: bold;
+}
+
+.awards-brief-who {
+  grid-column: 2;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.awards-brief-list svg {
+  grid-row: span 2;
+}
+
+.awards-brief-stat {
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  font-variant-numeric: tabular-nums;
+  font-weight: bold;
+}
+
+.awards-brief-more {
+  justify-self: start;
+  margin-top: 0.5rem;
+}
+
+.awards-brief.xp-group {
+  display: grid;
+}

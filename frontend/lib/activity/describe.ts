@@ -14,6 +14,7 @@ const PLACES: Partial<Record<ScreenKind, string>> = {
   scores: "Scores",
   standings: "League Standings",
   brackets: "Brackets",
+  awards: "Weekly Awards",
   ices: "Ice Ledger",
   watch: "Ice Watch",
   stats: "Ice Stats",
@@ -42,6 +43,8 @@ function place(target: string, names: Names): string {
       return `Week ${value}`;
     case "writeup":
       return `Week ${value} Edition`;
+    case "awards":
+      return `Week ${value} Awards`;
     case "tab":
       return `the ${value.charAt(0).toUpperCase()}${value.slice(1)} tab`;
     case "game":

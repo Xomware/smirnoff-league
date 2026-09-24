@@ -1,0 +1,263 @@
+/* The league ticker. Glacier by default; data-xp is the XP toolbar, and
+   data-dock pins it above the XP desktop's taskbar. */
+
+.tk {
+  --tk-height: 34px;
+  display: flex;
+  flex: none;
+  align-items: stretch;
+  height: var(--tk-height);
+  font: 600 14px/1 var(--g-body);
+  color: var(--g-text);
+  background: rgb(4 19 34 / 0.72);
+  border-block: 1px solid var(--g-frost-edge);
+}
+
+/* The header's icicles hang into this gap, not over the text. */
+.glacier > .tk {
+  margin-top: 20px;
+}
+
+.m-app.glacier > .tk {
+  margin-top: 16px;
+}
+
+.glacier > .tk + .glacier-subnav {
+  padding-top: 12px;
+}
+
+.m-app.glacier > .tk + .m-subtabs {
+  padding-top: 10px;
+}
+
+.tk-view {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, rgb(0 0 0) 20px, rgb(0 0 0) calc(100% - 20px), transparent);
+}
+
+.tk-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: tk-scroll linear infinite;
+}
+
+.tk:is(:hover, :focus-within, [data-paused]) .tk-track {
+  animation-play-state: paused;
+}
+
+@keyframes tk-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.tk-copy {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tk-copy li {
+  display: flex;
+  align-items: center;
+}
+
+.tk-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 12px;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  background: none;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.tk-item:hover {
+  color: var(--g-text-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tk-item:focus-visible,
+.tk-control:focus-visible {
+  outline: 2px solid var(--g-focus);
+  outline-offset: -4px;
+}
+
+.tk-tag {
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--g-night);
+  background: var(--g-focus);
+}
+
+[data-trouble] > .tk-item {
+  color: var(--g-red-text);
+}
+
+[data-trouble] .tk-tag {
+  color: var(--g-snow);
+  background: var(--g-red);
+}
+
+.tk-glyph {
+  flex: none;
+  opacity: 0.6;
+}
+
+.tk-control {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--tk-height);
+  border: 0;
+  border-left: 1px solid var(--g-frost-edge);
+  color: inherit;
+  background: none;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.tk-control:hover:not(:disabled) {
+  background: rgb(190 235 255 / 0.12);
+}
+
+.tk-control:active:not(:disabled) {
+  background: rgb(190 235 255 / 0.22);
+}
+
+.tk-control:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tk-controls {
+  display: flex;
+}
+
+/* Reduced motion: one item at a time, stepped by hand. */
+.tk-step {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.tk-step > span:first-child {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+}
+
+.tk-step .tk-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tk-quiet {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  margin: 0;
+  padding: 0 14px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.tk-count {
+  flex: none;
+  padding: 0 10px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* XP: a toolbar with a sunken news field, like the old MSN ticker. */
+.tk[data-xp] {
+  --tk-height: 32px;
+  padding: 3px 0 3px 4px;
+  font: 12px/1 var(--xp-font);
+  color: var(--xp-text);
+  background: linear-gradient(var(--xp-cream), var(--xp-face));
+  border-block: 1px solid var(--xp-face-shadow);
+}
+
+.tk[data-xp] :is(.tk-view, .tk-step) {
+  border: 1px solid var(--xp-face-shadow);
+  border-right-color: var(--xp-cream);
+  border-bottom-color: var(--xp-cream);
+  background: var(--xp-cream);
+  mask-image: none;
+}
+
+.tk[data-xp] .tk-item:hover {
+  color: var(--xp-select);
+}
+
+.tk[data-xp] :is(.tk-item, .tk-control):focus-visible {
+  outline: 1px dotted var(--xp-text);
+  outline-offset: -3px;
+}
+
+.tk[data-xp] .tk-tag {
+  padding: 2px 5px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--xp-text-inverse);
+  background: var(--xp-title);
+}
+
+.tk[data-xp] [data-trouble] > .tk-item {
+  color: var(--xp-red);
+}
+
+.tk[data-xp] [data-trouble] .tk-tag {
+  background: var(--xp-red);
+}
+
+.tk[data-xp] .tk-control {
+  width: 30px;
+  margin: 0 2px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.tk[data-xp] .tk-control:hover:not(:disabled) {
+  border-color: var(--xp-face-shadow);
+  background: var(--xp-cream);
+}
+
+.tk[data-xp] .tk-control:active:not(:disabled) {
+  background: var(--xp-face);
+}
+
+.tk[data-dock] {
+  position: fixed;
+  inset: auto 0 var(--taskbar-top) 0;
+  z-index: 49;
+}
+
+/* The desktop ends where the docked ticker starts, so no window sits under it. */
+body:has(.tk[data-dock]) .xp-desktop {
+  bottom: calc(var(--taskbar-top) + var(--tk-dock));
+}
+
+body:has(.tk[data-dock]) .xp-desktop-icons {
+  max-height: calc(100dvh - var(--taskbar-top) - var(--tk-dock) - 1.5rem);
+}
+
+:root {
+  /* Matches TICKER_HEIGHT in lib/desktop/windows.ts. */
+  --tk-dock: 32px;
+}

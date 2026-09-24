@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useContext } from "react";
 
+import { AwardsCard } from "@/components/home/AwardsCard";
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useDefaultWeek } from "@/lib/league/default-week";
@@ -93,6 +94,7 @@ export function HomeScreen() {
       )}
       <WeekMatchups week={week} />
       <EditionCard />
+      <AwardsCard className="m-section m-awards" titleClass="m-section-title" moreClass="m-link m-awards-more" Heading="h2" />
       {ledger.status === "ok" && <ChugReelRow ledger={ledger.ledger} videos={videos} onVideoError={onVideoError} />}
     </div>
   );

@@ -100,6 +100,14 @@ describe("?open=", () => {
     expect(focusedTab()?.textContent).toBe("Team Profile - Team 6");
   });
 
+  it("opens Weekly Awards on the week it names", async () => {
+    renderAt("/?open=awards:1");
+
+    const awards = await screen.findByRole("region", { name: "Week 1 Awards" });
+    expect(await within(awards).findByRole("list", { name: "Week 1 awards" })).toBeTruthy();
+    expect(within(awards).getByRole("button", { name: "Week 1" }).getAttribute("aria-pressed")).toBe("true");
+  });
+
   it("keeps the URL in sync as windows open and close", async () => {
     renderAt("/?open=standings");
     await screen.findByRole("region", { name: "League Standings" });
