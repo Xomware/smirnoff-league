@@ -23,63 +23,44 @@
   pointer-events: none;
 }
 
+.glacier-flake-defs {
+  position: absolute;
+}
+
 .glacier-flake {
   position: absolute;
   top: 0;
-  border-radius: 50%;
-  background: #f6fbff;
-  box-shadow: 0 0 8px rgb(200 240 255 / 0.95);
-  animation: glacier-fall linear infinite;
+  animation-name: glacier-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
   will-change: transform;
+}
+
+/* Sway and spin share one transform animation. The page's own main-thread
+   animations force a style pass every frame, and there a second per-flake
+   animation, or the individual translate and rotate properties, each measured
+   about 175ms more main-thread time per 10s. */
+.glacier-flake svg {
+  display: block;
+  overflow: visible;
+  animation-name: glacier-flutter;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 1.5px rgb(200 240 255 / 0.9));
+  will-change: transform;
+}
+
+/* A class, not a descendant selector: <use> clones the path outside .glacier-flake-defs. */
+.glacier-flake-line {
+  fill: none;
+  stroke: #f6fbff;
+  stroke-width: var(--sw);
+  stroke-linecap: round;
 }
 
 @media (max-width: 767.98px) {
-  .glacier-flake:nth-child(n + 36) {
+  .glacier-flake:nth-of-type(n + 37) {
     display: none;
-  }
-}
-
-/* Placed each frame by useSnowCaps; its bottom is the point that lands. */
-.glacier-lander {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 5px;
-  height: 5px;
-  margin: -5px 0 0 -2.5px;
-  border-radius: 50%;
-  background: #f6fbff;
-  box-shadow: 0 0 8px rgb(200 240 255 / 0.95);
-  opacity: 0;
-  will-change: transform;
-}
-
-/* The drift a card builds as landers reach it, sitting on its top edge. The box
-   is 4px taller than the drift so the glow above it isn't clipped. */
-[data-theme="glacier"] [data-snow] {
-  position: relative;
-}
-
-[data-theme="glacier"] [data-snow]::after {
-  content: "";
-  position: absolute;
-  right: 12px;
-  bottom: calc(100% - 2px);
-  left: 12px;
-  height: calc(var(--snow-cap) + 4px);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 20' preserveAspectRatio='none'%3E%3Cpath fill='%23f6fbff' d='M0 20V14C14 11 22 5 38 6S62 13 78 12S104 2 126 2S152 10 170 11S190 15 206 12S236 4 258 5S284 12 300 13S330 7 344 9S356 13 360 14V20Z'/%3E%3C/svg%3E")
-    0 100% / 360px var(--snow-cap) repeat-x;
-  filter: drop-shadow(0 0 3px rgb(200 240 255 / 0.85));
-  mask: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  pointer-events: none;
-  transition:
-    height 1.2s ease-out,
-    background-size 1.2s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-theme="glacier"] [data-snow]::after {
-    transition: none;
   }
 }
 
@@ -116,6 +97,19 @@
   }
   100% {
     transform: translate3d(var(--drift), calc(100vh + 40px), 0);
+  }
+}
+
+/* Half a turn per swing: the flake spins fastest mid-swing and eases at each end. */
+@keyframes glacier-flutter {
+  0% {
+    transform: translateX(calc(var(--sway) * -1)) rotate(0deg);
+  }
+  50% {
+    transform: translateX(var(--sway)) rotate(180deg);
+  }
+  100% {
+    transform: translateX(calc(var(--sway) * -1)) rotate(360deg);
   }
 }
 
