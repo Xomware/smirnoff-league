@@ -9,19 +9,21 @@ import { useLedger } from "@/lib/ices/use-ledger";
 import { useNow } from "@/lib/ices/use-now";
 import { useTrouble } from "@/lib/ices/use-trouble";
 import { useLeague } from "@/lib/league/use-league";
-import type { Notification } from "@/lib/notifications/derive";
+import { type Notification, sentence } from "@/lib/notifications/derive";
 import { useNotifications } from "@/lib/notifications/use-notifications";
 import { useProfile } from "@/lib/profile/use-profile";
 
 import "./glacier-trouble.css";
 
 const ZEROS_KEY = "smirnoff:glacier-zeros-dismissed";
-const WARN = new Set<Notification["kind"]>(["due", "late", "iced"]);
+// A comment on your chug is not trouble, but it is news you would want surfaced the same way.
+const WARN = new Set<Notification["kind"]>(["due", "late", "iced", "comment"]);
 
 interface Warning {
   id: string;
   title: string;
   body: string;
+  comment?: boolean;
 }
 
 function readZeros(): string[] {
@@ -51,7 +53,7 @@ function WarningToasts() {
         ? { id: `${s.id}:${s.state}`, title: "ICE WATCH", body: `${name} has ${pts} pts after halftime.` }
         : { id: `${s.id}:${s.state}`, title: "ICED", body: `${name} finished with ${pts} pts. That's an ice.` };
     });
-  const warnings = [...zeros, ...owed.map((n): Warning => ({ id: n.id, title: n.title, body: `${n.body}.` }))];
+  const warnings = [...zeros, ...owed.map((n): Warning => ({ id: n.id, title: n.title, body: sentence(n.body), comment: n.kind === "comment" }))];
   const [first] = warnings;
   if (!first) return null;
 
@@ -76,7 +78,7 @@ function WarningToasts() {
   return createPortal(
     <section key={first.id} role="alert" aria-labelledby={titleId} className="gt-toast">
       <svg className="gt-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M12 3L2 20h20zM12 10v4M12 17v.5" />
+        <path d={first.comment ? "M3 4h18v12h-9l-5 4v-4H3zM7 8.5h10M7 12h6" : "M12 3L2 20h20zM12 10v4M12 17v.5"} />
       </svg>
       <div className="gt-copy">
         <strong id={titleId}>{first.title}</strong>

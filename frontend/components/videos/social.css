@@ -1,0 +1,209 @@
+.video-social {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  background: var(--xp-cream);
+}
+
+.social-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.xp-button.social-react {
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding: 0 0.5rem;
+  font-variant-numeric: tabular-nums;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* XP's pressed-in toggle, as on a toolbar. */
+.xp-button.social-react[aria-pressed="true"] {
+  border-color: var(--xp-select);
+  color: var(--xp-select);
+  background: linear-gradient(var(--xp-face-shadow), var(--xp-face) 25%, var(--xp-cream));
+  box-shadow: inset 1px 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.xp-button.social-small {
+  min-height: 1.75rem;
+  padding: 0 0.5rem;
+  font-size: 0.75rem;
+}
+
+.social-peek {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--xp-text);
+  border-radius: 4px;
+  background: var(--xp-balloon);
+}
+
+.social-more {
+  justify-self: start;
+  color: var(--xp-select);
+  text-decoration: underline;
+  cursor: var(--cursor-pointer, pointer);
+}
+
+.social-comments {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.social-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.social-comment[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+.social-avatar {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--xp-face-shadow);
+  border-radius: 3px;
+  background: var(--xp-face);
+}
+
+.social-byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  align-items: baseline;
+}
+
+.social-when,
+.social-count {
+  font-size: 0.6875rem;
+  color: var(--xp-title-dark);
+}
+
+.social-text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.social-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.5rem;
+  align-items: end;
+}
+
+.social-input {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.25rem 0.375rem;
+  border: 1px solid var(--xp-face-shadow);
+  font: inherit;
+  color: var(--xp-text);
+  background: #fff;
+  box-shadow: inset 1px 1px 0 var(--xp-face-shadow);
+  resize: vertical;
+}
+
+.social-error {
+  color: var(--xp-red);
+  font-weight: bold;
+}
+
+.chug-player .video-social {
+  margin: 0.5rem;
+}
+
+/* Glacier: frost panel, pill chips, the snow fill for your own reaction. */
+[data-theme="glacier"] .xp-group.video-social {
+  padding: 12px;
+  border: 1px solid var(--g-line);
+  border-radius: 14px;
+  background: var(--g-frost);
+}
+
+[data-theme="glacier"] .xp-button.social-react {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+[data-theme="glacier"] .xp-button.social-react[aria-pressed="true"] {
+  border-color: var(--g-snow);
+  color: var(--g-night);
+  background: var(--g-snow);
+}
+
+[data-theme="glacier"] .xp-button.social-small {
+  min-height: 32px;
+  padding: 0 12px;
+}
+
+[data-theme="glacier"] .social-peek {
+  border-color: var(--g-frost-edge);
+  border-radius: 12px;
+  background: var(--g-surface);
+}
+
+[data-theme="glacier"] .social-more {
+  color: var(--g-link);
+}
+
+[data-theme="glacier"] .social-avatar {
+  border-color: var(--g-frost-edge);
+  border-radius: 999px;
+  background: var(--g-row);
+}
+
+[data-theme="glacier"] :is(.social-when, .social-count) {
+  color: var(--g-label);
+}
+
+/* Out-ranks the Glacier .xp-input rule, which is sized for a one-line field. */
+[data-theme="glacier"] .video-social .xp-input.social-input {
+  padding: 8px 12px;
+  border-color: var(--g-frost-edge);
+  border-radius: 12px;
+  color: var(--g-text-strong);
+  background: rgb(4 19 34 / 0.55);
+  box-shadow: none;
+}
+
+[data-theme="glacier"] .social-input::placeholder {
+  color: var(--g-label);
+}
+
+[data-theme="glacier"] .social-error {
+  color: var(--g-red-text);
+}
+
+@media (max-width: 767.98px), (max-height: 500px) and (pointer: coarse) {
+  .xp-button.social-react,
+  .xp-button.social-small {
+    min-height: 2.75rem;
+  }
+
+  .video-social {
+    font-size: 0.9375rem;
+  }
+}
+
+/* Inside a chug card the card is the frame; a second frost panel would nest cards. */
+[data-theme="glacier"] .chug-card .xp-group.video-social {
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--g-line);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}

@@ -4,6 +4,7 @@ import { type KeyboardEvent, useEffect, useId, useRef } from "react";
 
 import { MediaPlayerIcon } from "@/components/xp/icons";
 import type { Video } from "@/lib/api/videos";
+import { VideoSocial } from "./VideoSocial";
 
 import "./videos.css";
 
@@ -29,7 +30,7 @@ export function ChugPlayer({ video, label, onError, onClose }: ChugPlayerProps) 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") return onClose();
     if (e.key !== "Tab") return;
-    const all = [...(box.current?.querySelectorAll<HTMLElement>("video, button") ?? [])];
+    const all = [...(box.current?.querySelectorAll<HTMLElement>("video, button:not(:disabled), textarea") ?? [])];
     const edge = e.shiftKey ? all[0] : all[all.length - 1];
     if (document.activeElement !== edge) return;
     e.preventDefault();
@@ -46,6 +47,7 @@ export function ChugPlayer({ video, label, onError, onClose }: ChugPlayerProps) 
           </span>
         </h2>
         <video src={`${video.url}#t=0.1`} controls playsInline preload="metadata" autoPlay onError={onError} aria-label={`${label} chug`} />
+        <VideoSocial videoId={video.mediaId} />
         <div className="flex justify-end p-2">
           <button type="button" className="xp-button" onClick={onClose}>
             Close
