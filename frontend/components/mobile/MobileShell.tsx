@@ -7,6 +7,7 @@ import { WindowBoundary } from "@/components/desktop/DesktopWindow";
 import { Effects } from "@/components/glacier/Effects";
 import { HEADER_ICICLES, Icicles } from "@/components/glacier/Frost";
 import { GlacierHome } from "@/components/glacier/GlacierHome";
+import { DrawerNav } from "@/components/glacier/DrawerNav";
 import { LINE_ICONS, LineIcon } from "@/components/glacier/GlacierPhone";
 import { GlacierTrouble } from "@/components/glacier/GlacierTrouble";
 import { MenuDrawer } from "@/components/glacier/MenuDrawer";
@@ -21,18 +22,22 @@ import { NotificationBell } from "@/components/xp/NotificationBell";
 import { track } from "@/lib/activity/tracker";
 import { REGISTRY, useWindowTitle, type WindowKind } from "@/lib/desktop/registry";
 import type { WindowParams } from "@/lib/desktop/windows";
+import { useDefaultWeek } from "@/lib/league/default-week";
 import { useLeague } from "@/lib/league/use-league";
-import { foldedInto, type Screen, type ScreenKind, screenId, stackOf, type Tab, TABS } from "@/lib/phone/nav";
+import { pageTab, rootOf, type Screen, type ScreenKind, screenId, sectionFor, stackOf, type Tab, TABS } from "@/lib/phone/nav";
 import { usePhoneNav } from "@/lib/phone/use-phone-nav";
+import { useProfile } from "@/lib/profile/use-profile";
+import { type PageKind, pagesFor, pageView, SECTIONS } from "@/lib/sections";
 import { GameScreen } from "./GameScreen";
 import { GamesScreen } from "./GamesScreen";
 import { HomeScreen } from "./HomeScreen";
-import { IcesScreen } from "./IcesScreen";
+import { IceStandingsScreen, LedgerScreen, VideosScreen } from "./IcesScreen";
 import { MenuScreen, TeamsScreen } from "./MenuScreen";
 import { PlayerScreen } from "./PlayerScreen";
 import { PushContext } from "./push";
 import { StandingsScreen } from "./StandingsScreen";
 import { StatsScreen } from "./StatsScreen";
+import { SubTabs } from "./SubTabs";
 import { MyTeamScreen, TeamScreen } from "./TeamScreen";
 
 import "./mobile.css";
@@ -44,7 +49,6 @@ import "@/components/glacier/glacier-layout.css";
 type Body = ComponentType<{ params: WindowParams }>;
 
 const PHONE_SCREENS = {
-  games: GamesScreen,
   menu: MenuScreen,
   teams: TeamsScreen,
   profile: ProfileSettings,
@@ -55,8 +59,10 @@ const PHONE_SCREENS = {
 >;
 const OVERRIDES: Partial<Record<WindowKind, Body>> = {
   home: HomeScreen,
-  ices: IcesScreen,
-  week: GamesScreen,
+  ices: LedgerScreen,
+  "ice-standings": IceStandingsScreen,
+  videos: VideosScreen,
+  scores: GamesScreen,
   game: GameScreen,
   standings: StandingsScreen,
   stats: StatsScreen,
@@ -68,22 +74,15 @@ const OVERRIDES: Partial<Record<WindowKind, Body>> = {
 const isPhoneKind = (kind: ScreenKind): kind is keyof typeof PHONE_SCREENS => kind in PHONE_SCREENS;
 const bodyOf = (kind: ScreenKind): Body => (isPhoneKind(kind) ? PHONE_SCREENS[kind] : (OVERRIDES[kind] ?? REGISTRY[kind].component));
 
-const TAB_BAR: Record<Tab, { label: string; Icon: typeof HomeIcon }> = {
-  home: { label: "Home", Icon: HomeIcon },
-  games: { label: "Games", Icon: ScoresIcon },
-  ices: { label: "Ices", Icon: IceBottleIcon },
-  menu: { label: "Menu", Icon: MenuIcon },
-};
+// XP's tab bar. League and News Drop open from its Menu, so Menu stays lit on them.
+const TAB_BAR: { tab: Tab; label: string; Icon: typeof HomeIcon }[] = [
+  { tab: "home", label: "Home", Icon: HomeIcon },
+  { tab: "games", label: "Games", Icon: ScoresIcon },
+  { tab: "ices", label: "Ices", Icon: IceBottleIcon },
+  { tab: "menu", label: "Menu", Icon: MenuIcon },
+];
 
 const GlacierPhoneHome = () => <GlacierHome phone />;
-
-// Glacier has no tab bar: these lead its drawer instead.
-const QUICK: { label: string; icon: keyof typeof LINE_ICONS; to: Tab | Screen }[] = [
-  { label: "Home", icon: "home", to: "home" },
-  { label: "Games", icon: "games", to: "games" },
-  { label: "Ices", icon: "ices", to: "ices" },
-  { label: "League", icon: "league", to: { kind: "standings", params: {} } },
-];
 
 function useScreenTitle(): (screen: Screen) => string {
   const windowTitle = useWindowTitle();
@@ -92,10 +91,8 @@ function useScreenTitle(): (screen: Screen) => string {
     switch (kind) {
       case "home":
         return "Smirnoff League";
-      case "games":
       case "menu":
       case "teams":
-      case "ices":
       case "settings":
         return kind.charAt(0).toUpperCase() + kind.slice(1);
       case "profile":
@@ -119,8 +116,10 @@ interface MobileShellProps {
 
 export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const glacier = theme === "glacier";
-  const { nav, push, selectTab, back } = usePhoneNav();
+  const { nav, push, selectTab, open, back } = usePhoneNav();
   const title = useScreenTitle();
+  const week = useDefaultWeek();
+  const isAdmin = useProfile().me?.isAdmin ?? false;
   const heading = useRef<HTMLHeadingElement>(null);
   const stack = stackOf(nav);
   const top = stack[stack.length - 1];
@@ -131,12 +130,16 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
   const [scrolled, setScrolled] = useState(false);
   const screens = useRef<HTMLElement>(null);
   const drawerId = useId();
+  const section = sectionFor(nav.tab);
+  const subPages = section ? pagesFor(section, isAdmin) : [];
+  const bar = TAB_BAR.some((t) => t.tab === nav.tab) ? nav.tab : "menu";
 
   // The tapped link is now on a hidden screen, so hand focus to the new title.
+  // A sub-tab stays put, so it keeps focus.
   useEffect(() => {
     if (shown.current === topKey) return;
     shown.current = topKey;
-    heading.current?.focus({ preventScroll: true });
+    if (!document.activeElement?.closest(".m-subtabs")) heading.current?.focus({ preventScroll: true });
     setScrolled((screens.current?.querySelector(".m-screen:not([hidden])")?.scrollTop ?? 0) > 24);
   }, [topKey]);
 
@@ -146,26 +149,33 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
     if (el.classList.contains("m-screen")) setScrolled(el.scrollTop > 24);
   };
 
-  const go = ({ kind, params }: Screen) => {
-    const tab = foldedInto(kind);
-    if (tab) return selectTab(tab);
-    push({ kind, params });
+  // A link to a page opens it in its section. Under a team, player or game
+  // it stacks instead, so the header's Back still retraces the drill-down.
+  const go = (screen: Screen) => {
+    if (screenId(screen) === screenId(top)) return;
+    const tab = pageTab(screen.kind, nav.tab);
+    const drilled = SECTIONS.some((s) => s.drills?.includes(top.kind as PageKind));
+    if (tab && (tab === nav.tab || !drilled)) return open(tab, screen);
+    push(screen);
   };
-  const open = ({ kind, ...params }: DrillTarget) => go({ kind, params });
+  const navigate = (screen: Screen) => {
+    const tab = pageTab(screen.kind, nav.tab);
+    if (tab) open(tab, screen);
+    else push(screen);
+  };
+  const drill = ({ kind, ...params }: DrillTarget) => go({ kind, params });
   const openMenu = () => {
     setMenuOpen(true);
     track("open", "tab:menu");
   };
-  const goFromMenu = (screen: Screen) => {
+  const pageFromMenu = (screen: Screen) => {
     setMenuOpen(false);
-    go(screen);
+    push(screen);
   };
-  const quick = (to: Tab | Screen) => {
-    if (typeof to !== "string") return goFromMenu(to);
+  const sectionFromMenu = (tab: Tab) => {
     setMenuOpen(false);
-    selectTab(to);
+    open(tab, rootOf(tab));
   };
-  const isHere = (to: Tab | Screen) => (typeof to === "string" ? to === nav.tab && stack.length === 1 : top.kind === to.kind);
 
   return (
     <div className={glacier ? "m-app glacier" : "m-app"} data-theme={glacier ? "glacier" : undefined}>
@@ -180,7 +190,7 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           glacier && <Image src="/brand/crest.png" alt="" width={32} height={38} className="m-crest" />
         )}
         <h1 ref={heading} tabIndex={-1} className="m-title">
-          {title(top)}
+          {section && subPages.length > 1 && stack.length === 1 ? section.label : title(top)}
         </h1>
         {glacier && <GlacierTrouble />}
         <button type="button" className="m-search" aria-label="Search" onClick={() => setSearching(true)}>
@@ -201,9 +211,17 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
           </button>
         )}
       </header>
+      {section && subPages.length > 1 && (
+        <SubTabs
+          label={`${section.label} pages`}
+          pages={subPages}
+          current={stack[0].kind as PageKind}
+          onPick={(page) => open(nav.tab, pageView(page, week))}
+        />
+      )}
       <PushContext value={go}>
-        <DrillContext.Provider value={open}>
-          <NavigateContext value={open}>
+        <DrillContext.Provider value={drill}>
+          <NavigateContext value={drill}>
             <main ref={screens} className="m-screens" onScrollCapture={glacier ? onScroll : undefined}>
               {TABS.flatMap((tab) =>
                 (nav.stacks[tab] ?? []).map((screen, i, all) => {
@@ -236,43 +254,24 @@ export function MobileShell({ theme = "xp" }: MobileShellProps) {
       </PushContext>
       {!glacier && (
         <nav className="m-tabs" aria-label="Tabs">
-          {TABS.map((tab) => {
-            const { label, Icon } = TAB_BAR[tab];
-            return (
-              <button
-                key={tab}
-                type="button"
-                className="m-tab"
-                aria-current={tab === nav.tab ? "page" : undefined}
-                onClick={() => selectTab(tab)}
-              >
-                <Icon width={24} height={24} />
-                {label}
-              </button>
-            );
-          })}
+          {TAB_BAR.map(({ tab, label, Icon }) => (
+            <button key={tab} type="button" className="m-tab" aria-current={tab === bar ? "page" : undefined} onClick={() => selectTab(tab)}>
+              <Icon width={24} height={24} />
+              {label}
+            </button>
+          ))}
         </nav>
       )}
       <CommandPalette
         phone
         open={searching}
         onOpenChange={setSearching}
-        onGo={go}
+        onGo={navigate}
       />
       {glacier && (
-        <PushContext value={goFromMenu}>
-          <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
-            <nav aria-label="Main" className="gp-quick">
-              {QUICK.map(({ label, icon, to }) => (
-                <button key={label} type="button" aria-current={isHere(to) ? "page" : undefined} onClick={() => quick(to)}>
-                  <LineIcon d={LINE_ICONS[icon]} size={26} />
-                  {label}
-                </button>
-              ))}
-            </nav>
-            <MenuScreen />
-          </MenuDrawer>
-        </PushContext>
+        <MenuDrawer id={drawerId} open={menuOpen} onClose={() => setMenuOpen(false)}>
+          <DrawerNav tab={nav.tab} onSection={sectionFromMenu} onPage={pageFromMenu} />
+        </MenuDrawer>
       )}
       {glacier && <Effects />}
     </div>

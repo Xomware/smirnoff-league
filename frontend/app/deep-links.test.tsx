@@ -122,7 +122,7 @@ describe("?open=", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Team 6" })).toBeTruthy();
     expect(within(screen.getByRole("banner")).getByRole("button", { name: "Menu" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Back" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "League Standings" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { level: 1, name: "League" })).toBeTruthy();
     expect(document.querySelector(".xp-desktop")).toBeNull();
   });
 

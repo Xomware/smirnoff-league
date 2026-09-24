@@ -3,21 +3,16 @@
 import { useState } from "react";
 
 import { BackArrowIcon, ForwardArrowIcon } from "@/components/xp/icons";
-import type { WindowParams } from "@/lib/desktop/windows";
 import { POLL_MS } from "@/lib/ices/use-ice-watch";
 import { useDefaultWeek } from "@/lib/league/default-week";
 import { useWeekGames } from "@/lib/league/use-week-games";
 import { MatchupCard } from "./MatchupCard";
 
-interface GamesScreenProps {
-  params: WindowParams;
-}
-
-// The Games tab, and a week drilled into from anywhere else (params.week).
-export function GamesScreen({ params }: GamesScreenProps) {
+// Games > Scores: a week's matchups, each opening its game.
+export function GamesScreen() {
   const initial = useDefaultWeek();
   const [picked, setPicked] = useState<number>();
-  const week = picked ?? (params.week ? Number(params.week) : initial);
+  const week = picked ?? initial;
   const { data, games, current, live, liveGames, error, teamFor } = useWeekGames(week);
 
   if (error) return <p role="alert">Could not reach Sleeper ({error}). Refresh to try again.</p>;

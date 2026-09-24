@@ -16,7 +16,6 @@ import { getLedger } from "@/lib/api/ledger";
 import { getMe } from "@/lib/api/users";
 import { REGISTRY } from "@/lib/desktop/registry";
 import { NotificationsProvider } from "@/lib/notifications/use-notifications";
-import { foldedInto } from "@/lib/phone/nav";
 import { ProfileProvider } from "@/lib/profile/use-profile";
 import { SCENARIO_LEDGER } from "@/lib/test/ledger-mock";
 import { stubSleeper } from "@/lib/test/league-mock";
@@ -128,37 +127,35 @@ describe("Glacier reachability", () => {
 });
 
 describe("phone Menu reachability", () => {
-  it("lists every section's pages plus Settings, My Profile and the Control Panel", async () => {
+  it("reaches every page from the drawer's sections, their sub-tabs and its account rows", async () => {
     wrap(<MobileShell theme="glacier" />);
     const openMenu = () => fireEvent.click(within(document.querySelector<HTMLElement>(".m-bar")!).getByRole("button", { name: "Menu" }));
     const menu = () => within(document.querySelector<HTMLElement>(".gp-drawer-body")!);
-    const tab = (name: string) => {
+    // The bell opens notifications.
+    const reached = new Set<string>(["notifications"]);
+    openMenu();
+    await menu().findByRole("button", { name: "Control Panel" });
+    const sections = within(menu().getByRole("navigation", { name: "Main" }))
+      .getAllByRole("button")
+      .map((b) => b.textContent!);
+
+    for (const name of sections) {
       openMenu();
       fireEvent.click(within(menu().getByRole("navigation", { name: "Main" })).getByRole("button", { name }));
-    };
-    openMenu();
-    await menu().findByRole("heading", { name: "Me" });
-    expect(menu().getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["Games", "Ices", "League", "News Drop", "Me"]);
-
-    // The drawer's first row reaches what the Home, Games and Ices tabs show, and the bell notifications.
-    const kinds = Object.keys(REGISTRY) as (keyof typeof REGISTRY)[];
-    const reached = new Set<string>(["notifications", ...kinds.filter((k) => foldedInto(k))]);
-    const labels = menu()
-      .getAllByRole("button")
-      .filter((b) => b.querySelector(".m-chevron"))
-      .map((b) => b.textContent!);
-    expect(labels).toEqual(expect.arrayContaining(["My Profile", "Settings", "Control Panel", "Teams", "Draft recap", "Week view"]));
-    for (const label of labels) {
-      // Tapping the tab you are on goes back to its root; the drawer opens over it.
-      tab("Home");
-      if (heading() !== "Smirnoff League") tab("Home");
-      await waitFor(() => expect(shownKind()).toBe("home"));
+      reached.add(shownKind());
+      const tabs = screen.queryByRole("navigation", { name: `${name} pages` });
+      for (const tab of tabs ? within(tabs).getAllByRole("button") : []) {
+        fireEvent.click(tab);
+        reached.add(shownKind());
+      }
+    }
+    for (const name of ["My Profile", "Settings", "Control Panel"]) {
       openMenu();
-      fireEvent.click(menu().getByRole("button", { name: label }));
-      await waitFor(() => expect(shownKind()).not.toBe("home"));
+      fireEvent.click(menu().getByRole("button", { name }));
       reached.add(shownKind());
     }
 
-    expect(Object.keys(REGISTRY).filter((kind) => !reached.has(kind)).sort()).toEqual(["game", "player", "team"]);
-  }, 20000);
+    // My Team opens from search on the phone.
+    expect(Object.keys(REGISTRY).filter((kind) => !reached.has(kind)).sort()).toEqual([...DRILLED, "my-team"].sort());
+  });
 });

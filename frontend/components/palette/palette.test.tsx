@@ -277,7 +277,8 @@ describe("phone", () => {
     await search("rank");
     fireEvent.click(screen.getByRole("option", { name: "Ice Rankings" }));
     expect(queryBox()).toBeNull();
-    await waitFor(() => expect(title()).toBe("Ice Rankings"));
+    await waitFor(() => expect(window.location.search).toBe("?open=chug-rankings"));
+    expect(title()).toBe("Ices");
   });
 
   it("pushes a game's screen", async () => {
