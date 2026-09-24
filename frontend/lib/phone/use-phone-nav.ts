@@ -70,7 +70,8 @@ export function usePhoneNav() {
       // Entries under the top must all be this tab's, or its Back would land on
       // another tab. A tab switch or a reset first rewinds history to where the
       // two stacks agree; history.go is async, so the rebuild waits for popstate.
-      const keep = Math.max(same - 1, 0);
+      // A tab switch on the top screen only rewrites the top entry.
+      const keep = same === at.current ? same : Math.max(same - 1, 0);
       if (keep < at.current) {
         rewinding.current = true;
         window.history.go(keep - at.current);
@@ -101,5 +102,10 @@ export function usePhoneNav() {
       track("open", screenId(screen));
     },
     back: () => window.history.back(),
+    retab: (tab: string) => {
+      const stack = stackOf(nav);
+      const top = stack[stack.length - 1];
+      dispatch({ type: "set", tab: nav.tab, stack: [...stack.slice(0, -1), { ...top, params: { ...top.params, tab } }] });
+    },
   };
 }

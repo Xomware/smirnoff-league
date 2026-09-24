@@ -1,11 +1,12 @@
 "use client";
 
+import type { WindowParams } from "@/lib/desktop/windows";
 import { useProfile } from "@/lib/profile/use-profile";
 import { TeamView } from "./team-view";
 
-export function MyTeamView() {
+export function MyTeamView({ params }: { params: WindowParams }) {
   const { myRosterId, setEditing } = useProfile();
-  if (myRosterId !== null) return <TeamView rosterId={myRosterId} />;
+  if (myRosterId !== null) return <TeamView rosterId={myRosterId} tab={params.tab} />;
   return (
     <div className="grid justify-items-start gap-2">
       <p>You haven&apos;t claimed a team yet.</p>

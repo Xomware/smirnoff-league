@@ -174,41 +174,47 @@
 
 /* Tabs and chips */
 
+/* A view's own tabs sit under the page's sub-nav chips, so they are plain
+   text on a rule, underlined when picked, to read as the lesser strip. */
 [data-theme="glacier"] .xp-tab-strip {
-  gap: 6px;
-  margin-inline: -6px;
-  /* Room for the focus ring, which the scroll box would otherwise clip. */
-  padding: 6px 6px 12px;
+  gap: 4px;
+  padding: 0;
+  box-shadow: inset 0 -1px 0 var(--g-line);
 }
 
 [data-theme="glacier"] .xp-tab {
-  min-height: 40px;
+  min-height: 44px;
   margin: 0;
-  padding: 0 18px;
-  border: 1px solid var(--g-frost-edge);
-  border-radius: 999px;
-  color: var(--g-text-strong);
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  color: var(--g-label);
   font-weight: 700;
-  background: var(--g-row);
-  transition: background-color 0.15s;
+  background: none;
+  transition: color 0.15s, box-shadow 0.15s;
 }
 
 [data-theme="glacier"] .xp-tab:hover {
-  background: var(--g-hover);
-  box-shadow: none;
+  color: var(--g-text-strong);
+  box-shadow: inset 0 -2px 0 var(--g-frost-edge);
 }
 
 [data-theme="glacier"] .xp-tab:active {
-  background: var(--g-press);
+  background: var(--g-hover);
 }
 
 [data-theme="glacier"] .xp-tab[aria-selected="true"] {
   margin: 0;
   padding-bottom: 0;
-  border-color: var(--g-snow);
-  color: var(--g-night);
-  background: var(--g-snow);
-  box-shadow: none;
+  color: var(--g-text-strong);
+  background: none;
+  box-shadow: inset 0 -3px 0 var(--g-snow);
+}
+
+/* The strip scrolls sideways, which would clip a ring drawn outside it. */
+[data-theme="glacier"] .xp-tab:focus-visible {
+  outline: 2px solid var(--g-snow);
+  outline-offset: -4px;
 }
 
 [data-theme="glacier"] .xp-tab-panel {

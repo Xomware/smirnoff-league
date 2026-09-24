@@ -12,12 +12,13 @@ import {
   MinimizeGlyph,
   RestoreGlyph,
 } from "@/components/xp/icons";
+import { TabParamContext } from "@/components/xp/Tabs";
 import { track, viewTarget } from "@/lib/activity/tracker";
 import { useAlerts } from "@/lib/alerts/alerts";
 import { windowUrl } from "@/lib/desktop/deep-link";
 import { useDesktop } from "@/lib/desktop/desktop-context";
 import { REGISTRY, useWindowTitle } from "@/lib/desktop/registry";
-import { historyOf, TASKBAR_HEIGHT, windowId, type WindowState } from "@/lib/desktop/windows";
+import { historyOf, TASKBAR_HEIGHT, viewKey, type WindowState } from "@/lib/desktop/windows";
 
 const MIN_W = 240;
 const MIN_H = 140;
@@ -182,10 +183,12 @@ export function DesktopWindow({ win }: DesktopWindowProps) {
         </div>
       )}
       {/* Keyed by view so each page starts scrolled to the top with fresh state. */}
-      <div className="xp-window-body" key={windowId(win.kind, win.params)}>
+      <div className="xp-window-body" key={viewKey(win.kind, win.params)}>
         <WindowBoundary>
           <NavigateContext value={navigate}>
-            <Body params={win.params} />
+            <TabParamContext value={(tab) => dispatch({ type: "retab", id, tab })}>
+              <Body params={win.params} />
+            </TabParamContext>
           </NavigateContext>
         </WindowBoundary>
       </div>

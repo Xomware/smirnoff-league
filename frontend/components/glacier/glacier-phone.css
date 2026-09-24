@@ -299,14 +299,14 @@
   box-shadow: none;
 }
 
-.m-app.glacier :is(.m-button, .m-jump-chip) {
+.m-app.glacier .m-button {
   border: 1px solid var(--g-frost-edge);
   border-radius: 999px;
   color: var(--g-text-strong);
   background: rgb(170 225 255 / 0.12);
 }
 
-.m-app.glacier :is(.m-button, .m-jump-chip):active {
+.m-app.glacier .m-button:active {
   background: var(--g-press);
 }
 
@@ -329,16 +329,6 @@
   color: var(--g-snow);
   background: var(--g-red);
   box-shadow: none;
-}
-
-.m-app.glacier .m-jump-chip[aria-current="true"] {
-  border-color: var(--g-snow);
-  color: var(--g-red);
-  background: var(--g-snow);
-}
-
-.m-app.glacier .m-jump {
-  backdrop-filter: blur(10px);
 }
 
 .m-app.glacier .m-week-pick option {

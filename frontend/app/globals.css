@@ -1254,11 +1254,22 @@
     text-transform: uppercase;
   }
   .xp-tab-strip {
+    --fade-start: 0px;
+    --fade-end: 0px;
     display: flex;
     gap: 2px;
     padding: 2px 4px 0;
     overflow-x: auto;
     scrollbar-width: none;
+    mask-image: linear-gradient(to right, transparent, black var(--fade-start), black calc(100% - var(--fade-end)), transparent);
+  }
+
+  .xp-tab-strip[data-more-start] {
+    --fade-start: 2rem;
+  }
+
+  .xp-tab-strip[data-more-end] {
+    --fade-end: 2rem;
   }
 
   .xp-tab {

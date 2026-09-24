@@ -26,7 +26,10 @@ import "./profile.css";
 
 interface TeamViewProps {
   rosterId: number;
+  tab?: string | number;
 }
+
+export const TEAM_TABS = ["results", "ices", "moves", "head-to-head", "roster"];
 
 const ordinal = (n: number) => `${n}${["th", "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] ?? "th"}`;
 const signed = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(2)}`;
@@ -44,7 +47,7 @@ function OpponentLink({ rosterId, teamFor }: OpponentLinkProps) {
   );
 }
 
-// Everything a manager profile shows, for the desktop's tabbed profile and the phone's stacked one.
+// Everything a manager profile shows, for the desktop's profile and the phone's.
 export function useTeamProfile(rosterId: number) {
   const { data, teamFor, currentWeek, tally, finishedWeeks: weeks, liveMatchups: live, error } = useSeason();
   const shown = useDefaultWeek();
@@ -175,7 +178,7 @@ export function ProfileHead({ profile: p }: { profile: TeamProfile }) {
   );
 }
 
-export function TeamView({ rosterId }: TeamViewProps) {
+export function TeamView({ rosterId, tab }: TeamViewProps) {
   const profile = useTeamProfile(rosterId);
   if (profile.status === "error") return <p role="alert">Could not reach Sleeper ({profile.error}). Refresh to try again.</p>;
   if (profile.status === "loading") return <p role="status">Loading the team...</p>;
@@ -318,12 +321,13 @@ export function TeamView({ rosterId }: TeamViewProps) {
 
       <Tabs
         label={`${team.name} profile`}
+        selected={tab}
         tabs={[
-          { label: "Results", panel: resultsPanel },
-          { label: "Ices", panel: () => <TeamIces rosterId={rosterId} ledger={ledger} results={results} players={data.players} /> },
-          { label: "Transactions", panel: () => <TeamMoves rosterId={rosterId} currentWeek={currentWeek} players={data.players} teamFor={teamFor} /> },
-          { label: "Head-to-head", panel: h2hPanel },
-          { label: "Roster", panel: rosterPanel },
+          { id: "results", label: "Results", panel: resultsPanel },
+          { id: "ices", label: "Ices", panel: () => <TeamIces rosterId={rosterId} ledger={ledger} results={results} players={data.players} /> },
+          { id: "moves", label: "Transactions", panel: () => <TeamMoves rosterId={rosterId} currentWeek={currentWeek} players={data.players} teamFor={teamFor} /> },
+          { id: "head-to-head", label: "Head-to-head", panel: h2hPanel },
+          { id: "roster", label: "Roster", panel: rosterPanel },
         ]}
       />
     </div>

@@ -28,6 +28,7 @@ export type WindowAction =
   | { type: "move"; id: string; x: number; y: number }
   | { type: "resize"; id: string; w: number; h: number }
   | { type: "navigate"; id: string; kind: WindowKind; params: WindowParams }
+  | { type: "retab"; id: string; tab: string }
   | { type: "back" | "forward"; id: string }
   | { type: "restore"; windows: WindowState[] };
 
@@ -44,6 +45,11 @@ export function windowId(kind: string, params: WindowParams): string {
   if (kind === "game") return `game:${params.week}-${params.matchup}`;
   return [kind, ...Object.keys(params).sort().map((k) => params[k])].join(":");
 }
+
+// A view's inner tab is in its link but not its identity, so switching tabs
+// neither remounts the view nor stops a link to the view finding it.
+export const viewKey = (kind: string, params: WindowParams) =>
+  windowId(kind, Object.fromEntries(Object.entries(params).filter(([k]) => k !== "tab")));
 
 export function activeWindow(state: WindowState[]): WindowState | undefined {
   return state.filter((w) => !w.minimized).sort((a, b) => b.z - a.z)[0];
@@ -73,7 +79,7 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
     case "open": {
       const base = windowId(action.kind, action.params);
       // A window keeps its id when it navigates, so match on what it shows now.
-      const showing = state.find((w) => windowId(w.kind, w.params) === base);
+      const showing = state.find((w) => viewKey(w.kind, w.params) === viewKey(action.kind, action.params));
       if (showing) return desktopReducer(state, { type: "focus", id: showing.id });
       let id = base;
       for (let n = 2; state.some((w) => w.id === id); n++) id = `${base}#${n}`;
@@ -104,6 +110,13 @@ export function desktopReducer(state: WindowState[], action: WindowAction): Wind
       const { views, at } = historyOf(w);
       const view = { kind: action.kind, params: action.params };
       return update(state, w.id, { ...view, history: { views: [...views.slice(0, at + 1), view], at: at + 1 } });
+    }
+    case "retab": {
+      const w = state.find((w) => w.id === action.id);
+      if (!w) return state;
+      const { views, at } = historyOf(w);
+      const params = { ...w.params, tab: action.tab };
+      return update(state, w.id, { params, history: { views: views.map((v, i) => (i === at ? { kind: w.kind, params } : v)), at } });
     }
     case "back":
       return go(state, action.id, -1);

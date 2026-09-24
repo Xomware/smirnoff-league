@@ -14,6 +14,7 @@ import { TYPES, useTeamMoves } from "@/components/views/team-moves";
 import { PointsChart, ProfileHead, type TeamProfile, useTeamProfile } from "@/components/views/team-view";
 import { IceCause } from "@/components/views/week-ices";
 import { MediaPlayerIcon } from "@/components/xp/icons";
+import { Tabs } from "@/components/xp/Tabs";
 import { TeamName } from "@/components/xp/TeamName";
 import type { LedgerIce } from "@/lib/api/ledger";
 import { SLOTS } from "@/lib/ices/compute";
@@ -21,7 +22,6 @@ import type { WindowParams } from "@/lib/desktop/windows";
 import type { Pick } from "@/lib/league/profile";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useVideos, videoFor } from "@/lib/videos/use-videos";
-import { JumpSections } from "./JumpSections";
 
 import "@/components/views/profile.css";
 
@@ -242,7 +242,7 @@ function Lineup({ p }: Props) {
   );
 }
 
-function TeamProfileScreen({ rosterId }: { rosterId: number }) {
+function TeamProfileScreen({ rosterId, tab }: { rosterId: number; tab?: string | number }) {
   const profile = useTeamProfile(rosterId);
   if (profile.status === "error") return <p role="alert">Could not reach Sleeper ({profile.error}). Refresh to try again.</p>;
   if (profile.status === "loading") return <p role="status">Loading the team...</p>;
@@ -250,14 +250,15 @@ function TeamProfileScreen({ rosterId }: { rosterId: number }) {
   return (
     <div className="m-page">
       <ProfileHead profile={profile} />
-      <JumpSections
+      <Tabs
         label={`${profile.team.name} sections`}
-        sections={[
-          { label: "Results", panel: () => <Results p={profile} /> },
-          { label: "Ices", panel: () => <Ices p={profile} /> },
-          { label: "Moves", panel: () => <Moves p={profile} /> },
-          { label: "Head-to-head", panel: () => <HeadToHead p={profile} /> },
-          { label: "Lineup", panel: () => <Lineup p={profile} /> },
+        selected={tab}
+        tabs={[
+          { id: "results", label: "Results", panel: () => <Results p={profile} /> },
+          { id: "ices", label: "Ices", panel: () => <Ices p={profile} /> },
+          { id: "moves", label: "Moves", panel: () => <Moves p={profile} /> },
+          { id: "head-to-head", label: "Head-to-head", panel: () => <HeadToHead p={profile} /> },
+          { id: "roster", label: "Lineup", panel: () => <Lineup p={profile} /> },
         ]}
       />
     </div>
@@ -265,12 +266,12 @@ function TeamProfileScreen({ rosterId }: { rosterId: number }) {
 }
 
 export function TeamScreen({ params }: { params: WindowParams }) {
-  return <TeamProfileScreen rosterId={Number(params.rosterId)} />;
+  return <TeamProfileScreen rosterId={Number(params.rosterId)} tab={params.tab} />;
 }
 
-export function MyTeamScreen() {
+export function MyTeamScreen({ params }: { params: WindowParams }) {
   const { myRosterId, setEditing } = useProfile();
-  if (myRosterId !== null) return <TeamProfileScreen rosterId={myRosterId} />;
+  if (myRosterId !== null) return <TeamProfileScreen rosterId={myRosterId} tab={params.tab} />;
   return (
     <div className="m-page">
       <p>You haven&apos;t claimed a team yet.</p>

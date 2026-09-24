@@ -1,14 +1,15 @@
 "use client";
 
 import { useStatsSections } from "@/components/views/stats-view";
-import { JumpSections } from "./JumpSections";
+import { Tabs } from "@/components/xp/Tabs";
+import type { WindowParams } from "@/lib/desktop/windows";
 
-export function StatsScreen() {
+export function StatsScreen({ params }: { params: WindowParams }) {
   const stats = useStatsSections();
   if ("fallback" in stats) return stats.fallback;
   return (
     <div className="m-page">
-      <JumpSections label="Ice Stats sections" sections={stats.sections} />
+      <Tabs label="Ice Stats sections" tabs={stats.sections} selected={params.tab} />
     </div>
   );
 }

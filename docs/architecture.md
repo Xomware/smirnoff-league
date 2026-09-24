@@ -359,8 +359,11 @@ the same component in either shell.
   - **Phone:** `components/mobile/MobileShell.tsx`, a phone-first app with four
     bottom tabs: Home, Games, Ices and a hamburger Menu. Its screens live in
     `components/mobile/` and reuse the data hooks; kinds without a phone screen fall
-    back to the registry's component. No phone screen has a tab strip: a desktop
-    view's tabs become stacked sections under one sticky chip row (`JumpSections.tsx`).
+    back to the registry's component. Ice Stats and team profiles show their own
+    sections as tabs (`components/xp/Tabs.tsx`) on every shell, one at a time. The
+    picked tab is the view's `tab` param, so links carry it (`stats:positions`,
+    `team:6:ices`); `TabParamContext` lets each shell write it back without a
+    history step, and `viewKey` leaves it out so a switch never remounts the view.
     Each tab keeps a stack of screens (`lib/phone/nav.ts`), mirrored into browser
     history so hardware and swipe Back pop a screen (`lib/phone/use-phone-nav.ts`).
     A `?open=` link to a window a tab already shows (Scores, Ice Watch, Ice Standings,

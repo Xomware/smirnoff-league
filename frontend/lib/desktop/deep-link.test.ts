@@ -45,6 +45,14 @@ describe("parseOpen", () => {
     ]);
   });
 
+  it("reads the inner tab a Stats or team link names", () => {
+    expect(parseOpen("?open=stats:positions,team:6:ices,my-team:roster,stats:nope,team:6:nope,my-team:6")).toEqual([
+      { kind: "stats", params: { tab: "positions" } },
+      { kind: "team", params: { rosterId: 6, tab: "ices" } },
+      { kind: "my-team", params: { tab: "roster" } },
+    ]);
+  });
+
   it("returns nothing without an open param", () => {
     expect(parseOpen("")).toEqual([]);
     expect(parseOpen("?other=1")).toEqual([]);
