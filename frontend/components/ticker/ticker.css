@@ -102,13 +102,26 @@
   background: var(--g-focus);
 }
 
-[data-trouble] > .tk-item {
+/* Owed is a soft red pill, late the solid one, as on the home card's due chip. */
+[data-tone="due"] .tk-tag {
+  color: var(--g-red-text);
+  background: rgb(210 31 43 / 0.28);
+  box-shadow: inset 0 0 0 1px var(--g-red);
+}
+
+[data-tone="late"] > .tk-item {
   color: var(--g-red-text);
 }
 
-[data-trouble] .tk-tag {
+[data-tone="late"] .tk-tag {
   color: var(--g-snow);
   background: var(--g-red);
+}
+
+[data-tone="paid"] .tk-tag {
+  color: var(--g-text-strong);
+  background: var(--g-row);
+  box-shadow: inset 0 0 0 1px var(--g-frost-edge);
 }
 
 .tk-glyph {
@@ -218,12 +231,26 @@
   background: var(--xp-title);
 }
 
-.tk[data-xp] [data-trouble] > .tk-item {
+.tk[data-xp] [data-tone="due"] .tk-tag {
   color: var(--xp-red);
+  background: var(--xp-cream);
+  box-shadow: inset 0 0 0 1px var(--xp-red);
 }
 
-.tk[data-xp] [data-trouble] .tk-tag {
+.tk[data-xp] [data-tone="late"] > .tk-item {
+  color: var(--xp-red);
+  font-weight: bold;
+}
+
+.tk[data-xp] [data-tone="late"] .tk-tag {
+  color: var(--xp-text-inverse);
   background: var(--xp-red);
+}
+
+.tk[data-xp] [data-tone="paid"] .tk-tag {
+  color: var(--xp-text);
+  background: var(--xp-face);
+  box-shadow: inset 0 0 0 1px var(--xp-face-shadow);
 }
 
 .tk[data-xp] .tk-control {

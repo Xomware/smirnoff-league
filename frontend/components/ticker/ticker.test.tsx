@@ -37,7 +37,7 @@ import { TickerBar } from "./Ticker";
 
 const ITEMS: TickerItem[] = [
   { id: "a", tag: "W2 FINAL", text: "Team 1 101.2 – 88.4 Team 2", to: { kind: "game", week: 2, matchup: 1 } },
-  { id: "b", tag: "ICED", text: "Team 13 iced · W2 lowest score", to: { kind: "team", rosterId: 13 }, trouble: true },
+  { id: "b", tag: "LATE", text: "Team 13 owes an ice · W2 lowest score 82.10 · +1 late", to: { kind: "team", rosterId: 13 }, tone: "late" },
   { id: "c", tag: "NEWS DROP", text: "The Week 2 Drop", to: { kind: "writeup", week: 2 } },
 ];
 
@@ -73,12 +73,12 @@ afterEach(() => {
 });
 
 describe("TickerBar", () => {
-  it("opens an item's page when it is clicked, and marks trouble items", () => {
+  it("opens an item's page when it is clicked, and marks its tone", () => {
     const { open } = renderBar();
-    fireEvent.click(bar().getByRole("button", { name: "ICED Team 13 iced · W2 lowest score" }));
+    fireEvent.click(bar().getByRole("button", { name: "LATE Team 13 owes an ice · W2 lowest score 82.10 · +1 late" }));
     expect(open).toHaveBeenCalledWith({ kind: "team", rosterId: 13 });
-    expect(bar().getByRole("button", { name: /Team 13 iced/ }).closest("li")?.hasAttribute("data-trouble")).toBe(true);
-    expect(bar().getByRole("button", { name: /The Week 2 Drop/ }).closest("li")?.hasAttribute("data-trouble")).toBe(false);
+    expect(bar().getByRole("button", { name: /Team 13 owes/ }).closest("li")?.getAttribute("data-tone")).toBe("late");
+    expect(bar().getByRole("button", { name: /The Week 2 Drop/ }).closest("li")?.hasAttribute("data-tone")).toBe(false);
   });
 
   it("loops a hidden, inert copy of the list so screen readers hear each item once", () => {
@@ -135,7 +135,7 @@ describe("TickerBar", () => {
     expect(bar().getByText("1 of 3")).toBeTruthy();
 
     fireEvent.click(bar().getByRole("button", { name: "Next item" }));
-    fireEvent.click(bar().getByRole("button", { name: /Team 13 iced/ }));
+    fireEvent.click(bar().getByRole("button", { name: /Team 13 owes/ }));
     expect(open).toHaveBeenCalledWith({ kind: "team", rosterId: 13 });
     fireEvent.click(bar().getByRole("button", { name: "Previous item" }));
     fireEvent.click(bar().getByRole("button", { name: "Previous item" }));
@@ -186,9 +186,10 @@ describe("the ticker in the shells", () => {
     expect(region.previousElementSibling?.classList.contains("glacier-header")).toBe(true);
     expect(within(region).getByRole("status").textContent).toBe("Checking the wire...");
     expect(await within(region).findAllByRole("button", { name: /^W2 FINAL Team \d+ [\d.]+ – [\d.]+ Team \d+$/ })).toHaveLength(7);
-    expect(within(region).getByRole("button", { name: "ICED Team 13 iced · W2 lowest score" })).toBeTruthy();
+    expect(within(region).getAllByRole("button", { name: "LATE Team 13 owes an ice · W2 lowest score 82.10 · +1 late" }).length).toBeGreaterThan(0);
+    expect(within(region).getAllByRole("button", { name: "LATE Team 13 owes an ice · W2 4983 (WR) -0.10 · +1 late" }).length).toBeGreaterThan(0);
     expect(within(region).getByRole("button", { name: "NEWS DROP Week 2 in review" })).toBeTruthy();
-    expect(within(region).getByRole("button", { name: "DUE Ices due Sun 1 PM ET · 3d 0h" })).toBeTruthy();
+    expect(within(region).getAllByRole("button", { name: "DUE Ices due Sun 1 PM ET · 3d 0h" }).length).toBeGreaterThan(0);
 
     fireEvent.click(within(region).getByRole("button", { name: /Team 1 leads/ }));
     expect(window.location.search).toBe("?open=standings");
