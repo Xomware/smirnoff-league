@@ -1,5 +1,5 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { readFileSync } from "node:fs";
 
@@ -180,5 +180,128 @@ describe("Glacier effects", () => {
     );
     fireEvent.pointerOver(screen.getByRole("heading"), { pointerType: "mouse" });
     expect(document.querySelector("[data-wobble]")).toBeNull();
+  });
+});
+
+describe("snow caps", () => {
+  let observers: { cb: IntersectionObserverCallback; observed: Set<Element>; disconnected: boolean }[] = [];
+
+  beforeEach(() => {
+    observers = [];
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        entry: (typeof observers)[number];
+        constructor(cb: IntersectionObserverCallback) {
+          this.entry = { cb, observed: new Set(), disconnected: false };
+          observers.push(this.entry);
+        }
+        observe(el: Element) {
+          this.entry.observed.add(el);
+        }
+        unobserve(el: Element) {
+          this.entry.observed.delete(el);
+        }
+        disconnect() {
+          this.entry.disconnected = true;
+        }
+      },
+    );
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "requestAnimationFrame", "cancelAnimationFrame", "performance", "Date"] });
+  });
+
+  const cards = () => {
+    render(
+      <div data-theme="glacier" className="glacier">
+        <Effects />
+        <div data-snow-cap data-testid="seen" />
+        <div data-snow-cap data-testid="offscreen" />
+      </div>,
+    );
+    const seen = screen.getByTestId("seen");
+    const offscreen = screen.getByTestId("offscreen");
+    seen.getBoundingClientRect = () => new DOMRect(40, 400, 300, 120);
+    offscreen.getBoundingClientRect = () => new DOMRect(40, 1400, 300, 120);
+    return { seen, offscreen };
+  };
+
+  const show = (...els: Element[]) =>
+    act(() => {
+      const io = observers.at(-1)!;
+      io.cb(
+        els.map((target) => ({ target, isIntersecting: true }) as unknown as IntersectionObserverEntry),
+        {} as IntersectionObserver,
+      );
+    });
+
+  const cap = (el: HTMLElement) => parseFloat(el.style.getPropertyValue("--snow-cap") || "0");
+
+  it("drops landers into the snow layer, behind the page", () => {
+    render(<Effects />);
+    const landers = document.querySelectorAll(".glacier-lander");
+    expect(landers.length).toBeGreaterThan(0);
+    expect(landers.length).toBeLessThanOrEqual(6);
+    for (const l of landers) expect(l.closest(".glacier-snow")).not.toBeNull();
+  });
+
+  it("builds a cap on a visible card as landers land, up to a small max", () => {
+    const { seen } = cards();
+    show(seen);
+    expect(cap(seen)).toBe(0);
+    act(() => vi.advanceTimersByTime(30_000));
+    const early = cap(seen);
+    expect(early).toBeGreaterThan(0);
+    expect(early).toBeLessThan(10);
+    act(() => vi.advanceTimersByTime(600_000));
+    expect(cap(seen)).toBe(10);
+  });
+
+  it("only sends landers to cards in the viewport", () => {
+    const { seen, offscreen } = cards();
+    expect([...observers.at(-1)!.observed]).toEqual(expect.arrayContaining([seen, offscreen]));
+    show(seen);
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(cap(seen)).toBeGreaterThan(0);
+    expect(cap(offscreen)).toBe(0);
+  });
+
+  it("clears the caps when the page changes", () => {
+    const { seen } = cards();
+    show(seen);
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(cap(seen)).toBeGreaterThan(0);
+    act(() => {
+      window.history.pushState(null, "", "/?open=ices");
+      vi.advanceTimersByTime(3_000);
+    });
+    expect(cap(seen)).toBeLessThan(2);
+    window.history.pushState(null, "", "/");
+  });
+
+  it("shows a small static cap and no falling snow under reduced motion", () => {
+    reducedMotion(true);
+    const { seen, offscreen } = cards();
+    show(seen);
+    act(() => vi.advanceTimersByTime(2_000));
+    expect(document.querySelector(".glacier-flake, .glacier-lander")).toBeNull();
+    const still = cap(seen);
+    expect(still).toBeGreaterThan(0);
+    expect(still).toBeLessThan(10);
+    act(() => vi.advanceTimersByTime(120_000));
+    expect(cap(seen)).toBe(still);
+    expect(cap(offscreen)).toBe(0);
+  });
+
+  it("stops watching when unmounted", () => {
+    const remove = vi.spyOn(window, "removeEventListener");
+    const { seen } = cards();
+    show(seen);
+    cleanup();
+    expect(observers.at(-1)!.disconnected).toBe(true);
+    expect(remove.mock.calls.map(([type]) => type)).toEqual(expect.arrayContaining(["scroll", "resize"]));
+    const before = cap(seen);
+    act(() => vi.advanceTimersByTime(60_000));
+    expect(cap(seen)).toBe(before);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

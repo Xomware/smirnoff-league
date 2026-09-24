@@ -6,7 +6,10 @@
   --gh-red-soft: #ff7a83;
   --gh-red-deep: #a8121d;
   --gh-red-hover: #e02a36;
-  --gh-row: rgb(255 255 255 / 0.06);
+  /* Solid, not translucent: the snow falls behind these cards. */
+  --gh-row: color-mix(in srgb, #fff 6%, var(--g-surface));
+  --gh-row-hover: color-mix(in srgb, #fff 11%, var(--g-surface));
+  --gh-row-press: color-mix(in srgb, #fff 16%, var(--g-surface));
   --gh-row-edge: rgb(190 235 255 / 0.16);
 
   display: flex;
@@ -576,11 +579,11 @@
 
 .gh-game:hover {
   border-color: var(--g-frost-edge);
-  background: rgb(255 255 255 / 0.11);
+  background: var(--gh-row-hover);
 }
 
 .gh-game:active {
-  background: rgb(255 255 255 / 0.16);
+  background: var(--gh-row-press);
 }
 
 .gh-side {
@@ -631,11 +634,11 @@
 
 .gh-card:hover {
   border-color: var(--g-frost-edge);
-  background: rgb(255 255 255 / 0.11);
+  background: var(--gh-row-hover);
 }
 
 .gh-card:active {
-  background: rgb(255 255 255 / 0.16);
+  background: var(--gh-row-press);
 }
 
 li[data-mine] > .gh-card {

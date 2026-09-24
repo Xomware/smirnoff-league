@@ -4,6 +4,8 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
+import { useSnowCaps } from "./use-snow-caps";
+
 import "./effects.css";
 
 const IGNORE = "a, button, input, textarea, select, label, [role=button], [data-no-snowball]";
@@ -45,6 +47,9 @@ const SNOW = (
     {FLAKES.map((style, i) => (
       <span key={i} className="glacier-flake" style={style} />
     ))}
+    {[0, 1, 2, 3].map((i) => (
+      <span key={`lander-${i}`} className="glacier-lander" />
+    ))}
   </div>
 );
 
@@ -52,6 +57,7 @@ export function Effects() {
   const reduced = useReducedMotion();
   const [balls, setBalls] = useState<Ball[]>([]);
   const nextId = useRef(1);
+  useSnowCaps(reduced);
 
   useEffect(() => {
     if (reduced) return;
