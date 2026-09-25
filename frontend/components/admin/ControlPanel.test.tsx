@@ -164,7 +164,7 @@ describe("Ices panel", () => {
       body: { iceId: "W03#R06#ADMIN1", completed: true, at: "2026-09-26T18:30:00.000Z" },
       token: "id-token",
     });
-    const week3 = (await screen.findByText(/^Week 3 ·/)).closest("details")!;
+    const week3 = await screen.findByRole("region", { name: /^Week 3 ·/ });
     await waitFor(() => expect(within(week3).getByText("Completed Sep 26")).toBeTruthy());
     expect(within(await iceRow(/W3 Team 6/)).getByRole("button", { name: "Undo" })).toBeTruthy();
   });

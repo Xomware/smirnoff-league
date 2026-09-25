@@ -96,7 +96,7 @@ describe("GlacierShell", () => {
     window.history.replaceState(null, "", "/?open=ices");
     renderShell();
     const title = screen.getByRole("heading", { level: 1 });
-    expect(title.nextElementSibling?.textContent).toBe("Every ice, week by week. Tap a week to open it.");
+    expect(title.nextElementSibling?.textContent).toBe("Who owes what and when, week by week.");
 
     fireEvent.click(nav().getByRole("link", { name: "League" }));
     await waitFor(() => expect(heading()).toBe("League Standings"));
