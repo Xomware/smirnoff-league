@@ -340,7 +340,7 @@ describe("Ice Ledger upload action", () => {
         <IcesWindow />
       </ProfileProvider>,
     );
-    const week2 = (await screen.findByText(/^Week 2 ·/)).closest("details")!;
+    const week2 = await screen.findByRole("region", { name: /^Week 2 ·/ });
     const mine = within(week2).getByRole("list", { name: "Team 13 ices" });
     await waitFor(() => expect(within(mine).getAllByRole("button", { name: "Upload chug" })).toHaveLength(4));
     expect(within(within(week2).getByRole("list", { name: "Team 12 ices" })).queryByRole("button", { name: "Upload chug" })).toBeNull();

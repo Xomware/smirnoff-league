@@ -61,7 +61,7 @@ export function LedgerWeek({ ices, players, teamFor, action }: LedgerWeekProps) 
         const owed = rows.filter((i) => i.status === "owed").length;
         return (
           <div key={rosterId} className="ice-team">
-            <DrillLink to={{ kind: "team", rosterId }}>
+            <DrillLink to={{ kind: "team", rosterId, tab: "ices" }}>
               <TeamName name={teamFor(rosterId).name} iced={owed > 0} ices={owed} />
             </DrillLink>
             <ul aria-label={`${teamFor(rosterId).name} ices`} className="mt-1 bg-(--xp-cream)">

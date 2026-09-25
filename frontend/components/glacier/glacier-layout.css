@@ -371,20 +371,21 @@
   background: var(--g-red);
 }
 
-[data-theme="glacier"] :is(.ledger-week, .ices-summary) > summary {
-  cursor: pointer;
+[data-theme="glacier"] .owe-row {
+  border-bottom-color: var(--g-line);
 }
 
-[data-theme="glacier"] :is(.ledger-week, .ices-summary):not([open]) > summary {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: 0;
+[data-theme="glacier"] .owe-row[data-level="late"] {
+  background: color-mix(in srgb, var(--g-red) 18%, transparent);
 }
 
-[data-theme="glacier"] :is(.ledger-week, .ices-summary) > summary:focus-visible {
-  outline: 3px solid var(--g-focus);
-  outline-offset: 4px;
-  border-radius: 6px;
+[data-theme="glacier"] .ledger-count {
+  font: 500 15px/1.2 var(--g-body);
+  color: var(--g-muted);
+}
+
+[data-theme="glacier"] :is(.owe-group-title, .ledger-pick) {
+  color: var(--g-text-strong);
 }
 
 /* The Ices ledger's late list and other plain lists inside a section. */

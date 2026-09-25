@@ -55,7 +55,7 @@ function scores({ week, current, games, live, teamName }: TickerSources): Ticker
     }));
 }
 
-function cause(ice: LedgerIce, players: Record<string, Player>): string {
+export function cause(ice: LedgerIce, players: Record<string, Player>): string {
   const points = ice.points === undefined ? "" : ` ${ice.points.toFixed(2)}`;
   if (ice.reason === "empty") return `empty ${ice.slot} slot`;
   if (ice.reason === "lowest") return `lowest score${points}`;

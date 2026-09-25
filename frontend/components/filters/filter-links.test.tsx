@@ -89,6 +89,16 @@ async function pick(shell: Shell, values: Record<string, string>) {
   fireEvent.click(within(sheet).getByRole("button", { name: "Apply" }));
 }
 
+// Week 1's rows run in id order, so roster 12's ice is last; its name may still be loading.
+const team12 = (owes: HTMLElement) => within(owes).getAllByRole("listitem").at(-1)!.querySelector<HTMLElement>(".xp-drill")!;
+
+// The ledger's week: a select on a phone, a dot on a desktop.
+async function pickWeek(shell: Shell, value: string) {
+  if (PHONES.includes(shell)) return fireEvent.change(await screen.findByLabelText("Showing"), { target: { value } });
+  const weeks = await screen.findByRole("group", { name: "Week" });
+  fireEvent.click(within(weeks).getByRole("button", { name: value === "season" ? "Season" : `W${value}` }));
+}
+
 // Each test renders a whole shell, which CI runs several times slower than a laptop.
 vi.setConfig({ testTimeout: 20000 });
 
@@ -129,12 +139,18 @@ describe.each(Object.keys(SHELLS) as Shell[])("filter links, %s", (shell) => {
     expect(await count()).toBe("3 videos");
   });
 
-  it("follows a ledger link to its filters and puts a picked team in the link", async () => {
-    open(shell, "?open=ices:status-paid");
-    await waitFor(async () => expect(await count()).toBe("5 ices"));
-    await pick(shell, { Team: String(W1.rosterId) });
-    await waitFor(() => expect(openParam()).toBe(`ices:team-${W1.rosterId}.status-paid`));
-    expect(await screen.findByText(/^Week 1 · 1 ice · 1 done/)).toBeTruthy();
+  it("follows a ledger link to its week and status and writes a change back in place", async () => {
+    open(shell, "?open=ices:week-1.status-paid");
+    const owes = await screen.findByRole("list", { name: "Week 1 ices" });
+    expect(within(owes).getAllByRole("listitem")).toHaveLength(5);
+    const entries = window.history.length;
+
+    await pickWeek(shell, "season");
+    await waitFor(() => expect(openParam()).toBe("ices:week-season.status-paid"));
+    fireEvent.click(within(screen.getByRole("group", { name: "Status" })).getByRole("button", { name: "All" }));
+    await waitFor(() => expect(openParam()).toBe("ices:week-season"));
+    expect(await screen.findByRole("region", { name: "Still owed" })).toBeTruthy();
+    expect(window.history.length).toBe(entries);
   });
 
   it("follows a news link to its type and clears it from the link", async () => {
@@ -146,32 +162,32 @@ describe.each(Object.keys(SHELLS) as Shell[])("filter links, %s", (shell) => {
 });
 
 describe.each(["XP phone", "Glacier phone", "Glacier desktop"] as Shell[])("filters survive history, %s", (shell) => {
-  it("comes back from a team to the filtered ledger it left", async () => {
+  it("comes back from a team's Ices tab to the ledger week it left", async () => {
     open(shell, "?open=ices");
-    await pick(shell, { Team: "13" });
-    await waitFor(() => expect(openParam()).toBe("ices:team-13"));
+    await pickWeek(shell, "1");
+    await waitFor(() => expect(openParam()).toBe("ices:week-1"));
 
-    const week2 = (await screen.findByText(/^Week 2 ·/)).closest("details")!;
-    fireEvent.click(within(week2).getByRole("button", { name: /Team 13/ }));
-    await waitFor(() => expect(openParam()).toMatch(/^team:13/));
+    const owes = await screen.findByRole("list", { name: "Week 1 ices" });
+    fireEvent.click(team12(owes));
+    await waitFor(() => expect(openParam()).toBe("team:12:ices"));
 
     act(() => window.history.back());
-    await waitFor(() => expect(openParam()).toBe("ices:team-13"));
-    expect(await count()).toBe("4 ices");
+    await waitFor(() => expect(openParam()).toBe("ices:week-1"));
+    expect(await screen.findByRole("list", { name: "Week 1 ices" })).toBeTruthy();
     act(() => window.history.forward());
-    await waitFor(() => expect(openParam()).toMatch(/^team:13/));
+    await waitFor(() => expect(openParam()).toBe("team:12:ices"));
   });
 });
 
 describe("filters survive window history, XP desktop", () => {
-  it("returns a window to the filtered ledger it drilled from", async () => {
-    open("XP desktop", "?open=ices:team-13");
-    const week2 = (await screen.findByText(/^Week 2 ·/)).closest("details")!;
-    fireEvent.click(within(week2).getByRole("button", { name: /Team 13/ }));
-    await waitFor(() => expect(openParam()).toMatch(/^team:13/));
+  it("returns a window to the ledger week it drilled from", async () => {
+    open("XP desktop", "?open=ices:week-1");
+    const owes = await screen.findByRole("list", { name: "Week 1 ices" });
+    fireEvent.click(team12(owes));
+    await waitFor(() => expect(openParam()).toBe("team:12:ices"));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Back" }).at(-1)!);
-    await waitFor(() => expect(openParam()).toBe("ices:team-13"));
-    expect(await count()).toBe("4 ices");
+    await waitFor(() => expect(openParam()).toBe("ices:week-1"));
+    expect(await screen.findByRole("list", { name: "Week 1 ices" })).toBeTruthy();
   });
 });

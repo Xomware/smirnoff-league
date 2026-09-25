@@ -6,7 +6,7 @@ import type { AdminPanel } from "@/components/admin/ControlPanel";
 import type { WindowParams } from "@/lib/desktop/windows";
 
 export type DrillTarget =
-  | { kind: "team"; rosterId: number }
+  | { kind: "team"; rosterId: number; tab?: string }
   | { kind: "player"; playerId: string }
   | { kind: "week"; week: number }
   | { kind: "game"; week: number; matchup: number }

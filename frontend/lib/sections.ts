@@ -53,7 +53,7 @@ export const SECTIONS: Section[] = [
     label: "Ices",
     pages: [
       { label: "Overview", description: "Who owes, who leads and who is running hot, on one page.", kind: "ices-overview" },
-      { label: "Ledger", description: "Every ice, week by week. Tap a week to open it.", kind: "ices" },
+      { label: "Ledger", description: "Who owes what and when, week by week.", kind: "ices" },
       { label: "Ice standings", short: "Standings", description: "Teams ranked by ices, for the season or a single week.", kind: "ice-standings" },
       { label: "Rankings", description: "Chug times ranked by personal best.", kind: "chug-rankings" },
       { label: "Stats", description: "Trends: who ices, when, and at which positions.", kind: "stats" },
