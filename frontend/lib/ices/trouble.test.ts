@@ -32,12 +32,26 @@ describe("troubleByRoster", () => {
 });
 
 describe("liveLowest", () => {
-  it("names the current lowest scorer while a game is in progress", () => {
+  // Week 3 of 2026: Thursday night kickoff, then Sunday's 1 PM ET slate. 4 PM ET that Sunday is 20:00Z (EDT).
+  const thursday = { ...game("in"), kickoff: "2026-09-25T00:15:00Z" };
+  const sunday = { ...game("in"), kickoff: "2026-09-27T17:00:00Z" };
+  const sundayFour = Date.parse("2026-09-27T20:00:00Z");
+
+  it("names the current lowest scorer once it is 4 PM ET on the week's Sunday and a game is live", () => {
     const expected = w2.filter((m) => m.points === low).map((m) => m.roster_id);
-    expect(liveLowest(2, w2, [game("post"), game("in")])).toEqual(expected);
+    expect(liveLowest(2, w2, [thursday, sunday], sundayFour)).toEqual(expected);
+  });
+
+  it("names nobody before 4 PM ET Sunday, when most teams have barely played", () => {
+    expect(liveLowest(2, w2, [thursday, { ...sunday, state: "pre" }], Date.parse("2026-09-25T02:00:00Z"))).toEqual([]);
+    expect(liveLowest(2, w2, [thursday, sunday], sundayFour - 60_000)).toEqual([]);
   });
 
   it("names nobody when no game is live", () => {
-    expect(liveLowest(2, w2, [game("pre"), game("post")])).toEqual([]);
+    expect(liveLowest(2, w2, [{ ...thursday, state: "post" }, { ...sunday, state: "post" }], sundayFour)).toEqual([]);
+  });
+
+  it("names nobody when the schedule has no Sunday game to anchor on", () => {
+    expect(liveLowest(2, w2, [thursday], sundayFour)).toEqual([]);
   });
 });
