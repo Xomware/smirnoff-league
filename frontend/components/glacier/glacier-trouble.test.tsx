@@ -101,6 +101,9 @@ describe("Glacier trouble highlights", () => {
   const lowest = w3.reduce((a, b) => (b.points < a.points ? b : a)).roster_id;
 
   beforeEach(() => {
+    // Sunday 5 PM ET: the live lowest score only counts from 4 PM ET on the week's Sunday.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-27T21:00:00Z"));
     const sleeper = vi.mocked(fetch).getMockImplementation()!;
     vi.mocked(fetch).mockImplementation(async (input, init) => {
       const url = String(input);
