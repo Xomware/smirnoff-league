@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AwardsCard } from "@/components/home/AwardsCard";
 import { ChugBoard } from "@/components/home/ChugBoard";
 import { ChugReel } from "@/components/home/ChugReel";
+import { DueCard } from "@/components/home/DueCard";
 import { DrillLink } from "@/components/views/drill-link";
 import { IceBadge } from "@/components/xp/IceBadge";
 import { TeamName } from "@/components/xp/TeamName";
@@ -93,6 +94,7 @@ export function HomeWindow() {
 
   return (
     <div className="grid gap-3">
+      <DueCard className="xp-group" titleClass="xp-group-title" />
       {ledger.status === "ok" && (
         <div className="home-chugs">
           <div className="home-chugs-grid">

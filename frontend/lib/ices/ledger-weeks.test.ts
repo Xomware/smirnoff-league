@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Ledger, LedgerIce } from "@/lib/api/ledger";
-import { clock, dueWeek, etDeadline, owedGroups, rowOrder } from "./ledger-weeks";
+import { clock, dueWeek, etDeadline, nextDue, nextSunday, owedGroups, rowOrder } from "./ledger-weeks";
 
 const ice = (over: Partial<LedgerIce>): LedgerIce => ({ iceId: "W02#R4#0", week: 2, rosterId: 4, reason: "zero", status: "owed", ...over });
 
@@ -77,5 +77,22 @@ describe("clock", () => {
   it("names the deadline in Eastern time across the fall-back", () => {
     expect(etDeadline(deadline)).toBe("Sun 1 PM ET");
     expect(etDeadline(at("2026-11-01T18:00:00Z"))).toBe("Sun 1 PM ET");
+  });
+});
+
+describe("nextDue", () => {
+  it("takes the soonest upcoming deadline's ices, paid and owed, with every late ice apart", () => {
+    const due = nextDue(LEDGER, at("2026-09-25T12:00:00Z"));
+    expect(due.week).toBe(2);
+    expect(due.deadline).toBe(at("2026-09-27T17:00:00Z"));
+    expect(due.ices.map((i) => i.iceId)).toEqual(["W02#R4#0", "W02#R9#0"]);
+    expect(due.late.map((i) => i.iceId)).toEqual(["W01#R7#0", "W01#R7#0#LATE1"]);
+  });
+
+  it("with nothing upcoming, points at next Sunday 1 PM Eastern, across the fall-back too", () => {
+    const due = nextDue(LEDGER, at("2026-10-05T12:00:00Z"));
+    expect(due).toMatchObject({ week: null, ices: [], deadline: at("2026-10-11T17:00:00Z") });
+    expect(nextSunday(at("2026-10-30T12:00:00Z"))).toBe(at("2026-11-01T18:00:00Z"));
+    expect(nextSunday(at("2026-10-11T17:30:00Z"))).toBe(at("2026-10-18T17:00:00Z"));
   });
 });

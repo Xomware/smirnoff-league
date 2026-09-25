@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useContext } from "react";
 
 import { AwardsCard } from "@/components/home/AwardsCard";
+import { DueCard } from "@/components/home/DueCard";
 import { DrillContext, DrillLink } from "@/components/views/drill-link";
 import { useLedger } from "@/lib/ices/use-ledger";
 import { useDefaultWeek } from "@/lib/league/default-week";
@@ -88,6 +89,7 @@ export function HomeScreen() {
           <p className="m-hero-sub">Stay hydrated. Stay iced.</p>
         </div>
       </section>
+      <DueCard className="m-section" titleClass="m-section-title" Heading="h2" />
       <YourIces />
       {ledger.status === "ok" && (
         <ChugBoardCards ledger={ledger.ledger} videos={videos.status === "ok" ? videos.videos : []} onVideoError={onVideoError} />

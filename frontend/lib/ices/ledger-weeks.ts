@@ -51,3 +51,39 @@ const ET_DAY = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", 
 
 export const etDeadline = (ms: number) => `${ET_HOUR.format(ms)} ET`;
 export const etDay = (ms: number) => ET_DAY.format(ms);
+
+const ET_PARTS = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", hourCycle: "h23" });
+const DAY = 86_400_000;
+
+// The league's deadline hour: Sunday 13:00 in New York, whatever its offset that day.
+export function nextSunday(now: number): number {
+  for (let day = 0; day <= 8; day++) {
+    const parts = Object.fromEntries(ET_PARTS.formatToParts(now + day * DAY).map((p) => [p.type, p.value]));
+    if (parts.weekday !== "Sun") continue;
+    for (const utcHour of [17, 18]) {
+      const t = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day), utcHour);
+      const hour = ET_PARTS.formatToParts(t).find((p) => p.type === "hour")?.value;
+      if (hour === "13" && t > now) return t;
+    }
+  }
+  throw new Error("no Sunday within eight days");
+}
+
+export interface NextDue {
+  week: number | null;
+  deadline: number;
+  /** The week's original ices, paid and owed. */
+  ices: LedgerIce[];
+  late: LedgerIce[];
+}
+
+export function nextDue(ledger: Ledger, now: number): NextDue {
+  const order = rowOrder(ledger, now);
+  const late = ledger.ices.filter((i) => i.status === "owed" && lateNow(ledger, i, now)).sort(order);
+  const upcoming = finalized(ledger)
+    .flatMap((w) => (w.deadlineUtc && Date.parse(w.deadlineUtc) > now ? [{ week: w.week, deadline: Date.parse(w.deadlineUtc) }] : []))
+    .sort((a, b) => a.deadline - b.deadline)[0];
+  if (!upcoming) return { week: null, deadline: nextSunday(now), ices: [], late };
+  const ices = ledger.ices.filter((i) => i.week === upcoming.week && i.reason !== "late").sort(order);
+  return { ...upcoming, ices, late };
+}
