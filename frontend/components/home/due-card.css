@@ -1,0 +1,56 @@
+.due-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.due-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.due-head > .xp-drill {
+  min-height: 2.75rem;
+  align-items: center;
+  text-decoration: underline;
+}
+
+.due-clock,
+.due-square {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.due-count {
+  font: bold 2.5rem/1 var(--xp-title-font);
+  font-variant-numeric: tabular-nums;
+  color: var(--xp-red);
+}
+
+.due-next {
+  font-size: 0.875rem;
+}
+
+.due-square {
+  font-weight: bold;
+}
+
+.due-square .due-next {
+  font-weight: normal;
+}
+
+[data-theme="glacier"] .due-count,
+.m-app.glacier .due-count {
+  font-family: var(--g-display);
+  font-size: 56px;
+  line-height: 0.9;
+  color: var(--g-red-text);
+}
+
+/* Glacier Home's panels span the page column, not the narrower reading column. */
+.gh > .gh-due-card {
+  max-width: none;
+  margin-inline: 0;
+}

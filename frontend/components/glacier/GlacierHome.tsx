@@ -5,6 +5,7 @@ import { type Ref, useContext, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { iceCauseText } from "@/components/videos/ice-label";
+import { DueSunday, useDueLink } from "@/components/home/DueCard";
 import { UploadChug } from "@/components/videos/UploadChug";
 import { DrillContext, type DrillTarget } from "@/components/views/drill-link";
 import { TroubleTags } from "@/components/xp/TeamName";
@@ -270,6 +271,14 @@ function lede(ledger: LedgerState): string {
   return `Week ${week} left ${plural(n, "ice")}. ${deadline}`;
 }
 
+function DuePanel() {
+  return (
+    <Panel id="home-due" label="Due Sunday" className="gh-due-card" all={useDueLink()} more="See ledger">
+      <DueSunday />
+    </Panel>
+  );
+}
+
 interface GlacierHomeProps {
   ref?: Ref<HTMLHeadingElement>;
   // The phone shell's bar holds the page's h1, so its hero title is an h2.
@@ -310,6 +319,7 @@ export function GlacierHome({ ref, phone = false }: GlacierHomeProps) {
         )}
         <Image src="/brand/mascot.png" alt="The league mascot, a robot chugging a Smirnoff Ice" width={146} height={160} priority className="gh-mascot" />
       </section>
+      <DuePanel />
       <QuickHitters week={week} games={games} phone={phone} />
       <div className="gh-grid">
         <YourIces />

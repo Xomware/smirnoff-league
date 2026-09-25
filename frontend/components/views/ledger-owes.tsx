@@ -48,10 +48,12 @@ interface OweRowsProps {
   teamFor: (rosterId: number) => Team;
   videos: Video[];
   onPlay: (video: Video, label: string) => void;
+  // Home's card: one big countdown above, so each row only says Owes or LATE.
+  plain?: boolean;
 }
 
 // One line per ice: who, then its clock or its chug; what and when underneath.
-export function OweRows({ label, ledger, ices, now, players, teamFor, videos, onPlay }: OweRowsProps) {
+export function OweRows({ label, ledger, ices, now, players, teamFor, videos, onPlay, plain = false }: OweRowsProps) {
   return (
     <ul aria-label={label} className="owe-rows">
       {ices.map((ice) => {
@@ -59,7 +61,8 @@ export function OweRows({ label, ledger, ices, now, players, teamFor, videos, on
         const paid = ice.status === "completed";
         const deadline = deadlineOf(ledger, ice.week);
         // A late row can predate its week's deadline when an admin backdates one.
-        const due = lateNow(ledger, ice, now) && (deadline === null || deadline > now) ? { level: "late", text: "LATE" } : clock(deadline, now);
+        const late = lateNow(ledger, ice, now);
+        const due = plain || (late && (deadline === null || deadline > now)) ? { level: late ? "late" : "due", text: late ? "LATE" : "Owes" } : clock(deadline, now);
         const video = paid ? videoFor(videos, ice) : undefined;
         return (
           <li key={ice.iceId} className="owe-row" data-level={paid ? "paid" : due.level}>
@@ -78,7 +81,7 @@ export function OweRows({ label, ledger, ices, now, players, teamFor, videos, on
             )}
             <span className="owe-why">
               W{ice.week} · {oweCause(ice, ledger, players)}
-              {!paid && deadline !== null && ` · due ${etDeadline(deadline)}`}
+              {!paid && !plain && deadline !== null && ` · due ${etDeadline(deadline)}`}
             </span>
           </li>
         );

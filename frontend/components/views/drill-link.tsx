@@ -8,6 +8,7 @@ import type { WindowParams } from "@/lib/desktop/windows";
 export type DrillTarget =
   | { kind: "team"; rosterId: number; tab?: string }
   | { kind: "player"; playerId: string }
+  | { kind: "ices"; filter: string }
   | { kind: "week"; week: number }
   | { kind: "game"; week: number; matchup: number }
   | { kind: "news" }
